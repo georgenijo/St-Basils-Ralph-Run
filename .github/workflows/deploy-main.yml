@@ -47,7 +47,7 @@ jobs:
           # Adjust local-dir if your built files are in ./build
           local-dir: ./
           # The production folder on GoDaddy
-          server-dir: /new_website/root
+          server-dir: /new_website/root/
 
           exclude: |
             **/.git*
