@@ -52,7 +52,7 @@ jobs:
           # Change local-dir if your site is built into a subfolder (e.g., ./build)
           local-dir: ./
           # Adjust server-dir to the actual folder for staging on GoDaddy
-          server-dir: /preprod.stbasilsboston.org
+          server-dir: /preprod.stbasilsboston.org/
           
           exclude: |
             **/.git*
