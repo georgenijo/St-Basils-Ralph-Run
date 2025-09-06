@@ -54,6 +54,22 @@
       background-color: #ccd5ae !important;
       opacity: 1 !important;
     }
+    
+    /* Fade-in animation with delay */
+    @keyframes fadeInDelayed {
+      0% {
+        opacity: 0;
+      }
+      100% {
+        opacity: 1;
+      }
+    }
+    
+    .fade-in-delayed {
+      opacity: 0;
+      animation: fadeInDelayed 1s ease-in forwards;
+      animation-delay: 0.8s;
+    }
   </style>
 
   <!-- =======================================================
@@ -115,7 +131,7 @@
         <img src="assets/img/hio.png" alt="" style="position: absolute; bottom: 150px; right: 35px; height: 50px; width: auto;">
         
         <!-- Welcome home overlay image -->
-        <img src="assets/img/welcome home.png" alt="" style="position: absolute; top: 50%; left: auto; right: 50px; transform: translateY(calc(-50% + 332px)); height: 50px; width: auto;">
+        <img src="assets/img/welcome home.png" alt="" class="fade-in-delayed" style="position: absolute; top: 50%; left: auto; right: 70px; transform: translateY(calc(-50% + 332px)); height: 50px; width: auto;">
       </div>
 
       <div class="container text-end position-absolute bottom-0 end-0 pe-5" style="padding-bottom: 96px;" data-aos="fade-up" data-aos-delay="100">
