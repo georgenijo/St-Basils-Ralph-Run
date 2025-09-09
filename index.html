@@ -51,13 +51,14 @@
     /* White text for transparent header */
     .index-page .header:not(.scrolled) .navmenu a,
     .index-page .header:not(.scrolled) .navmenu a:focus {
-      color: #ffffff !important;
+      color: #F2FDFF !important;
     }
     
     /* Dropdown menu font styles */
     .navmenu .dropdown ul a {
       font-family: 'Libre Baskerville', serif !important;
-      color: #283618 !important;
+      color: #F2FDFF !important;
+      background-color: rgba(0, 0, 0, 0.8) !important;
     }
     
     /* Active and hover states */
@@ -68,8 +69,8 @@
     .navmenu .dropdown ul .active:hover,
     .navmenu .dropdown ul li:hover>a {
       font-family: 'Libre Baskerville', serif !important;
-      color: #283618 !important;
-      background-color: #ccd5ae !important;
+      color: #F2FDFF !important;
+      background-color: rgba(204, 213, 174, 0.2) !important;
       opacity: 1 !important;
     }
     
@@ -78,7 +79,7 @@
     .index-page .header:not(.scrolled) .navmenu .active,
     .index-page .header:not(.scrolled) .navmenu .active:focus {
       background-color: rgba(204, 213, 174, 0.3) !important;
-      color: #ffffff !important;
+      color: #F2FDFF !important;
     }
     
     /* Fade-in animation with delay */
@@ -104,6 +105,127 @@
     
     #services {
       background-color: #FEFAE0;
+    }
+    
+    /* Typewriter animation for "Come As You Are" */
+    @keyframes typewriter {
+      from {
+        width: 0;
+      }
+      to {
+        width: 100%;
+      }
+    }
+    
+    @keyframes blinkCursor {
+      50% {
+        border-color: transparent;
+      }
+    }
+    
+    @keyframes removeCursor {
+      to {
+        border-right-color: transparent;
+      }
+    }
+    
+    .typewriter-text {
+      display: inline-block;
+      overflow: hidden;
+      white-space: nowrap;
+      width: 0;
+      border-right: 3px solid #F2FDFF;
+      padding-right: 3px; /* Reserve space for cursor */
+      animation: 
+        typewriter 2.5s steps(15, end) 0.5s forwards,
+        blinkCursor 0.75s step-end 0.5s 4,
+        removeCursor 0s 3.5s forwards; /* Remove cursor after 3.5s total (0.5s delay + 2.5s animation + 0.5s extra) */
+    }
+    
+    /* Container to maintain layout */
+    .typewriter-container {
+      display: block;
+      text-align: center;
+      min-height: 90px; /* Matches font size to prevent layout shift */
+    }
+    
+    /* Drop-down animation for church name and Matthew quote */
+    @keyframes dropDown {
+      from {
+        opacity: 0;
+        transform: translateY(-30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .drop-down-church {
+      display: inline-block;
+      opacity: 0;
+      animation: dropDown 2.5s ease-out 0.5s forwards; /* Slower animation (2.5s) */
+    }
+    
+    .drop-down-quote {
+      display: inline-block;
+      opacity: 0;
+      animation: dropDown 2.5s ease-out 0.5s forwards; /* Slower animation (2.5s) */
+    }
+    
+    .quote-container {
+      display: block;
+      text-align: center;
+      min-height: 25px; /* Prevent layout shift */
+    }
+    
+    .church-container {
+      display: block;
+      text-align: center;
+      min-height: 35px; /* Prevent layout shift */
+    }
+    
+    /* Fade-in animation for borders and cross */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+    
+    .fade-in-border {
+      opacity: 0;
+      animation: fadeIn 2.5s ease-out 0.5s forwards; /* Same timing as drop-down animations */
+    }
+    
+    /* Mute/Unmute button styles */
+    .audio-control {
+      position: absolute;
+      bottom: 30px;
+      left: 30px;
+      z-index: 20;
+      background-color: rgba(0, 0, 0, 0.5);
+      border: 1px solid #F2FDFF;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .audio-control:hover {
+      background-color: rgba(0, 0, 0, 0.7);
+      transform: scale(1.1);
+    }
+    
+    .audio-control i {
+      color: #F2FDFF;
+      font-size: 20px;
     }
   </style>
 
@@ -157,6 +279,17 @@
 
       <video src="assets/img/intro vid.mp4" autoplay loop muted playsinline data-aos="fade-in" style="position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; z-index: 1; filter: brightness(0.8);"></video>
       
+      <!-- Background Audio -->
+      <audio id="backgroundMusic" autoplay loop>
+        <source src="assets/img/audio/our father audio.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+      </audio>
+      
+      <!-- Mute/Unmute Button -->
+      <button class="audio-control" onclick="toggleAudio()" aria-label="Toggle audio">
+        <i id="audioIcon" class="bi bi-volume-up-fill"></i>
+      </button>
+      
       <!-- Overlay images container -->
       <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5;">
         <!-- Hero overlay image -->
@@ -169,7 +302,7 @@
       <!-- Hero Text Content -->
       <div style="position: absolute; top: calc(50% + 80px); left: 50%; transform: translate(-50%, -50%); text-align: center; z-index: 10; max-width: 900px; width: 90%;">
         <!-- Border box with cross decoration -->
-        <div style="position: relative; border-left: 1px solid #F2FDFF; border-right: 1px solid #F2FDFF; border-bottom: 1px solid #F2FDFF; padding: 60px 40px 40px 40px;">
+        <div class="fade-in-border" style="position: relative; border-left: 1px solid #F2FDFF; border-right: 1px solid #F2FDFF; border-bottom: 1px solid #F2FDFF; padding: 60px 40px 40px 40px;">
           <!-- Top border with cross -->
           <div style="position: absolute; top: 0; left: 0; right: 0; height: 1px;">
             <!-- Left line -->
@@ -185,9 +318,15 @@
             <div style="position: absolute; top: 0; right: 0; width: calc(50% - 60px); height: 1px; background-color: #F2FDFF;"></div>
           </div>
           
-          <h2 style="font-family: 'Poppins', sans-serif; color: #F2FDFF; font-size: 30px; font-weight: 700; margin: 0 auto 10px auto; text-shadow: none; text-transform: none;">St. Basil's Syriac Orthodox Church</h2>
-          <h1 style="font-family: 'Libre Baskerville', serif; color: #F2FDFF; font-size: 90px; font-weight: 700; margin: 0 auto; text-shadow: none; text-transform: none;">Come As You Are</h1>
-          <p style="font-family: 'Poppins', sans-serif; color: #F2FDFF; font-size: 20px; font-style: italic; margin: 20px auto 0 auto; text-shadow: none; text-transform: none;">"Come to me, all you who are weary and burdened, and I will give you rest." - Matthew 11:28</p>
+          <div class="church-container">
+            <h2 class="drop-down-church" style="font-family: 'Poppins', sans-serif; color: #F2FDFF; font-size: 30px; font-weight: 700; margin: 0 auto 10px auto; text-shadow: none; text-transform: none;">St. Basil's Syriac Orthodox Church</h2>
+          </div>
+          <div class="typewriter-container">
+            <h1 class="typewriter-text" style="font-family: 'Libre Baskerville', serif; color: #F2FDFF; font-size: 90px; font-weight: 700; margin: 0 auto; text-shadow: none; text-transform: none;">Come As You Are</h1>
+          </div>
+          <div class="quote-container">
+            <p class="drop-down-quote" style="font-family: 'Poppins', sans-serif; color: #F2FDFF; font-size: 20px; font-style: italic; margin: 20px auto 0 auto; text-shadow: none; text-transform: none;">"Come to me, all you who are weary and burdened, and I will give you rest." - Matthew 11:28</p>
+          </div>
         </div>
       </div>
 
@@ -336,6 +475,32 @@
 
   <!-- Preloader -->
   <div id="preloader"></div>
+
+  <script>
+    // Set initial volume and handle mute/unmute
+    window.addEventListener('DOMContentLoaded', function() {
+      const audio = document.getElementById('backgroundMusic');
+      const audioIcon = document.getElementById('audioIcon');
+      
+      // Set initial volume to 30%
+      if (audio) {
+        audio.volume = 0.3;
+      }
+    });
+    
+    function toggleAudio() {
+      const audio = document.getElementById('backgroundMusic');
+      const audioIcon = document.getElementById('audioIcon');
+      
+      if (audio.paused) {
+        audio.play();
+        audioIcon.className = 'bi bi-volume-up-fill';
+      } else {
+        audio.pause();
+        audioIcon.className = 'bi bi-volume-mute-fill';
+      }
+    }
+  </script>
 
   <!-- Vendor JS Files -->
   <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
