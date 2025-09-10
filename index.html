@@ -107,6 +107,84 @@
       background-color: #FEFAE0;
     }
     
+    /* Responsive styles for custom sections */
+    @media (max-width: 768px) {
+      /* Info box responsive styles */
+      .info-box {
+        height: auto !important;
+        min-height: 200px !important;
+        margin-left: 20px !important;
+        margin-right: 20px !important;
+        flex-direction: column !important;
+      }
+      
+      .info-box > div:not(.divider) {
+        padding: 15px !important;
+        min-height: 150px;
+      }
+      
+      .info-box .divider {
+        width: 100% !important;
+        height: 1px !important;
+      }
+      
+      /* Feast section responsive styles */
+      .feast-section {
+        min-height: auto !important;
+        padding: 30px 15px !important;
+      }
+      
+      .feast-title {
+        font-size: 24px !important;
+      }
+      
+      .feast-date {
+        font-size: 28px !important;
+      }
+      
+      .feast-invite {
+        font-size: 16px !important;
+        letter-spacing: 1px !important;
+        padding: 0 15px;
+      }
+      
+      .feast-schedule-box {
+        height: auto !important;
+        margin-left: 15px !important;
+        margin-right: 15px !important;
+        flex-direction: column !important;
+      }
+      
+      .feast-schedule-box > div:not(.divider) {
+        padding: 20px 15px !important;
+        min-height: 180px;
+      }
+      
+      .feast-schedule-box .divider {
+        width: 100% !important;
+        height: 1px !important;
+      }
+      
+      /* Where to Park link responsive */
+      .parking-link {
+        font-size: 14px !important;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .feast-title {
+        font-size: 20px !important;
+      }
+      
+      .feast-date {
+        font-size: 24px !important;
+      }
+      
+      .feast-invite {
+        font-size: 14px !important;
+      }
+    }
+    
     /* Typewriter animation for "Come As You Are" */
     @keyframes typewriter {
       from {
@@ -339,7 +417,7 @@
     <section id="services" class="services section" style="padding-top: 0; position: relative;">
       <div class="container" style="position: relative;">
         <!-- Rectangular box with overlap -->
-        <div style="
+        <div class="info-box" style="
           background-color: #C4A484;
           height: 2.5in;
           margin-left: 2in;
@@ -391,7 +469,7 @@
             </p>
             
             <!-- Parking Directions link -->
-            <a href="parking.html" style="
+            <a href="parking.html" class="parking-link" style="
               color: #FEFAE0;
               text-decoration: underline;
               font-family: 'Poppins', sans-serif;
@@ -404,7 +482,7 @@
           </div>
           
           <!-- First divider -->
-          <div style="
+          <div class="divider" style="
             width: 1px;
             background-color: #FEFAE0;
             height: 100%;
@@ -452,7 +530,7 @@
           </div>
           
           <!-- Second divider -->
-          <div style="
+          <div class="divider" style="
             width: 1px;
             background-color: #FEFAE0;
             height: 100%;
@@ -501,6 +579,133 @@
         </div>
       </div>
     </section><!-- /Services Section -->
+
+    <!-- New Section -->
+    <section class="new-section feast-section" style="background-color: #91203C; min-height: 8in; padding: 40px 0; display: flex; align-items: center;">
+      <div class="container" data-aos="fade-up" style="text-align: center;">
+        <h2 class="feast-title" style="
+          font-family: 'Poppins', sans-serif;
+          font-weight: bold;
+          font-size: 30px;
+          color: #FEFAE0;
+          margin: 0;
+          margin-bottom: 5px;
+        ">Gather with Us for Our Church Feast</h2>
+        <img src="assets/img/index page/banner.png" alt="Church Feast Banner" style="
+          max-width: 100%;
+          height: auto;
+          display: block;
+          margin: 0 auto;
+          margin-top: 0;
+        ">
+        <p class="feast-date" style="
+          font-family: 'Poppins', sans-serif;
+          font-weight: bold;
+          font-size: 40px;
+          color: #FFFFFF;
+          margin: 0;
+          margin-top: 3px;
+          text-align: center;
+          text-transform: uppercase;
+        ">September 27 & 28, 2025</p>
+        <p class="feast-invite" style="
+          font-family: 'Poppins', sans-serif;
+          font-weight: normal;
+          font-style: italic;
+          font-size: 20px;
+          color: #FEFAE0;
+          margin: 20px auto 0 auto;
+          text-align: center;
+          max-width: 1000px;
+          line-height: 1.6;
+          letter-spacing: 2px;
+        ">We extend to you all our warmest invitation to join us in this blessed celebration and receive the divine grace through the intercession of St. Baselious Yeldho Bava. Our festivities will be graced by the esteemed presence of our beloved<br>Archbishop & Patriarchal Vicar of the Malankara Archdiocese of the Syrian Orthodox Church in North America, <strong>His Eminence Mor Titus Yeldho</strong>.</p>
+        
+        <!-- Rectangular box with two sections -->
+        <div class="feast-schedule-box" style="
+          background-color: #A72545;
+          height: 2in;
+          margin-left: 2in;
+          margin-right: 2in;
+          margin-top: 20px;
+          box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+          display: flex;
+        ">
+          <!-- First section -->
+          <div style="
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            text-align: center;
+          ">
+            <h3 style="
+              font-family: 'Libre Baskerville', serif;
+              font-weight: bold;
+              color: #FEFAE0;
+              margin: 0 0 15px 0;
+              font-size: 18px;
+              text-decoration: underline;
+            ">Saturday, Sept. 27th</h3>
+            <p style="
+              font-family: 'Poppins', sans-serif;
+              font-weight: bold;
+              color: #FEFAE0;
+              margin: 0;
+              font-size: 16px;
+              line-height: 1.8;
+            ">
+              6PM: Flag Hoisting<br>
+              6:30PM: Evening Prayer<br>
+              8PM: Devotional Address<br>
+              9PM: Dinner
+            </p>
+          </div>
+          
+          <!-- Divider -->
+          <div class="divider" style="
+            width: 1px;
+            background-color: #91203C;
+            height: 100%;
+          "></div>
+          
+          <!-- Second section -->
+          <div style="
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            text-align: center;
+          ">
+            <h3 style="
+              font-family: 'Libre Baskerville', serif;
+              font-weight: bold;
+              color: #FEFAE0;
+              margin: 0 0 15px 0;
+              font-size: 18px;
+              text-decoration: underline;
+            ">Sunday, Sept. 28th</h3>
+            <p style="
+              font-family: 'Poppins', sans-serif;
+              font-weight: bold;
+              color: #FEFAE0;
+              margin: 0;
+              font-size: 16px;
+              line-height: 1.8;
+            ">
+              8:30AM: Morning Prayer<br>
+              9:30AM: Holy Qurbono, H.E. Mor Titus Yeldho<br>
+              11:30AM: Procession & Benediction<br>
+              1PM: Lunch
+            </p>
+          </div>
+        </div>
+      </div>
+    </section><!-- /New Section -->
 
     <!-- Contact Section -->
     <section id="contact" class="contact section">
