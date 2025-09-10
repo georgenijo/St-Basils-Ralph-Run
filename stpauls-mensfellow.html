@@ -33,26 +33,50 @@
     .navmenu a,
     .navmenu a:focus {
       font-family: 'Libre Baskerville', serif !important;
-      color: #283618 !important;
+      color: #253341 !important;
     }
-    
-    /* Dropdown menu font styles */
-    .navmenu .dropdown ul a {
+
+    /* Dropdown menu styles */
+    .navmenu .dropdown ul {
+      background: #FEFAE0 !important;
+    }
+
+    .navmenu .dropdown ul a,
+    .navmenu .dropdown ul a:link,
+    .navmenu .dropdown ul a:visited {
       font-family: 'Libre Baskerville', serif !important;
-      color: #283618 !important;
+      color: #253341 !important;
+      background-color: transparent !important;
     }
-    
-    /* Active and hover states */
-    .navmenu li:hover>a,
-    .navmenu .active,
-    .navmenu .active:focus,
+
+    /* Dropdown hover states */
+    .navmenu .dropdown ul li:hover,
+    .navmenu .dropdown ul li a:hover {
+      background-color: rgba(196, 164, 132, 0.5) !important;
+    }
+
     .navmenu .dropdown ul a:hover,
     .navmenu .dropdown ul .active:hover,
     .navmenu .dropdown ul li:hover>a {
       font-family: 'Libre Baskerville', serif !important;
-      color: #283618 !important;
-      background-color: #ccd5ae !important;
+      color: #253341 !important;
+      background-color: transparent !important;
       opacity: 1 !important;
+    }
+    
+    /* Active and hover states for non-dropdown items */
+    .navmenu li:hover>a,
+    .navmenu .active,
+    .navmenu .active:focus {
+      font-family: 'Libre Baskerville', serif !important;
+      color: #253341 !important;
+      background-color: rgba(196, 164, 132, 0.2) !important;
+      opacity: 1 !important;
+    }
+
+    .header {
+      background-color: #FEFAE0; /* Light cream background color */
+      opacity: 1; /* Remove transparency */
     }
   </style>
 </head>
@@ -66,7 +90,7 @@
     
           <nav id="navmenu" class="navmenu">
             <ul>
-              <li><a href="index.html#hero" class="active">Home</a></li>
+              <li><a href="index.html#hero">Home</a></li>
               <li><a href="about.html">About</a></li>
               <li class="dropdown"><a href="#"><span>Our Organizations</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
                 <ul>

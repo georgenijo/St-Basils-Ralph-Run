@@ -48,29 +48,53 @@
       color: #283618 !important;
     }
     
-    /* White text for transparent header */
-    .index-page .header:not(.scrolled) .navmenu a,
-    .index-page .header:not(.scrolled) .navmenu a:focus {
+    /* White text for transparent header (but not dropdown) */
+    .index-page .header:not(.scrolled) .navmenu > ul > li > a,
+    .index-page .header:not(.scrolled) .navmenu > ul > li > a:focus {
       color: #F2FDFF !important;
     }
     
-    /* Dropdown menu font styles */
-    .navmenu .dropdown ul a {
+    /* Dark text for dropdown even in transparent header */
+    .index-page .header:not(.scrolled) .navmenu .dropdown ul a,
+    .index-page .header:not(.scrolled) .navmenu .dropdown ul a:focus {
+      color: #253341 !important;
+    }
+    
+    /* Dropdown menu styles */
+    .navmenu .dropdown ul {
+      background: #FEFAE0 !important;
+    }
+    
+    .navmenu .dropdown ul a,
+    .navmenu .dropdown ul a:link,
+    .navmenu .dropdown ul a:visited {
       font-family: 'Libre Baskerville', serif !important;
-      color: #F2FDFF !important;
-      background-color: rgba(0, 0, 0, 0.8) !important;
+      color: #253341 !important;
+      background-color: transparent !important;
     }
     
     /* Active and hover states */
     .navmenu li:hover>a,
     .navmenu .active,
-    .navmenu .active:focus,
+    .navmenu .active:focus {
+      font-family: 'Libre Baskerville', serif !important;
+      color: #F2FDFF !important;
+      background-color: rgba(204, 213, 174, 0.2) !important;
+      opacity: 1 !important;
+    }
+    
+    /* Dropdown hover states */
+    .navmenu .dropdown ul li:hover,
+    .navmenu .dropdown ul li a:hover {
+      background-color: rgba(196, 164, 132, 0.5) !important;
+    }
+    
     .navmenu .dropdown ul a:hover,
     .navmenu .dropdown ul .active:hover,
     .navmenu .dropdown ul li:hover>a {
       font-family: 'Libre Baskerville', serif !important;
-      color: #F2FDFF !important;
-      background-color: rgba(204, 213, 174, 0.2) !important;
+      color: #253341 !important;
+      background-color: transparent !important;
       opacity: 1 !important;
     }
     
@@ -80,6 +104,18 @@
     .index-page .header:not(.scrolled) .navmenu .active:focus {
       background-color: rgba(204, 213, 174, 0.3) !important;
       color: #F2FDFF !important;
+    }
+    
+    /* Hover states for scrolled/opaque header */
+    .index-page .header.scrolled .navmenu li:hover>a {
+      background-color: rgba(196, 164, 132, 0.2) !important; /* C4A484 with 20% opacity */
+      color: #253341 !important;
+    }
+    
+    .index-page .header.scrolled .navmenu .dropdown ul a:hover,
+    .index-page .header.scrolled .navmenu .dropdown ul li:hover>a {
+      background-color: rgba(196, 164, 132, 0.5) !important; /* C4A484 with 50% opacity for dropdown */
+      color: #253341 !important;
     }
     
     /* Fade-in animation with delay */
@@ -105,6 +141,11 @@
     
     #services {
       background-color: #FEFAE0;
+    }
+    
+    /* Back to top button color */
+    .scroll-top {
+      background-color: #91203C !important;
     }
     
     /* Responsive styles for custom sections */
