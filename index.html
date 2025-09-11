@@ -346,6 +346,27 @@
       color: #F2FDFF;
       font-size: 20px;
     }
+
+    /* Typewriter animation styles */
+    @keyframes typewriter {
+      from { width: 0; }
+      to { width: 100%; }
+    }
+
+    @keyframes blink {
+      50% { border-color: transparent; }
+    }
+
+    @keyframes fadeInBox {
+      from { 
+        opacity: 0;
+        transform: scale(0.8);
+      }
+      to { 
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
   </style>
 
   <!-- =======================================================
@@ -798,6 +819,28 @@
       </div>
     </section><!-- /FAEDCD Section -->
 
+    <!-- New Maroon Section -->
+    <section id="office-bearers-section" style="background-color: #91203C; min-height: 2in; width: 100%; display: flex; align-items: center; padding: 2rem 0;">
+      <div class="container">
+        <div class="row align-items-center">
+          <!-- Text Content on Left -->
+          <div class="col-lg-8 d-flex align-items-center">
+            <p id="office-bearers-text" style="font-family: 'Poppins', sans-serif; font-weight: 400; font-style: italic; color: #FEFAE0; font-size: 20px; margin: 0; letter-spacing: 1px; opacity: 0; transition: opacity 1.5s ease-in-out;">
+              Get to know the devoted leaders who serve as our Church Office Bearers. Elected by our congregation, these individuals provide essential guidance and oversight that keeps our church community strong and vibrant.
+            </p>
+          </div>
+          <!-- Office Bearers Title on Right -->
+          <div class="col-lg-4 d-flex justify-content-center align-items-center">
+            <div id="office-bearers-box" style="border: 1px solid #FEFAE0; padding: 0.75rem 1.5rem; display: inline-block; opacity: 0;">
+              <p style="font-family: 'Poppins', sans-serif; font-weight: 400; color: #FEFAE0; text-transform: uppercase; margin: 0; font-size: 20px; letter-spacing: 1px;">
+                <i class="bi bi-people" style="margin-right: 8px;"></i>Our Office Bearers
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section><!-- /Maroon Section -->
+
 
   </main>
 
@@ -846,6 +889,43 @@
 
   <!-- Main JS File -->
   <script src="assets/js/main.js"></script>
+
+  <!-- Fade In Animation Script -->
+  <script>
+    // Fade in effect for office bearers section
+    let hasAnimated = false;
+    
+    function checkScroll() {
+      if (hasAnimated) return;
+      
+      const section = document.getElementById('office-bearers-section');
+      const textElement = document.getElementById('office-bearers-text');
+      const boxElement = document.getElementById('office-bearers-box');
+      
+      if (!section || !textElement || !boxElement) return;
+      
+      const sectionTop = section.getBoundingClientRect().top;
+      const windowHeight = window.innerHeight;
+      
+      // Trigger when section top enters viewport
+      if (sectionTop < windowHeight) {
+        hasAnimated = true;
+        
+        // Fade in the text
+        textElement.style.opacity = '1';
+        
+        // Fade in the box after a slight delay
+        setTimeout(() => {
+          boxElement.style.animation = 'fadeInBox 0.8s ease forwards';
+          boxElement.style.opacity = '1';
+        }, 300);
+      }
+    }
+    
+    // Listen for scroll events
+    window.addEventListener('scroll', checkScroll);
+    window.addEventListener('load', checkScroll);
+  </script>
 
 </body>
 
