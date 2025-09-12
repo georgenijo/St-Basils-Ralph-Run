@@ -82,7 +82,23 @@
     }
 
     .main {
-      padding-top: 100px; /* Adjust this value based on the height of your header */
+      padding-top: 0; /* Remove padding to show dark blue section */
+    }
+
+    /* Fade in animation for header content */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .header-content {
+      animation: fadeIn 1.5s ease-out;
     }
 
     /* Calendar Styles */
@@ -92,24 +108,6 @@
       padding: 2rem;
     }
 
-    .calendar-header {
-      text-align: center;
-      margin-bottom: 3rem;
-    }
-
-    .calendar-header h1 {
-      font-family: 'Poppins', sans-serif;
-      color: #253341;
-      font-weight: 400;
-      margin-bottom: 1rem;
-    }
-
-    .calendar-header p {
-      font-family: 'Poppins', sans-serif;
-      color: #253341;
-      font-size: 18px;
-      font-weight: 400;
-    }
 
     /* Interactive Calendar Styles */
     .calendar-navigation {
@@ -318,13 +316,21 @@
         </div>
       </header>
 
-  <main class="main">
+  <!-- Top Dark Blue Section -->
+  <div style="background-color: #253341; height: 3in; width: 100%; display: flex; align-items: center; justify-content: center; margin: 0; padding: 0; position: relative; top: 75px;">
+    <div class="header-content" style="text-align: center; position: relative; top: 20px;">
+      <h1 style="font-family: 'Poppins', sans-serif; font-weight: 400; font-size: 40px; color: #FAEDCD; margin: 0; padding: 0;">
+        <i class="bi bi-calendar3" style="margin-right: 10px; color: #FAEDCD;"></i>Events Calendar
+      </h1>
+      <p style="font-family: 'Poppins', sans-serif; font-weight: 400; font-size: 18px; color: #FAEDCD; margin-top: 10px;">
+        Join us for worship, fellowship, and celebration throughout the year
+      </p>
+    </div>
+  </div>
+
+  <main class="main" style="padding-top: 75px;">
     <section class="calendar-section">
       <div class="calendar-container">
-        <div class="calendar-header" data-aos="fade-up">
-          <h1><i class="bi bi-calendar3" style="margin-right: 10px;"></i>Events Calendar</h1>
-          <p>Join us for worship, fellowship, and celebration throughout the year</p>
-        </div>
 
         <!-- Calendar Navigation -->
         <div class="calendar-navigation" data-aos="fade-up" data-aos-delay="100">
