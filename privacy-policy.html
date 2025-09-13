@@ -39,7 +39,7 @@
       background-color: #FEFAE0 !important;
     }
     
-    section {
+    section:not(.footer-section) {
       background-color: #FEFAE0 !important;
     }
     
@@ -277,13 +277,28 @@
   </main>
 
   <!-- Bottom Section -->
-  <section style="background-color: #253341; height: 1in; width: 100%; display: flex; align-items: center; justify-content: center;">
-    <div style="display: flex; align-items: center; font-family: 'Libre Baskerville', serif; color: #FEFAE0;">
-      <a href="privacy-policy.html" style="color: #FEFAE0; text-decoration: none; padding: 0 0.5in;">Privacy Policy</a>
+  <style>
+    .footer-link:hover {
+      text-decoration: underline !important;
+    }
+  </style>
+  <section class="footer-section" style="background-color: #253341 !important; height: 1in; width: 100%; display: flex; align-items: center; justify-content: space-between; position: relative; padding: 0 2in; margin-top: 0; z-index: 100;">
+    <div style="font-family: 'Libre Baskerville', serif; color: #FEFAE0; font-size: 10px; display: flex; align-items: center;">
+      <span style="margin-right: 10px;">©</span>
+      <div>
+        <div>2025 St. Basil's Syriac</div>
+        <div>Orthodox Church, All Rights Reserved.</div>
+      </div>
+    </div>
+    <div style="display: flex; align-items: center; font-family: 'Libre Baskerville', serif; color: #FEFAE0; font-size: 10px; position: absolute; left: 50%; transform: translateX(-50%);">
+      <a href="privacy-policy.html" class="footer-link" style="color: #FEFAE0; text-decoration: none; padding: 0 0.5in; font-size: 10px;">Privacy Policy</a>
       <span style="border-left: 1px solid #FEFAE0; height: 0.5in; margin: 0 0.5in;"></span>
-      <span style="color: #FEFAE0; padding: 0 0.5in; cursor: default;">Terms of Use</span>
+      <a href="terms-of-use.html" class="footer-link" style="color: #FEFAE0; text-decoration: none; padding: 0 0.5in; font-size: 10px;">Terms of Use</a>
       <span style="border-left: 1px solid #FEFAE0; height: 0.5in; margin: 0 0.5in;"></span>
-      <span style="color: #FEFAE0; padding: 0 0.5in; cursor: default;">Contact Us</span>
+      <a href="contact-us.html" class="footer-link" style="color: #FEFAE0; text-decoration: none; padding: 0 0.5in; font-size: 10px;">Contact Us</a>
+    </div>
+    <div style="display: flex; align-items: center;">
+      <a href="#" style="color: #FEFAE0; font-size: 16px;"><i class="bi bi-facebook"></i></a>
     </div>
   </section>
 
