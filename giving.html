@@ -63,6 +63,46 @@
       }
     }
 
+    /* Flip card styles */
+    .flip-card {
+      background-color: transparent;
+      width: 100%;
+      height: 250px;
+      perspective: 1000px;
+    }
+
+    .flip-card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      text-align: center;
+      transition: transform 0.6s;
+      transform-style: preserve-3d;
+    }
+
+    .flip-card:hover .flip-card-inner {
+      transform: rotateY(180deg);
+    }
+
+    .flip-card-front, .flip-card-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+      background-color: #FAEDCD;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .flip-card-back {
+      transform: rotateY(180deg);
+    }
+
     body {
       background-color: #FEFAE0 !important;
     }
@@ -189,76 +229,122 @@
   </div>
 
   <main class="main" style="padding-top: 0;">
-    <!-- Three Column Section (similar to Contact Us) -->
-    <section style="height: 4in; background-color: #FAEDCD; display: flex; align-items: stretch; position: relative; padding: 0; margin: 0;">
-
-      <!-- First Section -->
-      <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; position: relative;">
-        <i class="bi bi-heart-fill" style="font-size: 40px; color: #91203C; margin-bottom: 20px;"></i>
-        <h3 style="font-family: 'Poppins', sans-serif; font-weight: bold; font-size: 30px; color: #91203C; text-transform: uppercase; letter-spacing: 1px; text-align: center; margin-bottom: 20px;">Section 1</h3>
-        <p style="font-family: 'Poppins', sans-serif; font-size: 18px; color: #91203C; text-align: center; letter-spacing: 1px; margin: 0;">Content here</p>
-        <!-- Full height border line -->
-        <div style="position: absolute; right: 0; top: 0; height: 100%; width: 1px; background-color: #91203C;"></div>
+    <!-- Single Unified Section with Giving Text -->
+    <section style="background-color: #FAEDCD; display: flex; align-items: center; justify-content: center; position: relative; padding: 60px 40px; margin: 0;">
+      <div style="max-width: 1200px; width: 100%; text-align: center; animation: fadeDropIn 1.5s ease-out;">
+        <p style="font-family: 'Poppins', sans-serif; font-size: 20px; color: #91203C; text-align: center; margin-bottom: 20px; line-height: 1.5;">
+          Giving is an act of worship and a reflection of God's abundant love for us. As we have been blessed, we are called to bless others through our faithful stewardship. Your generous offerings support our church's ministry, help us care for our community, and enable us to share Christ's love through charitable works.
+        </p>
+        <p style="font-family: 'Poppins', sans-serif; font-size: 20px; font-weight: bold; font-style: italic; color: #91203C; text-align: center; margin-bottom: 20px; line-height: 1.5;">
+          For your convenience, offerings may be sent to our Zelle account: stbasilsboston.trsr@gmail.com.
+        </p>
+        <p style="font-family: 'Poppins', sans-serif; font-size: 20px; color: #91203C; text-align: center; margin: 0; line-height: 1.5;">
+          For questions about giving or other ways to support our ministry, please reach out through our <a href="contact-us.html" style="color: #91203C; text-decoration: underline;">Contact Us</a> page
+        </p>
       </div>
-
-      <!-- Middle Section - Image placeholder -->
-      <div style="flex: 1; position: relative; background: linear-gradient(135deg, #253341 0%, #91203C 100%); padding: 0; margin: 0; min-height: 100%;">
-        <!-- Full height border line -->
-        <div style="position: absolute; right: 0; top: 0; height: 100%; width: 1px; background-color: #91203C;"></div>
-      </div>
-
-      <!-- Third Section -->
-      <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;">
-        <i class="bi bi-gift-fill" style="font-size: 40px; color: #91203C; margin-bottom: 20px;"></i>
-        <h3 style="font-family: 'Poppins', sans-serif; font-weight: bold; font-size: 30px; color: #91203C; text-transform: uppercase; letter-spacing: 1px; text-align: center; margin-bottom: 20px;">Section 3</h3>
-        <p style="font-family: 'Poppins', sans-serif; font-size: 18px; color: #91203C; text-align: center; letter-spacing: 1px; margin: 0;">Content here</p>
-      </div>
-
     </section>
 
     <!-- Blue section -->
-    <div style="width: 100%; background-color: #253341; padding: 2in 2in;">
+    <div style="width: 100%; height: 3in; background-color: #253341; padding: 1in 2in; display: flex; flex-direction: column; justify-content: center;">
       <!-- Section Title -->
-      <h2 style="font-size: 45px; color: #FAEDCD; text-transform: uppercase; text-align: center; margin-bottom: 30px; letter-spacing: 1px;">
-        <span style="font-family: 'Poppins', sans-serif; font-weight: 400;">SECTION</span>
-        <span style="font-family: 'Poppins', sans-serif; font-weight: bold;">TITLE</span>
+      <h2 style="font-size: 45px; color: #FAEDCD; text-transform: uppercase; text-align: center; margin-bottom: 30px; letter-spacing: 1px; animation: fadeDropIn 1.5s ease-out;">
+        <span style="font-family: 'Poppins', sans-serif; font-weight: bold;">OUR HEART FOR SERVICE</span>
       </h2>
       <!-- Description Text -->
-      <p style="font-family: 'Poppins', sans-serif; font-weight: 300; font-size: 17px; color: #FAEDCD; text-align: center; letter-spacing: 2px; line-height: 1.4; margin: 0 auto; padding: 0 3in; max-width: 100%;">
-        Section content will go here. This is placeholder text for the blue section.
+      <p style="font-family: 'Poppins', sans-serif; font-weight: 300; font-size: 17px; color: #FAEDCD; text-align: center; letter-spacing: 1px; line-height: 1.4; margin: 0 auto; padding: 0 1in; max-width: 100%; animation: fadeDropIn 1.8s ease-out;">
+        Following Christ's call to serve "the least of these," St. Basil's has been blessed to support various charitable causes and organizations over the years. Through the faithful generosity of our church family, we have been able to extend God's love beyond our parish walls, caring for those in need both locally and globally. <span style="font-weight: bold;">The examples below represent some of the ministries and causes we have had the privilege to support—contact us to learn more about our ongoing outreach efforts.</span>
       </p>
     </div>
 
-    <!-- Cream colored section with expandable tabs -->
-    <div style="background-color: #FAEDCD; padding: 2in 1in;">
-      <!-- Expandable Tabs Section -->
-      <div style="width: 100%;">
+    <!-- New cream section for charities -->
+    <div style="width: 100%; background-color: #FEFAE0; padding: 3px 3px 0.5in 3px;">
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; width: 100%; margin: 0; animation: fadeDropIn 2s ease-out;">
 
-        <!-- Tab 1 -->
-        <div style="margin-bottom: 20px;">
-          <button onclick="toggleTab('tab1')" style="width: 100%; background-color: #253341; color: #FFF8E7; padding: 20px; font-family: 'Poppins', sans-serif; font-size: 20px; font-weight: normal; text-align: left; border: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: all 0.3s ease;">
-            <span>Tab Section 1</span>
-            <span id="tab1-arrow" style="transition: transform 0.3s;">▼</span>
-          </button>
-          <div id="tab1" style="display: none; background-color: #253341; padding: 30px; color: #FFF8E7; font-family: 'Poppins', sans-serif; font-size: 16px; font-weight: normal; line-height: 1.8; letter-spacing: 1px;">
-            <div class="tab1-content" style="opacity: 0; animation: fadeDropIn 0.8s ease-out forwards;">
-              <p style="margin: 0; color: #FFF8E7; font-family: 'Poppins', sans-serif; font-weight: normal; letter-spacing: 1px;">
-                Content for tab 1 will go here.
+        <!-- Card 1 -->
+        <div class="flip-card">
+          <div class="flip-card-inner">
+            <div class="flip-card-front">
+              <i class="bi bi-house-door-fill" style="font-size: 40px; color: #91203C; margin-bottom: 15px;"></i>
+              <h3 style="font-family: 'Poppins', sans-serif; font-weight: bold; font-size: 22px; color: #253341; margin: 10px 0;">Housing Ministry in India</h3>
+            </div>
+            <div class="flip-card-back">
+              <p style="font-family: 'Poppins', sans-serif; font-size: 14px; color: #253341; line-height: 1.6;">
+                Through God's provision and the generosity of our congregation, we have been blessed to contribute toward building homes for families in need throughout India. These modest dwellings provide shelter, dignity, and a foundation for families to build their lives upon, reflecting Christ's love through practical care.
               </p>
             </div>
           </div>
         </div>
 
-        <!-- Tab 2 -->
-        <div style="margin-bottom: 20px;">
-          <button onclick="toggleTab('tab2')" style="width: 100%; background-color: #253341; color: #FFF8E7; padding: 20px; font-family: 'Poppins', sans-serif; font-size: 20px; font-weight: normal; text-align: left; border: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: all 0.3s ease;">
-            <span>Tab Section 2</span>
-            <span id="tab2-arrow" style="transition: transform 0.3s;">▼</span>
-          </button>
-          <div id="tab2" style="display: none; background-color: #253341; padding: 30px; color: #FFF8E7; font-family: 'Poppins', sans-serif; font-size: 16px; font-weight: normal; line-height: 1.8; letter-spacing: 1px;">
-            <div class="tab2-content" style="opacity: 0; animation: fadeDropIn 0.8s ease-out forwards;">
-              <p style="margin: 0; color: #FFF8E7; font-family: 'Poppins', sans-serif; font-weight: normal; letter-spacing: 1px;">
-                Content for tab 2 will go here.
+        <!-- Card 2 -->
+        <div class="flip-card">
+          <div class="flip-card-inner">
+            <div class="flip-card-front">
+              <i class="bi bi-person-heart" style="font-size: 40px; color: #91203C; margin-bottom: 15px;"></i>
+              <h3 style="font-family: 'Poppins', sans-serif; font-weight: bold; font-size: 20px; color: #253341; margin: 10px 0;">Honoring Mrs. Ruth Bergerdorff</h3>
+            </div>
+            <div class="flip-card-back">
+              <p style="font-family: 'Poppins', sans-serif; font-size: 13px; color: #253341; line-height: 1.5;">
+                Mrs. Ruth Bergerdorff and her husband Pastor John opened their church and hearts to us during our earliest days. When Ruth faced serious illness and later passed into God's embrace, our church family felt called to support them as they had supported us. It was our humble privilege to contribute toward her medical care and memorial service—a small token of our deep gratitude for their transformative kindness to our community.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="flip-card">
+          <div class="flip-card-inner">
+            <div class="flip-card-front">
+              <i class="bi bi-person-badge-fill" style="font-size: 40px; color: #91203C; margin-bottom: 15px;"></i>
+              <h3 style="font-family: 'Poppins', sans-serif; font-weight: bold; font-size: 22px; color: #253341; margin: 10px 0;">Clergy Housing Support</h3>
+            </div>
+            <div class="flip-card-back">
+              <p style="font-family: 'Poppins', sans-serif; font-size: 14px; color: #253341; line-height: 1.6;">
+                Learning of a newly ordained deacon in India facing difficult living conditions, our congregation felt moved to help provide him with a proper home. More than just shelter, this space enables him to prepare spiritually for the Divine Liturgy and serve his community with dignity, ensuring God's servants have the support they need to minister effectively.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 4 -->
+        <div class="flip-card">
+          <div class="flip-card-inner">
+            <div class="flip-card-front">
+              <i class="bi bi-heart-pulse-fill" style="font-size: 40px; color: #91203C; margin-bottom: 15px;"></i>
+              <h3 style="font-family: 'Poppins', sans-serif; font-weight: bold; font-size: 22px; color: #253341; margin: 10px 0;">Medical Emergency Relief</h3>
+            </div>
+            <div class="flip-card-back">
+              <p style="font-family: 'Poppins', sans-serif; font-size: 14px; color: #253341; line-height: 1.6;">
+                Over the years, we have received heartfelt requests from individuals and families in India facing serious medical challenges—kidney transplants, cancer treatments, and other urgent procedures. Through our congregation's compassionate giving, we have been able to provide financial assistance for life-saving treatments, standing with our brothers and sisters in their moments of greatest need.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 5 -->
+        <div class="flip-card">
+          <div class="flip-card-inner">
+            <div class="flip-card-front">
+              <i class="bi bi-balloon-heart-fill" style="font-size: 40px; color: #91203C; margin-bottom: 15px;"></i>
+              <h3 style="font-family: 'Poppins', sans-serif; font-weight: bold; font-size: 20px; color: #253341; margin: 10px 0;">Partnership with Solace Charity</h3>
+            </div>
+            <div class="flip-card-back">
+              <p style="font-family: 'Poppins', sans-serif; font-size: 14px; color: #253341; line-height: 1.6;">
+                We are honored to support Solace Charity, an organization dedicated to caring for severely ill and underprivileged children in Kerala, India. Solace provides comprehensive support—from funding critical medical procedures to offering emotional support groups for families. Our partnership allows us to extend Christ's healing love to children and families facing unimaginable challenges.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 6 -->
+        <div class="flip-card">
+          <div class="flip-card-inner">
+            <div class="flip-card-front">
+              <i class="bi bi-universal-access-circle" style="font-size: 40px; color: #91203C; margin-bottom: 15px;"></i>
+              <h3 style="font-family: 'Poppins', sans-serif; font-weight: bold; font-size: 20px; color: #253341; margin: 10px 0;">The Pelican Centre Ministry</h3>
+            </div>
+            <div class="flip-card-back">
+              <p style="font-family: 'Poppins', sans-serif; font-size: 13px; color: #253341; line-height: 1.5;">
+                The Pelican Centre, in Kerala, India, serves as "an open door for the needy and mentally challenged people of our society," providing rehabilitation and care that enables individuals to lead fuller, more independent lives. Our support of this vital ministry reflects our belief that every person is created in God's image and deserves compassion, dignity, and the opportunity to thrive.
               </p>
             </div>
           </div>
@@ -266,32 +352,9 @@
 
       </div>
     </div>
+
   </main>
 
-  <!-- Script for tab functionality -->
-  <script>
-    function toggleTab(tabId) {
-      var tab = document.getElementById(tabId);
-      var arrow = document.getElementById(tabId + '-arrow');
-
-      if (tab.style.display === 'none' || tab.style.display === '') {
-        tab.style.display = 'block';
-        arrow.style.transform = 'rotate(180deg)';
-
-        // Reset and trigger animation for tab content
-        var content = tab.querySelector('.' + tabId + '-content');
-        if (content) {
-          content.style.animation = 'none';
-          setTimeout(function() {
-            content.style.animation = 'fadeDropIn 0.8s ease-out forwards';
-          }, 10);
-        }
-      } else {
-        tab.style.display = 'none';
-        arrow.style.transform = 'rotate(0deg)';
-      }
-    }
-  </script>
 
   <!-- Bottom Section -->
   <style>
