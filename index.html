@@ -158,57 +158,70 @@
         margin-right: 20px !important;
         flex-direction: column !important;
       }
-      
+
       .info-box > div:not(.divider) {
         padding: 15px !important;
         min-height: 150px;
       }
-      
+
       .info-box .divider {
         width: 100% !important;
         height: 1px !important;
       }
-      
+
       /* Feast section responsive styles */
       .feast-section {
         min-height: auto !important;
         padding: 30px 15px !important;
       }
-      
+
       .feast-title {
         font-size: 24px !important;
       }
-      
+
       .feast-date {
         font-size: 28px !important;
       }
-      
+
       .feast-invite {
         font-size: 16px !important;
         letter-spacing: 1px !important;
         padding: 0 15px;
       }
-      
+
       .feast-schedule-box {
         height: auto !important;
         margin-left: 15px !important;
         margin-right: 15px !important;
         flex-direction: column !important;
       }
-      
+
       .feast-schedule-box > div:not(.divider) {
         padding: 20px 15px !important;
         min-height: 180px;
       }
-      
+
       .feast-schedule-box .divider {
         width: 100% !important;
         height: 1px !important;
       }
-      
+
       /* Where to Park link responsive */
       .parking-link {
         font-size: 14px !important;
+      }
+
+      /* Responsive padding for animated sections */
+      .col-lg-6[data-aos] {
+        padding-left: 15px !important;
+        padding-right: 15px !important;
+      }
+
+      /* Adjust Events Calendar section height */
+      section[style*="height: 2in"] {
+        height: auto !important;
+        min-height: 2in !important;
+        padding: 1.5rem 0 !important;
       }
     }
     
@@ -393,7 +406,7 @@
           <li class="dropdown"><a href="#"><span>About</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
             <ul>
               <li><a href="about.html">Our History</a></li>
-              <li><a href="#">Our Spiritual Fathers</a></li>
+              <li><a href="spiritual-leader.html">Our Spiritual Fathers</a></li>
               <li><a href="#">Our Clergy</a></li>
               <li><a href="#">Our Office Bearers</a></li>
               <li><a href="#">Our Acolytes &amp; Choir</a></li>
@@ -784,7 +797,7 @@
       <div class="container h-100">
         <div class="row align-items-center h-100">
           <!-- Text Content on Left -->
-          <div class="col-lg-6" style="padding-left: 1in;">
+          <div class="col-lg-6" style="padding-left: 1in;" data-aos="fade-right" data-aos-duration="1000">
             <h4 style="font-family: 'Poppins', sans-serif; font-weight: bold; color: #253341; margin-bottom: 1rem; letter-spacing: 1px;">
               St. Basil's Syriac Orthodox Church, Newton
             </h4>
@@ -799,7 +812,7 @@
             </p>
           </div>
           <!-- Image on Right -->
-          <div class="col-lg-6" style="padding-right: 1in;">
+          <div class="col-lg-6" style="padding-right: 1in;" data-aos="fade-left" data-aos-duration="1000" data-aos-delay="200">
             <img src="assets/img/index page/church photo.jpg" alt="St. Basil's Church" style="width: 100%; height: auto; border-radius: 8px;">
           </div>
         </div>
@@ -811,7 +824,7 @@
       <div class="container">
         <div class="row align-items-center">
           <!-- Events Calendar Title on Left -->
-          <div class="col-lg-4 d-flex justify-content-center align-items-center">
+          <div class="col-lg-4 d-flex justify-content-center align-items-center" data-aos="fade-right" data-aos-duration="1000">
             <a href="events-calendar.html" style="text-decoration: none;" onmouseover="this.querySelector('div').style.backgroundColor='#253341'; this.querySelector('p').style.color='#FAEDCD';" onmouseout="this.querySelector('div').style.backgroundColor='transparent'; this.querySelector('p').style.color='#253341';">
               <div style="border: 1px solid #253341; padding: 0.75rem 1.5rem; display: inline-block; transition: all 0.3s ease; cursor: pointer;">
                 <p style="font-family: 'Poppins', sans-serif; font-weight: 400; color: #253341; text-transform: uppercase; margin: 0; font-size: 20px; letter-spacing: 1px; transition: color 0.3s ease;">
@@ -821,7 +834,7 @@
             </a>
           </div>
           <!-- Text Content on Right -->
-          <div class="col-lg-8 d-flex align-items-center">
+          <div class="col-lg-8 d-flex align-items-center" data-aos="fade-left" data-aos-duration="1000" data-aos-delay="200">
             <p style="font-family: 'Poppins', sans-serif; font-weight: 400; color: #253341; font-size: 20px; margin: 0; letter-spacing: 1px;">
               At St. Basil's, we're more than a congregation—we're a family bound together by God's love. Join us for upcoming events that celebrate our faith and deepen our community bonds.
             </p>

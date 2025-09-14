@@ -30,6 +30,14 @@
   
   <!-- Custom Navigation Styles -->
   <style>
+    /* Page background */
+    body {
+      background-color: #FEFAE0 !important;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
     /* Header navigation font styles */
     .navmenu a,
     .navmenu a:focus {
@@ -64,7 +72,7 @@
       background-color: transparent !important;
       opacity: 1 !important;
     }
-    
+
     /* Active and hover states for non-dropdown items */
     .navmenu li:hover>a,
     .navmenu .active,
@@ -82,6 +90,149 @@
 
     .main {
       padding-top: 100px; /* Adjust this value based on the height of your header */
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Team section background */
+    #team {
+      background-color: #FEFAE0 !important;
+      flex: 1;
+      min-height: calc(100vh - 400px); /* Ensures content pushes footer down */
+    }
+
+    /* Drop-in fade-in animation */
+    @keyframes dropInFade {
+      0% {
+        opacity: 0;
+        transform: translateY(-30px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .drop-in-fade {
+      animation: dropInFade 1.5s ease-out forwards;
+    }
+
+    /* Flip Card Styles */
+    .flip-card {
+      background-color: transparent;
+      width: 100%;
+      height: 612px; /* 420px + 192px (2 inches) */
+      perspective: 1000px;
+    }
+
+    .flip-card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      text-align: center;
+      transition: transform 0.6s;
+      transform-style: preserve-3d;
+    }
+
+    .flip-card:hover .flip-card-inner {
+      transform: rotateY(180deg);
+    }
+
+    .flip-card-front, .flip-card-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+      border-radius: 15px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+
+    .flip-card-front {
+      background-color: #fff;
+    }
+
+    .flip-card-front .team-member {
+      height: 100%;
+      position: relative;
+      border-radius: 15px;
+      overflow: hidden;
+    }
+
+    .flip-card-front .member-img {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .flip-card-front .member-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .flip-card-front .member-info {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 20px;
+      background-color: #FAEDCD;
+      min-height: 120px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .flip-card-front .member-info h4 {
+      font-family: 'Poppins', sans-serif;
+      font-weight: 400;
+      color: #253341;
+      margin-bottom: 5px;
+    }
+
+    .flip-card-front .member-info span {
+      font-family: 'Poppins', sans-serif;
+      font-weight: 400;
+      color: #253341;
+      font-size: 14px;
+    }
+
+    .flip-card-back {
+      background-color: #91203C;
+      color: #FEFAE0;
+      transform: rotateY(180deg);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .flip-card-back h4 {
+      color: #FEFAE0;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 400;
+      margin-bottom: 20px;
+    }
+
+    .flip-card-back p {
+      color: #FEFAE0;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 400;
+      font-size: 14px;
+      line-height: 1.6;
+      text-align: center;
+      padding: 0 15px;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .flip-card {
+        height: 612px;
+      }
     }
   </style>
 
@@ -109,7 +260,7 @@
           <li class="dropdown"><a href="#"><span>About</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
             <ul>
               <li><a href="about.html">Our History</a></li>
-              <li><a href="#">Our Spiritual Fathers</a></li>
+              <li><a href="spiritual-leader.html">Our Spiritual Fathers</a></li>
               <li><a href="#">Our Clergy</a></li>
               <li><a href="#">Our Office Bearers</a></li>
               <li><a href="#">Our Acolytes &amp; Choir</a></li>
@@ -137,114 +288,26 @@
   </header>
 
   <main class="main">
-    <section id="team" class="team section">
+    <!-- Maroon Section with Title -->
+    <section style="background-color: #91203C; height: 2in; width: 100%; display: flex; align-items: center; justify-content: center;">
+      <h1 class="drop-in-fade" style="font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 40px; color: #FEFAE0; text-transform: uppercase; margin: 0; text-align: center;">OUR SPIRITUAL FATHERS</h1>
+    </section>
 
-      <!-- Section Title -->
-      <div class="container section-title" data-aos="fade-up">
-        <h2>Our Spiritual Leaders</h2>
-        <p></p>
-      </div><!-- End Section Title -->
+    <section id="team" class="team section" style="padding-top: 60px;">
 
       <div class="container" data-aos="fade-up" data-aos-delay="100">
 
         <div class="row gy-5">
-
-          <div class="col-xl-4 col-md-6 d-flex" data-aos="zoom-in" data-aos-delay="200">
-            <div class="team-member">
-              <div class="member-img">
-                <img src="assets/img/organizations/Patriarch_Ignatius_Aphrem_II,_seated.jpg" class="img-fluid" alt="">
-              </div>
-              <div class="member-info">
-                <div class="social">
-                    <!-- <a href=""><i class="bi bi-twitter-x"></i></a>
-                    <a href=""><i class="bi bi-facebook"></i></a>
-                    <a href=""><i class="bi bi-instagram"></i></a>
-                    <a href=""><i class="bi bi-linkedin"></i></a> -->
-                  </div>
-                <h4>His Holiness Moran Mor Ignatius Aphrem II</h4>
-                <span>Supreme head of the Universal Syrian Orthodox Church</span>
-              </div>
-            </div>
-          </div><!-- End Team Member -->
-
-          <div class="col-xl-4 col-md-6 d-flex" data-aos="zoom-in" data-aos-delay="400">
-            <div class="team-member">
-              <div class="member-img">
-                <img src="assets/img/organizations/H.B._Mor_Baselios_Thomas_I.jpg" class="img-fluid" alt="">
-              </div>
-              <div class="member-info">
-                <div class="social">
-                  <!-- <a href=""><i class="bi bi-twitter-x"></i></a>
-                  <a href=""><i class="bi bi-facebook"></i></a>
-                  <a href=""><i class="bi bi-instagram"></i></a>
-                  <a href=""><i class="bi bi-linkedin"></i></a> -->
-                </div>
-                <h4>H.B Catholicos Aboon Mor Baselios Thomas I</h4>
-                <span> Catholicos Of India </span>
-              </div>
-            </div>
-          </div><!-- End Team Member -->
-
-          <div class="col-xl-4 col-md-6 d-flex" data-aos="zoom-in" data-aos-delay="600">
-            <div class="team-member">
-              <div class="member-img">
-                <img src="assets/img/organizations/h-e-theethose-yeldho.jpg" class="img-fluid" alt="">
-              </div>
-              <div class="member-info">
-                <div class="social">
-                  <!-- <a href=""><i class="bi bi-twitter-x"></i></a>
-                  <a href=""><i class="bi bi-facebook"></i></a>
-                  <a href=""><i class="bi bi-instagram"></i></a>
-                  <a href=""><i class="bi bi-linkedin"></i></a> -->
-                </div>
-                <h4>His Eminence Mor Titus Yeldho</h4>
-                <span>Archbishop of the Malankara Syriac Orthodox Church in North America</span>
-              </div>
-            </div>
-          </div><!-- End Team Member -->
-
-          <div class="col-xl-4 col-md-6 d-flex" data-aos="zoom-in" data-aos-delay="800">
-            <div class="team-member">
-              <div class="member-img">
-                <img src="assets/img/organizations/frroy-varghese.jpg" class="img-fluid" alt="">
-              </div>
-              <div class="member-info">
-                <div class="social">
-                    <!-- <a href=""><i class="bi bi-twitter-x"></i></a>
-                    <a href=""><i class="bi bi-facebook"></i></a>
-                    <a href=""><i class="bi bi-instagram"></i></a>
-                    <a href=""><i class="bi bi-linkedin"></i></a> -->
-                  </div>
-                <h4>Rev. Fr. Roy Varghese</h4>
-                <span>Vicar of St. Basil's Syrian Orthodox Church</span>
-              </div>
-            </div>
-          </div><!-- End Team Member -->
-
-          <div class="col-xl-4 col-md-6 d-flex" data-aos="zoom-in" data-aos-delay="1000">
-            <div class="team-member">
-              <div class="member-img">
-                <img src="assets/img/team/team-5.jpg" class="img-fluid" alt="">
-              </div>
-              <div class="member-info">
-                <div class="social">
-                    <!-- <a href=""><i class="bi bi-twitter-x"></i></a>
-                    <a href=""><i class="bi bi-facebook"></i></a>
-                    <a href=""><i class="bi bi-instagram"></i></a>
-                    <a href=""><i class="bi bi-linkedin"></i></a> -->
-                </div>
-                <h4>Rev. Fr. Benny George </h4>
-                <span>Assistant Vicar of St. Basil's Syrian Orthodox Church</span>
-              </div>
-            </div>
-          </div><!-- End Team Member -->
-
+          <!-- Cards removed -->
         </div>
 
       </div>
 
     </section><!-- /Team Section -->
   </main>
+
+  <!-- Spacer Section -->
+  <section style="background-color: #FEFAE0; height: 80px; width: 100%;"></section>
 
   <!-- Scroll Top -->
   <a href="#" id="scroll-top" class="scroll-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
