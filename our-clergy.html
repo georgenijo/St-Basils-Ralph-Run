@@ -115,6 +115,133 @@
       border-radius: 50%;
       animation: flicker 2s infinite ease-in-out;
     }
+
+    /* Responsive Styles */
+    @media (max-width: 1200px) {
+      #hero-title h1 {
+        font-size: 60px !important;
+      }
+    }
+
+    @media (max-width: 992px) {
+      #hero-title h1 {
+        font-size: 50px !important;
+      }
+
+      .clergy-card {
+        max-width: 350px;
+        margin: 0 auto 30px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      #hero-title h1 {
+        font-size: 40px !important;
+        padding: 0 20px;
+      }
+
+      .clergy-card {
+        padding: 35px 15px 25px !important;
+        margin-bottom: 25px;
+      }
+
+      .clergy-card img {
+        width: 180px !important;
+        height: 180px !important;
+      }
+
+      .prev-clergy-card {
+        padding: 25px 15px 20px !important;
+        margin-bottom: 20px;
+      }
+
+      .prev-clergy-card img {
+        width: 140px !important;
+        height: 140px !important;
+      }
+
+      .memorial-box {
+        max-width: 90% !important;
+        padding: 40px 20px 30px !important;
+      }
+
+      .memorial-box img {
+        width: 220px !important;
+        height: 220px !important;
+      }
+
+      /* Hide candles on mobile */
+      .candle-container {
+        display: none !important;
+      }
+
+      /* Section spacing */
+      .section-spacing {
+        padding: 40px 0 !important;
+      }
+
+      /* Footer adjustments */
+      .footer-links {
+        display: none !important;
+      }
+    }
+
+    @media (max-width: 576px) {
+      #hero-title h1 {
+        font-size: 32px !important;
+        line-height: 1.2;
+      }
+
+      .clergy-card h4 {
+        font-size: 18px !important;
+      }
+
+      .prev-clergy-card h5 {
+        font-size: 14px !important;
+      }
+
+      .memorial-box h3 {
+        font-size: 20px !important;
+      }
+
+      .memorial-box h4 {
+        font-size: 16px !important;
+      }
+
+      /* In Memoriam title */
+      .memoriam-title {
+        font-size: 36px !important;
+        margin-bottom: 40px !important;
+      }
+
+      /* Section titles */
+      .section-title {
+        font-size: 32px !important;
+        margin-bottom: 30px !important;
+      }
+
+      /* Transition text */
+      .transition-text {
+        font-size: 16px !important;
+        padding: 0 15px;
+      }
+    }
+
+    @media (max-width: 400px) {
+      #hero-title h1 {
+        font-size: 28px !important;
+      }
+
+      .clergy-card img {
+        width: 150px !important;
+        height: 150px !important;
+      }
+
+      .memorial-box img {
+        width: 180px !important;
+        height: 180px !important;
+      }
+    }
     /* Page background */
     body {
       background-color: #FEFAE0 !important;
@@ -274,20 +401,20 @@
 
     <!-- Scrollable Title Section -->
     <div id="hero-title" style="position: relative; width: 100%; display: flex; align-items: center; justify-content: center;">
-      <h1 class="drop-in-fade" style="font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 70px; color: #FEFAE0; text-transform: uppercase; margin: 0; text-align: center; position: absolute;">OUR CLERGY</h1>
+      <h1 class="drop-in-fade" style="font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 70px; color: #FEFAE0; text-transform: uppercase; margin: 0; text-align: center; position: absolute; width: 100%;">OUR CLERGY</h1>
     </div>
 
-    <section id="team" class="team section" style="padding-top: 60px; padding-bottom: 0; position: relative; z-index: 1; background-color: #FEFAE0;">
+    <section id="team" class="team section section-spacing" style="padding-top: 60px; padding-bottom: 0; position: relative; z-index: 1; background-color: #FEFAE0;">
 
       <div class="container">
 
         <!-- Section 1: Our Current Clergy -->
         <div class="text-center mb-5">
-          <h2 style="font-family: 'Poppins', sans-serif; font-weight: 600; color: #253341; font-size: 42px; margin-bottom: 50px;" data-aos="fade-up" data-aos-duration="1000" data-aos-offset="100">Our Current Clergy</h2>
+          <h2 class="section-title" style="font-family: 'Poppins', sans-serif; font-weight: 600; color: #253341; font-size: 42px; margin-bottom: 50px;" data-aos="fade-up" data-aos-duration="1000" data-aos-offset="100">Our Current Clergy</h2>
           <div class="row justify-content-center">
             <!-- First Clergy Member -->
             <div class="col-md-5 mb-4">
-              <div style="background-color: #FAEDCD; padding: 40px 20px 30px; border-radius: 10px; box-shadow: 0 8px 25px rgba(0,0,0,0.15); text-align: center;" data-aos="fade-in" data-aos-duration="1500" data-aos-delay="200">
+              <div class="clergy-card" style="background-color: #FAEDCD; padding: 40px 20px 30px; border-radius: 10px; box-shadow: 0 8px 25px rgba(0,0,0,0.15); text-align: center;" data-aos="fade-in" data-aos-duration="1500" data-aos-delay="200">
                 <img src="assets/img/Our Clergy/fr roy v.png" alt="Rev. Fr. Roy Varghese" style="width: 240px; height: 240px; object-fit: cover; border-radius: 50%; margin-bottom: 20px; border: 4px solid #FEFAE0;">
                 <h4 style="font-family: 'Poppins', sans-serif; font-weight: 600; color: #253341; margin-bottom: 5px;">Rev. Fr. Roy Varghese</h4>
                 <p style="font-family: 'Poppins', sans-serif; color: #91203C; font-style: italic; margin-bottom: 0;">Vicar</p>
@@ -295,7 +422,7 @@
             </div>
             <!-- Second Clergy Member -->
             <div class="col-md-5 mb-4">
-              <div style="background-color: #FAEDCD; padding: 40px 20px 30px; border-radius: 10px; box-shadow: 0 8px 25px rgba(0,0,0,0.15); text-align: center;" data-aos="fade-in" data-aos-duration="1500" data-aos-delay="300">
+              <div class="clergy-card" style="background-color: #FAEDCD; padding: 40px 20px 30px; border-radius: 10px; box-shadow: 0 8px 25px rgba(0,0,0,0.15); text-align: center;" data-aos="fade-in" data-aos-duration="1500" data-aos-delay="300">
                 <img src="assets/img/Our Clergy/fr benny g.png" alt="Rev. Fr. Benny George" style="width: 240px; height: 240px; object-fit: cover; border-radius: 50%; margin-bottom: 20px; border: 4px solid #FEFAE0;">
                 <h4 style="font-family: 'Poppins', sans-serif; font-weight: 600; color: #253341; margin-bottom: 5px;">Rev. Fr. Benny George</h4>
                 <p style="font-family: 'Poppins', sans-serif; color: #91203C; font-style: italic; margin-bottom: 0;">Associate Vicar</p>
@@ -303,7 +430,7 @@
             </div>
           </div>
           <!-- Connecting Transition Text -->
-          <p style="font-family: 'Poppins', sans-serif; color: #253341; font-size: 18px; line-height: 1.8; max-width: 800px; margin: 25px auto 0; font-style: italic;" data-aos="fade-up" data-aos-duration="1000" data-aos-delay="700">
+          <p class="transition-text" style="font-family: 'Poppins', sans-serif; color: #253341; font-size: 18px; line-height: 1.8; max-width: 800px; margin: 25px auto 0; font-style: italic;" data-aos="fade-up" data-aos-duration="1000" data-aos-delay="700">
             Building on a foundation laid by faithful servants who came before us...
           </p>
         </div>
@@ -320,14 +447,14 @@
 
         <!-- Section 2: Our Previous Clergy -->
         <div class="text-center mb-5 pt-3">
-          <h2 style="font-family: 'Poppins', sans-serif; font-weight: 600; color: #253341; font-size: 40px; margin-bottom: 30px;" data-aos="fade-up" data-aos-duration="1000" data-aos-offset="100">Our Previous Clergy</h2>
+          <h2 class="section-title" style="font-family: 'Poppins', sans-serif; font-weight: 600; color: #253341; font-size: 40px; margin-bottom: 30px;" data-aos="fade-up" data-aos-duration="1000" data-aos-offset="100">Our Previous Clergy</h2>
           <p style="font-family: 'Poppins', sans-serif; color: #253341; max-width: 800px; margin: 0 auto 50px; line-height: 1.8; font-size: 18px;" data-aos="fade-up" data-aos-duration="1000" data-aos-delay="200">
             We honor those who built our community, each bringing their unique gifts and leaving an indelible mark on our spiritual journey. Their dedication and love continue to inspire us today.
           </p>
           <div class="row justify-content-center">
             <!-- First Previous Clergy -->
             <div class="col-md-4 mb-3">
-              <div style="background-color: #FAEDCD; padding: 30px 20px 25px; border-radius: 10px; box-shadow: 0 6px 20px rgba(0,0,0,0.12); text-align: center;" data-aos="fade-in" data-aos-duration="1500" data-aos-delay="300">
+              <div class="prev-clergy-card" style="background-color: #FAEDCD; padding: 30px 20px 25px; border-radius: 10px; box-shadow: 0 6px 20px rgba(0,0,0,0.12); text-align: center;" data-aos="fade-in" data-aos-duration="1500" data-aos-delay="300">
                 <img src="assets/img/Our Clergy/fr geevar.png" alt="Rev. Fr. Geevarghese Jacob Chalissery" style="width: 180px; height: 180px; object-fit: cover; object-position: center; border-radius: 50%; margin-bottom: 15px; border: 3px solid #FEFAE0;">
                 <h5 style="font-family: 'Poppins', sans-serif; font-weight: 600; color: #253341; margin-bottom: 5px; font-size: 16px;">Rev. Fr. Geevarghese Jacob Chalissery</h5>
                 <p style="font-family: 'Poppins', sans-serif; color: #91203C; font-style: italic; margin-bottom: 0; font-size: 14px;">Vicar<br>2009 - 2016</p>
@@ -335,7 +462,7 @@
             </div>
             <!-- Second Previous Clergy -->
             <div class="col-md-4 mb-3">
-              <div style="background-color: #FAEDCD; padding: 30px 20px 25px; border-radius: 10px; box-shadow: 0 6px 20px rgba(0,0,0,0.12); text-align: center;" data-aos="fade-in" data-aos-duration="1500" data-aos-delay="400">
+              <div class="prev-clergy-card" style="background-color: #FAEDCD; padding: 30px 20px 25px; border-radius: 10px; box-shadow: 0 6px 20px rgba(0,0,0,0.12); text-align: center;" data-aos="fade-in" data-aos-duration="1500" data-aos-delay="400">
                 <img src="assets/img/Our Clergy/fr anu.png" alt="Rev. Fr. Anu Varghese" style="width: 180px; height: 180px; object-fit: cover; border-radius: 50%; margin-bottom: 15px; border: 3px solid #FEFAE0;">
                 <h5 style="font-family: 'Poppins', sans-serif; font-weight: 600; color: #253341; margin-bottom: 5px; font-size: 16px;">Rev. Fr. Anu Varghese</h5>
                 <p style="font-family: 'Poppins', sans-serif; color: #91203C; font-style: italic; margin-bottom: 0; font-size: 14px;">Vicar<br>2016 - 2018</p>
@@ -343,7 +470,7 @@
             </div>
             <!-- Third Previous Clergy -->
             <div class="col-md-4 mb-3">
-              <div style="background-color: #FAEDCD; padding: 30px 20px 25px; border-radius: 10px; box-shadow: 0 6px 20px rgba(0,0,0,0.12); text-align: center;" data-aos="fade-in" data-aos-duration="1500" data-aos-delay="500">
+              <div class="prev-clergy-card" style="background-color: #FAEDCD; padding: 30px 20px 25px; border-radius: 10px; box-shadow: 0 6px 20px rgba(0,0,0,0.12); text-align: center;" data-aos="fade-in" data-aos-duration="1500" data-aos-delay="500">
                 <img src="assets/img/Our Clergy/fr belson.png" alt="Rev. Fr. Belson Kuriakose" style="width: 180px; height: 180px; object-fit: cover; border-radius: 50%; margin-bottom: 15px; border: 3px solid #FEFAE0;">
                 <h5 style="font-family: 'Poppins', sans-serif; font-weight: 600; color: #253341; margin-bottom: 5px; font-size: 16px;">Rev. Fr. Belson Kuriakose</h5>
                 <p style="font-family: 'Poppins', sans-serif; color: #91203C; font-style: italic; margin-bottom: 0; font-size: 14px;">Vicar<br>2019 - 2022</p>
@@ -354,10 +481,10 @@
 
         <!-- Section 3: In Memoriam - Emotional Climax -->
         <div class="text-center" style="background: linear-gradient(180deg, #FEFAE0 0%, rgba(254,250,224,0.95) 100%); padding: 15px 0 0 0; margin-top: -20px; margin-bottom: 0;">
-          <h2 style="font-family: 'Poppins', sans-serif; font-weight: 700; color: #253341; font-size: 48px; margin-bottom: 60px; text-decoration: underline;" data-aos="fade-up" data-aos-duration="1200" data-aos-offset="100">In Memoriam</h2>
+          <h2 class="memoriam-title" style="font-family: 'Poppins', sans-serif; font-weight: 700; color: #253341; font-size: 48px; margin-bottom: 60px; text-decoration: underline;" data-aos="fade-up" data-aos-duration="1200" data-aos-offset="100">In Memoriam</h2>
           <div class="row justify-content-center">
-            <div class="col-12" style="padding: 0 60px;">
-              <div style="background-color: #FAEDCD; padding: 50px 30px 40px; border-radius: 12px; box-shadow: 0 10px 35px rgba(0,0,0,0.2); text-align: center; max-width: 500px; margin: 0 auto 40px; position: relative;" data-aos="fade-in" data-aos-duration="1800" data-aos-delay="200">
+            <div class="col-12" style="padding: 0 20px;">
+              <div class="memorial-box" style="background-color: #FAEDCD; padding: 50px 30px 40px; border-radius: 12px; box-shadow: 0 10px 35px rgba(0,0,0,0.2); text-align: center; max-width: 500px; margin: 0 auto 40px; position: relative;" data-aos="fade-in" data-aos-duration="1800" data-aos-delay="200">
                 <!-- Left Candle -->
                 <div class="candle-container" style="position: absolute; left: 20px; top: 50%; transform: translateY(-50%);">
                   <div class="candle"></div>
@@ -457,7 +584,7 @@
       text-decoration: underline !important;
     }
   </style>
-  <section style="background-color: #253341; height: 1in; width: 100%; display: flex; align-items: center; justify-content: space-between; position: relative; padding: 0 2in;">
+  <section style="background-color: #253341; min-height: 1in; width: 100%; display: flex; align-items: center; justify-content: space-between; position: relative; padding: 0 2in; flex-wrap: wrap;">
     <div style="font-family: 'Libre Baskerville', serif; color: #FEFAE0; font-size: 10px; display: flex; align-items: center;">
       <span style="margin-right: 10px;">©</span>
       <div>
@@ -465,7 +592,7 @@
         <div>Orthodox Church, All Rights Reserved.</div>
       </div>
     </div>
-    <div style="display: flex; align-items: center; font-family: 'Libre Baskerville', serif; color: #FEFAE0; font-size: 10px; position: absolute; left: 50%; transform: translateX(-50%);">
+    <div class="footer-links" style="display: flex; align-items: center; font-family: 'Libre Baskerville', serif; color: #FEFAE0; font-size: 10px; position: absolute; left: 50%; transform: translateX(-50%);">
       <a href="privacy-policy.html" class="footer-link" style="color: #FEFAE0; text-decoration: none; padding: 0 0.5in; font-size: 10px;">Privacy Policy</a>
       <span style="border-left: 1px solid #FEFAE0; height: 0.5in; margin: 0 0.5in;"></span>
       <a href="terms-of-use.html" class="footer-link" style="color: #FEFAE0; text-decoration: none; padding: 0 0.5in; font-size: 10px;">Terms of Use</a>
