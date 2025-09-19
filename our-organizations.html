@@ -4,9 +4,9 @@
 <head>
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
-  <title>Acolytes & Choir - St.Basil's Syrian Orthodox Church</title>
-  <meta name="description" content="Acolytes and Choir of St. Basil's Syriac Orthodox Church in Boston, Massachusetts">
-  <meta name="keywords" content="Acolytes, Choir, St Basils, Syrian Orthodox Church, Boston, Newton">
+  <title>Our Organizations - St.Basil's Syrian Orthodox Church</title>
+  <meta name="description" content="Organizations of St. Basil's Syriac Orthodox Church in Boston, Massachusetts">
+  <meta name="keywords" content="Organizations, St Basils, Syrian Orthodox Church, Boston, Newton">
   <meta name="robots" content="index,follow">
   <meta name="author" content="George Nijo">
 
@@ -188,6 +188,13 @@
       background-color: #91203C !important;
     }
 
+    /* Hover effect for Learn More buttons */
+    .org-card a:hover {
+      background-color: #7a1b33 !important;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+
     /* Mobile responsive styles */
     @media (max-width: 768px) {
       /* Hero text responsive */
@@ -200,12 +207,36 @@
 
       /* Content section responsive */
       .content-section-v2 {
-        padding: 40px 0.5in !important;
+        padding: 40px 20px !important;
       }
 
       .content-text {
         font-size: 16px !important;
         line-height: 1.6 !important;
+      }
+
+      /* Organization cards responsive */
+      .org-card {
+        flex-direction: column !important;
+        margin-bottom: 30px !important;
+      }
+
+      .org-card .org-image {
+        flex: 0 0 auto !important;
+        width: 100% !important;
+        height: 200px !important;
+      }
+
+      .org-card .org-content {
+        padding: 25px !important;
+      }
+
+      .org-card h3 {
+        font-size: 24px !important;
+      }
+
+      .org-card p {
+        font-size: 14px !important;
       }
 
       /* Footer responsive */
@@ -274,8 +305,8 @@
                   <li><a href="spiritual-leader.html">Our Spiritual Fathers</a></li>
                   <li><a href="our-clergy.html">Our Clergy</a></li>
                   <li><a href="office-bearers.html">Our Office Bearers</a></li>
-                  <li><a href="acolytes-choir.html" class="active">Our Acolytes &amp; Choir</a></li>
-                  <li><a href="our-organizations.html">Our Organizations</a></li>
+                  <li><a href="acolytes-choir.html">Our Acolytes &amp; Choir</a></li>
+                  <li><a href="our-organizations.html" class="active">Our Organizations</a></li>
                   <li><a href="#">Plan a Visit</a></li>
                 </ul>
               </li>
@@ -303,21 +334,19 @@
   <!-- Top Header Image Section with Parallax -->
   <div style="height: calc(100vh - 75px); width: 100%; position: relative; top: 75px; overflow: hidden;">
     <!-- Fixed background image with dimming filter -->
-    <div style="position: fixed; top: 75px; left: 0; width: 100%; height: calc(100vh - 75px); background-image: url('assets/img/Acolytes + Choir/choir.jpeg'); background-size: cover; background-position: center; background-repeat: no-repeat; z-index: -1;"></div>
+    <div style="position: fixed; top: 75px; left: 0; width: 100%; height: calc(100vh - 75px); background-image: url('assets/img/Our History/group photo..jpg'); background-size: cover; background-position: center; background-repeat: no-repeat; z-index: -1;"></div>
     <!-- Fixed dimming overlay -->
     <div style="position: fixed; top: 75px; left: 0; width: 100%; height: calc(100vh - 75px); background-color: rgba(0, 0, 0, 0.5); z-index: -1;"></div>
     <!-- Title Text centered in viewport -->
-    <h1 class="drop-in-text hero-title" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-family: 'Poppins', sans-serif; font-weight: bold; font-size: 80px; color: #FAEDCD; text-transform: uppercase; margin: 0; padding: 0; text-align: center; z-index: 1; white-space: nowrap;">ACOLYTES &amp; CHOIR</h1>
+    <h1 class="drop-in-text hero-title" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-family: 'Poppins', sans-serif; font-weight: bold; font-size: 80px; color: #FAEDCD; text-transform: uppercase; margin: 0; padding: 0; text-align: center; z-index: 1; white-space: nowrap;">Our Organizations</h1>
   </div>
 
   <main class="main">
     <!-- Content Section -->
     <section class="content-section-v2" style="padding-top: 60px !important; padding-bottom: 60px !important; padding-left: 1in !important; padding-right: 1in !important; max-width: none; margin: 0;">
       <p class="content-text fade-in fade-in-delay-1" style="padding-left: 0 !important; padding-right: 0 !important; margin-left: 0 !important; margin-right: 0 !important; max-width: none;">
-        Our <strong style="color: #91203C;">dedicated acolytes</strong> serve as essential assistants during the Divine Liturgy, helping to prepare the altar, light candles, and support our clergy in the sacred mysteries that unite us in worship. These faithful servants, ranging from children to adults, learn the ancient traditions of our Orthodox faith while contributing to the reverent atmosphere that makes our liturgical celebrations so meaningful. Our <strong style="color: #91203C;">choir</strong> leads our congregation in the beautiful chants and hymns that have echoed through Syriac Orthodox churches for centuries, preserving our musical heritage while helping every voice join in praise to the Almighty. Together, these ministries embody the spirit of service and devotion that strengthens our church family, ensuring that our worship reflects both the majesty of our ancient traditions and the heartfelt participation of our community.
+        Our ministries provide opportunities for spiritual growth, fellowship, and service across all ages and stages of life. From nurturing children in Orthodox faith through Sunday School to supporting adults in their spiritual journey, these organizations strengthen our church family and deepen our connection to Christ and one another.
       </p>
-
-      <img src="assets/img/Acolytes + Choir/gang.png" alt="Acolytes and Choir" class="content-image fade-in fade-in-delay-2">
     </section>
   </main>
 
