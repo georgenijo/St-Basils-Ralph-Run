@@ -118,14 +118,7 @@
       animation: dropInFade 2s ease-out forwards;
     }
 
-    /* Parallax scrolling styles */
-    .parallax-container {
-      height: 500px;
-      position: relative;
-      overflow: hidden;
-      top: 75px;
-    }
-
+    /* Fixed background image for parallax */
     .parallax-bg {
       position: fixed;
       top: 75px;
@@ -136,6 +129,7 @@
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
+      background-attachment: fixed;
       z-index: -2;
     }
 
@@ -147,6 +141,17 @@
       height: 500px;
       background-color: rgba(0, 0, 0, 0.5);
       z-index: -1;
+    }
+
+    /* Hero section that scrolls over background */
+    .hero-container {
+      height: 500px;
+      position: relative;
+      margin-top: 75px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1;
     }
 
     .hero-text {
@@ -162,17 +167,16 @@
       margin: 0;
       padding: 0;
       text-align: center;
-      z-index: 1;
       white-space: nowrap;
       opacity: 0;
+      z-index: 2;
     }
 
-    .content-with-parallax {
-      position: relative;
-      z-index: 5;
-      margin-top: 500px;
+    .main {
       background-color: #FEFAE0;
       min-height: 100vh;
+      position: relative;
+      z-index: 1;
     }
 
     /* Responsive adjustments */
@@ -297,16 +301,17 @@
     </div>
   </header>
 
-  <!-- Parallax Hero Section -->
-  <div class="parallax-container">
-    <!-- Fixed background image with dimming filter -->
-    <div class="parallax-bg"></div>
-    <div class="parallax-overlay"></div>
-    <!-- Hero text centered in viewport -->
+  <!-- Fixed background image and overlay for parallax -->
+  <div class="parallax-bg"></div>
+  <div class="parallax-overlay"></div>
+
+  <!-- Hero section with title that scrolls over background -->
+  <div class="hero-container">
     <h1 class="hero-text drop-in-fade">Useful Links & Resources</h1>
   </div>
 
-  <main class="main content-with-parallax">
+  <!-- Main content section -->
+  <main class="main">
     <section id="content" class="content section" style="padding-top: 60px; padding-bottom: 60px;">
       <div class="container">
         <!-- Main content area left blank as requested -->
