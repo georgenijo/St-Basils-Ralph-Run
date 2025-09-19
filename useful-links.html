@@ -106,41 +106,94 @@
     @keyframes dropInFade {
       0% {
         opacity: 0;
-        transform: translateY(-30px);
+        transform: translate(-50%, -50%) translateY(-30px);
       }
       100% {
         opacity: 1;
-        transform: translateY(0);
+        transform: translate(-50%, -50%) translateY(0);
       }
     }
 
     .drop-in-fade {
-      animation: dropInFade 1.5s ease-out forwards;
+      animation: dropInFade 2s ease-out forwards;
+    }
+
+    /* Parallax scrolling styles */
+    .parallax-container {
+      height: 500px;
+      position: relative;
+      overflow: hidden;
+      top: 75px;
+    }
+
+    .parallax-bg {
+      position: fixed;
+      top: 75px;
+      left: 0;
+      width: 100%;
+      height: 500px;
+      background-image: url('assets/img/useful links hero.jpg');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      z-index: -2;
+    }
+
+    .parallax-overlay {
+      position: fixed;
+      top: 75px;
+      left: 0;
+      width: 100%;
+      height: 500px;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: -1;
+    }
+
+    .hero-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: 'Poppins', sans-serif;
+      font-weight: bold;
+      font-size: 80px;
+      color: #FAEDCD;
+      text-transform: uppercase;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+      z-index: 1;
+      white-space: nowrap;
+      opacity: 0;
+    }
+
+    .content-with-parallax {
+      position: relative;
+      z-index: 5;
+      margin-top: 500px;
+      background-color: #FEFAE0;
+      min-height: 100vh;
     }
 
     /* Responsive adjustments */
     @media (max-width: 1200px) {
-      .main-title {
-        font-size: 35px !important;
+      .hero-text {
+        font-size: 65px !important;
       }
     }
 
     @media (max-width: 992px) {
-      .main-title {
-        font-size: 32px !important;
+      .hero-text {
+        font-size: 55px !important;
       }
     }
 
     @media (max-width: 768px) {
-      /* Header section adjustments */
-      .hero-section {
-        height: 1.5in !important;
+      .hero-text {
+        font-size: 40px !important;
         padding: 0 20px;
-      }
-
-      .main-title {
-        font-size: 28px !important;
-        padding: 0 15px;
+        white-space: normal !important;
+        line-height: 1.2;
       }
 
       /* Footer responsive */
@@ -161,14 +214,21 @@
     }
 
     @media (max-width: 576px) {
-      .main-title {
-        font-size: 24px !important;
+      .hero-text {
+        font-size: 32px !important;
       }
     }
 
-    @media (max-width: 400px) {
-      .main-title {
-        font-size: 20px !important;
+    @media (max-width: 480px) {
+      .hero-text {
+        font-size: 28px !important;
+        padding: 0 15px;
+      }
+    }
+
+    @media (max-width: 375px) {
+      .hero-text {
+        font-size: 24px !important;
       }
     }
 
@@ -237,18 +297,21 @@
     </div>
   </header>
 
-  <main class="main">
-    <!-- Maroon Section with Title -->
-    <section class="hero-section" style="background-color: #91203C; height: 2in; width: 100%; display: flex; align-items: center; justify-content: center;">
-      <h1 class="drop-in-fade main-title" style="font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 40px; color: #FEFAE0; text-transform: uppercase; margin: 0; text-align: center;">USEFUL LINKS</h1>
-    </section>
+  <!-- Parallax Hero Section -->
+  <div class="parallax-container">
+    <!-- Fixed background image with dimming filter -->
+    <div class="parallax-bg"></div>
+    <div class="parallax-overlay"></div>
+    <!-- Hero text centered in viewport -->
+    <h1 class="hero-text drop-in-fade">Useful Links & Resources</h1>
+  </div>
 
+  <main class="main content-with-parallax">
     <section id="content" class="content section" style="padding-top: 60px; padding-bottom: 60px;">
       <div class="container">
         <!-- Main content area left blank as requested -->
       </div>
     </section>
-
   </main>
 
   <!-- Spacer Section -->
