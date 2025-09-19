@@ -233,6 +233,208 @@
     #scroll-top {
       background-color: #91203C !important;
     }
+
+    /* Mobile Responsive Styles */
+    @media (max-width: 768px) {
+      /* Fix logo padding on mobile */
+      .logo {
+        transform: translateX(0) !important;
+        padding-left: 15px;
+      }
+
+      /* Hero title responsive */
+      h1.drop-in-text {
+        font-size: 50px !important;
+      }
+
+      /* Three column contact section responsive */
+      section[style*="height: 4in"] {
+        height: auto !important;
+        min-height: auto !important;
+        flex-direction: column !important;
+      }
+
+      section[style*="height: 4in"] > div {
+        width: 100% !important;
+        flex: none !important;
+        min-height: 200px !important;
+        padding: 30px 20px !important;
+      }
+
+      section[style*="height: 4in"] > div h3 {
+        font-size: 24px !important;
+      }
+
+      section[style*="height: 4in"] > div p {
+        font-size: 16px !important;
+      }
+
+      /* Hide vertical border lines on mobile */
+      section[style*="height: 4in"] div[style*="position: absolute"][style*="right: 0"] {
+        display: none !important;
+      }
+
+      /* Footer responsive styles */
+      .footer-section {
+        flex-direction: column !important;
+        padding: 30px 15px !important;
+        text-align: center;
+        gap: 20px;
+      }
+
+      .footer-section > div:first-child {
+        margin-bottom: 15px;
+        font-size: 13px !important;
+      }
+
+      /* Footer links section */
+      .footer-section > div:nth-child(2) {
+        position: relative !important;
+        left: 0 !important;
+        transform: none !important;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 15px;
+      }
+
+      .footer-section a.footer-link {
+        padding: 5px 10px !important;
+        font-size: 13px !important;
+      }
+
+      /* Hide divider lines on mobile */
+      .footer-section span[style*="border-left"] {
+        display: none !important;
+      }
+
+      /* Our Location section responsive */
+      div[style*="padding: 20px 1in"] h2 {
+        font-size: 32px !important;
+        padding-top: 30px !important;
+      }
+
+      div[style*="padding: 20px 1in"] p {
+        padding: 0 20px !important;
+        font-size: 15px !important;
+      }
+
+      /* Map container responsive */
+      #map-section {
+        padding: 20px !important;
+      }
+
+      /* Expandable tabs responsive */
+      button[onclick*="toggleTab"] {
+        font-size: 16px !important;
+        padding: 15px !important;
+      }
+
+      div[id*="-tab"] {
+        padding: 20px !important;
+        font-size: 14px !important;
+      }
+    }
+
+    @media (max-width: 576px) {
+      /* Extra small devices */
+      /* Hero title smaller */
+      h1.drop-in-text {
+        font-size: 36px !important;
+        padding: 0 15px;
+      }
+
+      .footer-section {
+        padding: 20px 10px !important;
+      }
+
+      .footer-section > div:first-child {
+        font-size: 11px !important;
+      }
+
+      .footer-section a.footer-link {
+        font-size: 11px !important;
+      }
+
+      section[style*="height: 4in"] > div h3 {
+        font-size: 20px !important;
+      }
+
+      section[style*="height: 4in"] > div p {
+        font-size: 14px !important;
+      }
+
+      section[style*="height: 4in"] > div i {
+        font-size: 32px !important;
+      }
+
+      /* Our Location title smaller */
+      div[style*="padding: 20px 1in"] h2 {
+        font-size: 26px !important;
+      }
+
+      div[style*="padding: 20px 1in"] p {
+        font-size: 13px !important;
+        letter-spacing: 1px !important;
+      }
+    }
+
+    @media (max-width: 400px) {
+      /* Very small devices */
+      .footer-section > div:first-child {
+        font-size: 10px !important;
+      }
+
+      .footer-section a.footer-link {
+        font-size: 10px !important;
+      }
+
+      section[style*="height: 4in"] > div h3 {
+        font-size: 18px !important;
+        letter-spacing: 0 !important;
+      }
+
+      section[style*="height: 4in"] > div p {
+        font-size: 13px !important;
+      }
+
+      /* Hero title even smaller */
+      h1.drop-in-text {
+        font-size: 28px !important;
+        white-space: normal !important;
+        line-height: 1.2 !important;
+        padding: 0 20px;
+      }
+    }
+
+    /* Fade-in animation for content */
+    @keyframes fadeInUp {
+      0% {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .fade-in-content {
+      animation: fadeInUp 1.2s ease-out forwards;
+    }
+
+    .fade-in-delay-1 {
+      animation-delay: 0.3s;
+    }
+
+    .fade-in-delay-2 {
+      animation-delay: 0.6s;
+    }
+
+    .fade-in-delay-3 {
+      animation-delay: 0.9s;
+    }
   </style>
 
 </head>
@@ -279,7 +481,7 @@
   <!-- Top Header Image Section with Parallax -->
   <div style="height: auto; width: 100%; position: relative; top: 75px; overflow: hidden;">
     <!-- Fixed background image -->
-    <div style="position: fixed; top: 75px; left: 0; width: 100%; height: calc(100vh - 75px); background-image: url('assets/img/Contact Us/contact us.png'); background-size: contain; background-position: center; background-repeat: no-repeat; z-index: -1;"></div>
+    <div style="position: fixed; top: 75px; left: 0; width: 100%; height: calc(100vh - 75px); background-image: url('assets/img/Contact Us/contact us.png'); background-size: cover; background-position: center; background-repeat: no-repeat; z-index: -1; background-color: #FEFAE0;"></div>
     <!-- Invisible image for maintaining height -->
     <img src="assets/img/Contact Us/contact us.png" style="width: 100%; height: auto; opacity: 0; display: block; position: relative;">
     <!-- Dimming filter overlay that scrolls with content -->
