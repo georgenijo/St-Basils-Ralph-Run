@@ -173,6 +173,184 @@
     #scroll-top {
       background-color: #91203C !important;
     }
+
+    /* Mobile Responsive Styles */
+    @media (max-width: 768px) {
+      /* Fix logo padding on mobile */
+      .logo {
+        transform: translateX(0) !important;
+        padding-left: 15px;
+      }
+
+      /* Hero title responsive */
+      h1.drop-in-text {
+        font-size: 50px !important;
+      }
+
+      /* Our Heart for Service blue section fix */
+      div[style*="height: 3in"][style*="background-color: #253341"] {
+        height: auto !important;
+        min-height: auto !important;
+        padding: 40px 20px !important;
+      }
+
+      div[style*="height: 3in"][style*="background-color: #253341"] h2 {
+        font-size: 28px !important;
+        margin-bottom: 20px !important;
+      }
+
+      div[style*="height: 3in"][style*="background-color: #253341"] p {
+        font-size: 15px !important;
+        padding: 0 10px !important;
+      }
+
+      /* Grid layout for charity cards on mobile */
+      div[style*="grid-template-columns: repeat(3, 1fr)"] {
+        grid-template-columns: 1fr !important;
+        gap: 20px !important;
+        padding: 20px !important;
+        overflow: visible !important;
+        min-height: auto !important;
+      }
+
+      /* Ensure the cream container shows all cards */
+      div[style*="background-color: #FEFAE0"] {
+        overflow: visible !important;
+        height: auto !important;
+        min-height: auto !important;
+        padding-bottom: 30px !important;
+      }
+
+      /* Flip cards responsive */
+      .flip-card {
+        height: 200px !important;
+        margin-bottom: 20px;
+      }
+
+      .flip-card h3 {
+        font-size: 18px !important;
+      }
+
+      .flip-card p {
+        font-size: 14px !important;
+      }
+
+      /* Footer responsive styles */
+      .footer-section {
+        flex-direction: column !important;
+        padding: 30px 15px !important;
+        text-align: center;
+        gap: 20px;
+      }
+
+      .footer-section > div:first-child {
+        margin-bottom: 15px;
+        font-size: 13px !important;
+      }
+
+      /* Footer links section */
+      .footer-section > div:nth-child(2) {
+        position: relative !important;
+        left: 0 !important;
+        transform: none !important;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 15px;
+      }
+
+      .footer-section a.footer-link {
+        padding: 5px 10px !important;
+        font-size: 13px !important;
+      }
+
+      /* Hide divider lines on mobile */
+      .footer-section span[style*="border-left"] {
+        display: none !important;
+      }
+
+      /* Ways to Give section responsive */
+      div[style*="padding: 60px 1in"] h2 {
+        font-size: 32px !important;
+      }
+
+      div[style*="padding: 60px 1in"] {
+        padding: 40px 20px !important;
+      }
+    }
+
+    @media (max-width: 576px) {
+      /* Extra small devices */
+      /* Hero title smaller */
+      h1.drop-in-text {
+        font-size: 36px !important;
+        padding: 0 15px;
+      }
+
+      .footer-section {
+        padding: 20px 10px !important;
+      }
+
+      .footer-section > div:first-child {
+        font-size: 11px !important;
+      }
+
+      .footer-section a.footer-link {
+        font-size: 11px !important;
+      }
+
+      /* Our Heart for Service section smaller text */
+      div[style*="height: 3in"][style*="background-color: #253341"] h2 {
+        font-size: 24px !important;
+      }
+
+      div[style*="height: 3in"][style*="background-color: #253341"] p {
+        font-size: 13px !important;
+      }
+
+      /* Flip cards smaller */
+      .flip-card {
+        height: 180px !important;
+      }
+
+      .flip-card h3 {
+        font-size: 16px !important;
+      }
+
+      .flip-card p {
+        font-size: 12px !important;
+      }
+
+      .flip-card i {
+        font-size: 30px !important;
+      }
+    }
+
+    @media (max-width: 400px) {
+      /* Very small devices */
+      h1.drop-in-text {
+        font-size: 28px !important;
+        white-space: normal !important;
+        line-height: 1.2 !important;
+      }
+
+      .footer-section > div:first-child {
+        font-size: 10px !important;
+      }
+
+      .footer-section a.footer-link {
+        font-size: 10px !important;
+      }
+
+      div[style*="height: 3in"][style*="background-color: #253341"] h2 {
+        font-size: 20px !important;
+      }
+
+      div[style*="height: 3in"][style*="background-color: #253341"] p {
+        font-size: 12px !important;
+      }
+    }
   </style>
 
 </head>
