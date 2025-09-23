@@ -385,7 +385,7 @@
 
     <!-- Our Faith Section -->
     <section style="background-color: #FEFAE0; padding: 0;">
-      <div style="margin: 0 1in;">
+      <div id="our-faith-wrapper" style="margin: 0 1in;">
         <div id="our-faith-box" style="background-color: #FAEDCD; min-height: 8in; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); padding: 0.5in 1in 0.3in 1in;">
           <h2 class="fade-in-scroll" style="font-family: 'Poppins', sans-serif; font-size: 40px; font-weight: bold; color: #253341; text-align: center; margin: 0; margin-bottom: 0.5in;">
             Our Faith
@@ -590,13 +590,17 @@
         object-fit: contain !important;
       }
 
-      /* Reduce padding on Our Faith section - force override inline styles */
+      /* Reduce padding and margins on Our Faith section - minimal spacing on mobile */
+      #our-faith-wrapper {
+        margin: 0 5px !important;
+      }
+
       #our-faith-box {
-        padding: 20px 10px 20px 10px !important;
+        padding: 15px 10px !important;
       }
 
       div#our-faith-box[style] {
-        padding: 20px 10px 20px 10px !important;
+        padding: 15px 10px !important;
       }
 
       /* Make dark section stack */
@@ -646,4 +650,4 @@
 </body>
 
 </html>
-<!-- MOBILE FIX v5 - Moved content-box outside hero container -->
+<!-- MOBILE FIX v6 - Reduced Our Faith padding to minimal (5px margins, 10px side padding) -->
