@@ -590,20 +590,18 @@
         object-fit: contain !important;
       }
 
-      /* Fix Our Faith section - 15px total outer margin on mobile */
-      #our-faith-wrapper[style] {
+      /* Override all inch-based measurements first */
+      *[style*="1in"] {
+        padding: 15px !important;
+        margin: 0 15px !important;
+      }
+
+      /* THEN override specifically for Our Faith section - must come AFTER generic rule */
+      #our-faith-wrapper {
         margin: 0 7.5px !important;  /* 7.5px each side = 15px total */
       }
 
-      div#our-faith-wrapper {
-        margin: 0 7.5px !important;
-      }
-
       #our-faith-box {
-        padding: 15px 10px !important;
-      }
-
-      div#our-faith-box[style] {
         padding: 15px 10px !important;
       }
 
@@ -625,12 +623,6 @@
 
       #mission-sections > div {
         margin-bottom: 20px !important;
-      }
-
-      /* Override all inch-based measurements EXCEPT Our Faith wrapper and box */
-      *[style*="1in"]:not(#our-faith-box):not(#our-faith-wrapper) {
-        padding: 15px !important;
-        margin: 0 15px !important;
       }
 
       /* Force images to fit */
