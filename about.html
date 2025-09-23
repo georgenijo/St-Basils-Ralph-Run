@@ -590,9 +590,13 @@
         object-fit: contain !important;
       }
 
-      /* Reduce padding and margins on Our Faith section - minimal spacing on mobile */
-      #our-faith-wrapper {
-        margin: 0 5px !important;
+      /* Fix Our Faith section - 15px total outer margin on mobile */
+      #our-faith-wrapper[style] {
+        margin: 0 7.5px !important;  /* 7.5px each side = 15px total */
+      }
+
+      div#our-faith-wrapper {
+        margin: 0 7.5px !important;
       }
 
       #our-faith-box {
@@ -623,8 +627,8 @@
         margin-bottom: 20px !important;
       }
 
-      /* Override all inch-based measurements EXCEPT Our Faith */
-      *[style*="1in"]:not(#our-faith-box) {
+      /* Override all inch-based measurements EXCEPT Our Faith wrapper and box */
+      *[style*="1in"]:not(#our-faith-box):not(#our-faith-wrapper) {
         padding: 15px !important;
         margin: 0 15px !important;
       }
@@ -650,4 +654,4 @@
 </body>
 
 </html>
-<!-- MOBILE FIX v6 - Reduced Our Faith padding to minimal (5px margins, 10px side padding) -->
+<!-- MOBILE FIX v7 - Set Our Faith outer margins to exactly 15px total (7.5px each side) -->
