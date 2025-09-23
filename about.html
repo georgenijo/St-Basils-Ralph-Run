@@ -309,9 +309,10 @@
     <img src="assets/img/Our History/pre reno.JPG" style="width: 100%; height: auto; display: block;" alt="Church Pre-Renovation">
     <div id="hero-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5);"></div>
     <h1 id="hero-title" class="hero-text" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-family: 'Poppins', sans-serif; font-weight: bold; font-size: 80px; color: #FAEDCD; text-transform: uppercase; margin: 0; padding: 0; text-align: center; z-index: 1; white-space: nowrap;">OUR CHURCH HISTORY</h1>
+  </div>
 
-    <!-- Rectangular Box with Title and Content (overlaying bottom of image) -->
-    <div id="content-box" style="position: absolute; bottom: -15.5in; left: 1in; right: 1in; z-index: 2;">
+  <!-- Rectangular Box with Title and Content (overlaying bottom of image) -->
+  <div id="content-box" style="position: absolute; bottom: -15.5in; left: 1in; right: 1in; z-index: 2;">
       <div style="background-color: #FAEDCD; height: auto; min-height: 10in; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); padding: 0.5in 1in 0.5in 1in; overflow-y: auto;">
         <h2 class="fade-in-scroll" style="font-family: 'Poppins', sans-serif; font-size: 40px; color: #253341; text-align: center; margin: 0; margin-bottom: 0.5in;">
           Founded in <span style="font-weight: bold;">Faith</span>, Blessed by <span style="font-weight: bold;">Providence</span>
@@ -358,7 +359,6 @@
         </div>
       </div>
     </div>
-  </div>
 
   <main id="main-content" class="main desktop-main" style="background-color: #FEFAE0; min-height: calc(100vh - 75px - 1in); padding: 0; margin-top: 15.5in;">
     <!-- Dark section below rectangular box split into two -->
@@ -561,13 +561,14 @@
         z-index: 2 !important;
       }
 
-      /* Move content box below hero image */
+      /* Move content box below hero image - must override absolute positioning */
       #content-box {
-        position: static !important;
+        position: relative !important;
         margin: 20px !important;
         bottom: auto !important;
         left: auto !important;
         right: auto !important;
+        top: auto !important;
       }
 
       /* Remove massive top margin */
@@ -589,9 +590,13 @@
         object-fit: contain !important;
       }
 
-      /* Reduce padding on Our Faith section */
+      /* Reduce padding on Our Faith section - force override inline styles */
       #our-faith-box {
-        padding: 20px 15px !important;
+        padding: 20px 10px 20px 10px !important;
+      }
+
+      div#our-faith-box[style] {
+        padding: 20px 10px 20px 10px !important;
       }
 
       /* Make dark section stack */
@@ -641,4 +646,4 @@
 </body>
 
 </html>
-<!-- MOBILE FIX v4 - Fixed overlay, hero title, images, and Our Faith padding -->
+<!-- MOBILE FIX v5 - Moved content-box outside hero container -->
