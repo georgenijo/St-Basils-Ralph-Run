@@ -14,3 +14,15 @@ export interface PageContent {
   effectiveDate?: string
   lastUpdated?: string
 }
+
+export type ClergyCategory = 'current' | 'previous' | 'in-memoriam'
+
+export interface ClergyMember {
+  _id: string
+  name: string
+  role: string
+  category: ClergyCategory
+  photo?: SanityImageSource
+  yearsOfService?: string
+  bio?: string
+}

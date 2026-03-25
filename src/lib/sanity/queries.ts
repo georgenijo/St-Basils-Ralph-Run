@@ -13,3 +13,15 @@ export const pageContentBySlugQuery = groq`
     lastUpdated
   }
 `
+
+export const clergyQuery = groq`
+  *[_type == "clergy"] | order(order asc) {
+    _id,
+    name,
+    role,
+    category,
+    photo,
+    yearsOfService,
+    bio
+  }
+`

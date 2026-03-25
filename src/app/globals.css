@@ -58,8 +58,47 @@ h6 {
   color: var(--color-wood-900);
 }
 
+/* Candle flame animation for In Memoriam section */
+.candle-flame {
+  position: relative;
+  width: 16px;
+  height: 24px;
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  background: radial-gradient(ellipse at 50% 60%, #fffbe6, #ffd54f 40%, #ff9800 70%, transparent 100%);
+  box-shadow:
+    0 0 8px 2px rgba(255, 183, 77, 0.5),
+    0 0 20px 6px rgba(255, 152, 0, 0.2);
+  animation: flicker 2.5s ease-in-out infinite alternate;
+}
+
+.candle-flame::after {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border-radius: inherit;
+  background: radial-gradient(ellipse at 50% 70%, #fff9c4, #ffecb3 50%, transparent 100%);
+  animation: flicker-inner 1.8s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes flicker {
+  0%, 100% { transform: scaleY(1) scaleX(1) rotate(-1deg); opacity: 1; }
+  25% { transform: scaleY(1.06) scaleX(0.96) rotate(1deg); opacity: 0.95; }
+  50% { transform: scaleY(0.94) scaleX(1.04) rotate(-0.5deg); opacity: 1; }
+  75% { transform: scaleY(1.03) scaleX(0.97) rotate(0.5deg); opacity: 0.97; }
+}
+
+@keyframes flicker-inner {
+  0%, 100% { transform: scaleY(1) rotate(0.5deg); opacity: 0.9; }
+  50% { transform: scaleY(1.08) rotate(-0.5deg); opacity: 1; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-drop-in {
+    animation: none;
+  }
+
+  .candle-flame,
+  .candle-flame::after {
     animation: none;
   }
 }
