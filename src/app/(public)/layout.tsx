@@ -1,3 +1,4 @@
+import { Footer } from '@/components/layout/Footer'
 import { Navbar } from '@/components/layout/Navbar'
 
 export default function PublicLayout({
@@ -9,7 +10,7 @@ export default function PublicLayout({
     <>
       <Navbar />
       <main className="pt-16">{children}</main>
-      {/* Footer will be added here */}
+      <Footer />
     </>
   )
 }
