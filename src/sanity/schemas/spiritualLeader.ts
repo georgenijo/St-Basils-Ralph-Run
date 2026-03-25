@@ -26,6 +26,12 @@ export default defineType({
       validation: (Rule) => Rule.required(),
     }),
     defineField({
+      name: 'photoPosition',
+      title: 'Photo Position',
+      type: 'string',
+      description: 'CSS object-position override (e.g., "center top", "50% 30%")',
+    }),
+    defineField({
       name: 'biography',
       title: 'Biography',
       type: 'array',
@@ -64,6 +70,12 @@ export default defineType({
       title: 'Display Order',
       type: 'number',
       validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: 'isActive',
+      title: 'Active',
+      type: 'boolean',
+      initialValue: true,
     }),
   ],
   orderings: [

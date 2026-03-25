@@ -20,6 +20,7 @@ export interface SpiritualLeader {
   name: string
   title: string
   photo: SanityImageSource
+  photoPosition?: string
   photoLqip?: string
   biography: PortableTextBlock[]
   order: number

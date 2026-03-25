@@ -15,11 +15,12 @@ export const pageContentBySlugQuery = groq`
 `
 
 export const allSpiritualLeadersQuery = groq`
-  *[_type == "spiritualLeader"] | order(order asc) {
+  *[_type == "spiritualLeader" && isActive == true] | order(order asc) {
     _id,
     name,
     title,
     photo,
+    photoPosition,
     "photoLqip": photo.asset->metadata.lqip,
     biography,
     order
