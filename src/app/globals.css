@@ -1,6 +1,8 @@
 @import 'tailwindcss';
 
 @theme {
+  --animate-drop-in: drop-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+
   /* Colors — Primary palette */
   --color-cream-50: #fffdf8;
   --color-cream-100: #fff9ef;
@@ -42,4 +44,15 @@ h5,
 h6 {
   font-family: var(--font-heading);
   color: var(--color-wood-900);
+}
+
+@keyframes drop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
