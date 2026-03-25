@@ -13,3 +13,24 @@ export const pageContentBySlugQuery = groq`
     lastUpdated
   }
 `
+
+export const organizationsQuery = groq`
+  *[_type == "organization"] | order(order asc) {
+    _id,
+    name,
+    slug,
+    description,
+    image {
+      ...,
+      asset-> {
+        metadata {
+          lqip
+        }
+      }
+    },
+    scriptureQuote,
+    scriptureReference,
+    links,
+    order
+  }
+`

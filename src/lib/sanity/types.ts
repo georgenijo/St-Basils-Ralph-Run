@@ -14,3 +14,20 @@ export interface PageContent {
   effectiveDate?: string
   lastUpdated?: string
 }
+
+export interface OrganizationLink {
+  label: string
+  url: string
+}
+
+export interface Organization {
+  _id: string
+  name: string
+  slug: { current: string }
+  description: PortableTextBlock[]
+  image?: SanityImageSource & { asset?: { metadata?: { lqip?: string } } }
+  scriptureQuote?: string
+  scriptureReference?: string
+  links?: OrganizationLink[]
+  order: number
+}
