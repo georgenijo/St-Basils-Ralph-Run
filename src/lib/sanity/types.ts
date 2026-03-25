@@ -14,3 +14,12 @@ export interface PageContent {
   effectiveDate?: string
   lastUpdated?: string
 }
+
+export interface UsefulLink {
+  _id: string
+  title: string
+  description?: string
+  fileUrl: string
+  category?: string
+  order: number
+}

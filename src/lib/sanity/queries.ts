@@ -13,3 +13,14 @@ export const pageContentBySlugQuery = groq`
     lastUpdated
   }
 `
+
+export const usefulLinksQuery = groq`
+  *[_type == "usefulLink"] | order(order asc) {
+    _id,
+    title,
+    description,
+    "fileUrl": file.asset->url,
+    category,
+    order
+  }
+`
