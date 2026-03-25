@@ -10,6 +10,7 @@ const TYPE_TO_PATHS: Record<string, string[]> = {
   officeBearer: ['/office-bearers'],
   organization: ['/our-organizations'],
   usefulLink: ['/useful-links'],
+  usefulLinksPage: ['/useful-links'],
   pageContent: ['/privacy-policy', '/terms-of-use'],
   acolytesChoirPage: ['/acolytes-choir'],
 }
