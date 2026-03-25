@@ -28,6 +28,18 @@ export interface Clergy {
   order: number
 }
 
+export interface OfficeBearer {
+  _id: string
+  name: string
+  role?: string
+  photo?: SanityImageSource
+  photoPosition?: string
+  photoLqip?: string
+  category: 'executive' | 'board'
+  year?: string
+  order: number
+}
+
 export interface SpiritualLeader {
   _id: string
   name: string
