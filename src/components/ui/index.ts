@@ -1,1 +1,6 @@
+export { Button } from './Button'
+export { Card } from './Card'
 export { GoldDivider } from './GoldDivider'
+export { PageHero } from './PageHero'
+export { ScrollReveal } from './ScrollReveal'
+export { SectionHeader } from './SectionHeader'
