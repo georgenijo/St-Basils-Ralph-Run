@@ -29,6 +29,20 @@ export const allClergyQuery = groq`
   }
 `
 
+export const allOfficeBearersQuery = groq`
+  *[_type == "officeBearer" && isActive == true] | order(category asc, order asc) {
+    _id,
+    name,
+    role,
+    photo,
+    photoPosition,
+    "photoLqip": photo.asset->metadata.lqip,
+    category,
+    year,
+    order
+  }
+`
+
 export const allSpiritualLeadersQuery = groq`
   *[_type == "spiritualLeader" && isActive == true] | order(order asc) {
     _id,
