@@ -182,7 +182,7 @@ export function Navbar({ className }: NavbarProps) {
                     <ul
                       id={`dropdown-${item.label}`}
                       className={cn(
-                        'absolute left-0 top-full mt-1 w-56 origin-top rounded-xl bg-cream-50 py-2 shadow-md transition-all duration-200',
+                        'absolute left-0 top-full mt-1 w-56 origin-top rounded-xl bg-cream-50 py-2 shadow-md transition-all duration-200 motion-reduce:transition-none',
                         activeDropdown === item.label
                           ? 'translate-y-0 scale-100 opacity-100'
                           : 'pointer-events-none -translate-y-2 scale-95 opacity-0'
@@ -254,7 +254,7 @@ export function Navbar({ className }: NavbarProps) {
         <div
           id="mobile-menu"
           className={cn(
-            'overflow-hidden bg-cream-50 transition-all duration-300 ease-in-out xl:hidden',
+            'overflow-hidden bg-cream-50 transition-all duration-300 ease-in-out motion-reduce:transition-none xl:hidden',
             mobileOpen ? 'max-h-[calc(100vh-4.25rem)]' : 'max-h-0'
           )}
         >
@@ -265,7 +265,7 @@ export function Navbar({ className }: NavbarProps) {
                   <button
                     type="button"
                     className={cn(
-                      'flex w-full items-center justify-between rounded-lg px-4 py-3 text-base font-medium transition-colors',
+                      'flex w-full items-center justify-between rounded-lg min-h-[44px] px-4 py-3 text-base font-medium transition-colors',
                       isActive(item) ? 'text-burgundy-700' : 'text-wood-800'
                     )}
                     aria-expanded={activeAccordion === item.label}
@@ -296,7 +296,7 @@ export function Navbar({ className }: NavbarProps) {
                         <Link
                           href={child.href}
                           className={cn(
-                            'block rounded-lg py-2.5 pl-8 pr-4 text-sm transition-colors',
+                            'flex items-center rounded-lg min-h-[44px] py-2.5 pl-8 pr-4 text-sm transition-colors',
                             isChildActive(child.href)
                               ? 'bg-burgundy-100 text-burgundy-700'
                               : 'text-wood-800 hover:text-burgundy-700'
@@ -316,7 +316,7 @@ export function Navbar({ className }: NavbarProps) {
                   <Link
                     href={item.href!}
                     className={cn(
-                      'block rounded-lg px-4 py-3 text-base font-medium transition-colors',
+                      'flex items-center rounded-lg min-h-[44px] px-4 py-3 text-base font-medium transition-colors',
                       isActive(item)
                         ? 'bg-burgundy-100 text-burgundy-700'
                         : 'text-wood-800 hover:text-burgundy-700'

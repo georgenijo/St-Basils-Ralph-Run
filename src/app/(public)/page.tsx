@@ -110,7 +110,7 @@ export default async function HomePage() {
           <div>
             <dt className="font-heading text-lg font-semibold text-cream-50">Contact</dt>
             <dd className="mt-1 text-sm text-cream-50/80">
-              <a href="tel:+16175270527" className="transition-colors hover:text-cream-50">
+              <a href="tel:+16175270527" className="inline-flex min-h-[44px] items-center transition-colors hover:text-cream-50">
                 (617) 527-0527
               </a>
             </dd>
