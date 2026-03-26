@@ -101,7 +101,8 @@ select:focus:not(:focus-visible),
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .animate-drop-in {
+  .animate-drop-in,
+  .animate-flicker {
     animation: none;
   }
 }
