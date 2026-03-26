@@ -42,6 +42,7 @@ function ToolbarButton({
 
 export function TiptapEditor({ content, onChange, error }: TiptapEditorProps) {
   const editor = useEditor({
+    immediatelyRender: false,
     extensions: [StarterKit],
     content: content ? tryParseJson(content) : '',
     editorProps: {
