@@ -79,6 +79,23 @@ h6 {
   color: var(--color-wood-900);
 }
 
+/* Global focus-visible styles for keyboard navigation */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--color-burgundy-700);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Remove default outline on mouse focus */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-drop-in {
     animation: none;
@@ -162,4 +179,17 @@ h6 {
 .fc .fc-toolbar {
   flex-wrap: wrap;
   gap: 0.5rem;
+}
+
+/* FullCalendar focus styles for keyboard navigation */
+.fc .fc-button:focus-visible {
+  outline: 2px solid var(--color-burgundy-700);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+
+.fc .fc-daygrid-day:focus-visible,
+.fc .fc-event:focus-visible {
+  outline: 2px solid var(--color-burgundy-700);
+  outline-offset: -2px;
 }

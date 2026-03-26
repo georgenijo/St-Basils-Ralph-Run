@@ -47,27 +47,29 @@ export function CalendarView({ events }: CalendarViewProps) {
   )
 
   return (
-    <FullCalendar
-      plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin, rrulePlugin]}
-      initialView={initialView}
-      headerToolbar={{
-        left: 'prev,next today',
-        center: 'title',
-        right: 'dayGridMonth,timeGridWeek,listWeek',
-      }}
-      events={coloredEvents}
-      eventClick={handleEventClick}
-      height="auto"
-      dayMaxEvents={3}
-      eventDisplay="block"
-      nowIndicator
-      fixedWeekCount={false}
-      buttonText={{
-        today: 'Today',
-        month: 'Month',
-        week: 'Week',
-        list: 'List',
-      }}
-    />
+    <div role="region" aria-label="Events calendar">
+      <FullCalendar
+        plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin, rrulePlugin]}
+        initialView={initialView}
+        headerToolbar={{
+          left: 'prev,next today',
+          center: 'title',
+          right: 'dayGridMonth,timeGridWeek,listWeek',
+        }}
+        events={coloredEvents}
+        eventClick={handleEventClick}
+        height="auto"
+        dayMaxEvents={3}
+        eventDisplay="block"
+        nowIndicator
+        fixedWeekCount={false}
+        buttonText={{
+          today: 'Today',
+          month: 'Month',
+          week: 'Week',
+          list: 'List',
+        }}
+      />
+    </div>
   )
 }

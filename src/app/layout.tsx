@@ -102,6 +102,12 @@ export default function RootLayout({
   return (
     <html lang="en" className={cn(cormorantGaramond.variable, dmSans.variable, poppins.variable)}>
       <body>
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[9999] focus:rounded-lg focus:bg-burgundy-700 focus:px-6 focus:py-3 focus:font-body focus:text-sm focus:font-medium focus:text-cream-50 focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-cream-50 focus:ring-offset-2"
+        >
+          Skip to main content
+        </a>
         <JsonLd data={churchJsonLd} />
         {children}
       </body>

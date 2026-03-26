@@ -13,10 +13,10 @@ const initialState = {
   errors: undefined as Record<string, string[]> | undefined,
 }
 
-function FieldError({ errors }: { errors?: string[] }) {
+function FieldError({ id, errors }: { id: string; errors?: string[] }) {
   if (!errors?.length) return null
   return (
-    <p className="mt-1.5 font-body text-sm text-red-600" role="alert">
+    <p id={id} className="mt-1.5 font-body text-sm text-red-600" role="alert">
       {errors[0]}
     </p>
   )
@@ -36,7 +36,7 @@ export function ContactForm() {
 
   if (state.success) {
     return (
-      <div className="rounded-2xl border border-green-200 bg-green-50 p-8 text-center">
+      <div className="rounded-2xl border border-green-200 bg-green-50 p-8 text-center" role="status" aria-live="polite">
         <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
           <svg
             className="h-6 w-6 text-green-600"
@@ -44,6 +44,7 @@ export function ContactForm() {
             viewBox="0 0 24 24"
             strokeWidth={2}
             stroke="currentColor"
+            aria-hidden="true"
           >
             <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
           </svg>
@@ -84,9 +85,11 @@ export function ContactForm() {
             required
             maxLength={100}
             placeholder="Your full name"
+            aria-describedby={state.errors?.name ? 'name-error' : undefined}
+            aria-invalid={state.errors?.name ? true : undefined}
             className={cn(inputBase, state.errors?.name && 'border-red-400')}
           />
-          <FieldError errors={state.errors?.name} />
+          <FieldError id="name-error" errors={state.errors?.name} />
         </div>
 
         <div>
@@ -99,9 +102,11 @@ export function ContactForm() {
             name="email"
             required
             placeholder="your@email.com"
+            aria-describedby={state.errors?.email ? 'email-error' : undefined}
+            aria-invalid={state.errors?.email ? true : undefined}
             className={cn(inputBase, state.errors?.email && 'border-red-400')}
           />
-          <FieldError errors={state.errors?.email} />
+          <FieldError id="email-error" errors={state.errors?.email} />
         </div>
       </div>
 
@@ -116,9 +121,11 @@ export function ContactForm() {
           required
           maxLength={200}
           placeholder="What is this regarding?"
+          aria-describedby={state.errors?.subject ? 'subject-error' : undefined}
+          aria-invalid={state.errors?.subject ? true : undefined}
           className={cn(inputBase, state.errors?.subject && 'border-red-400')}
         />
-        <FieldError errors={state.errors?.subject} />
+        <FieldError id="subject-error" errors={state.errors?.subject} />
       </div>
 
       <div>
@@ -132,9 +139,11 @@ export function ContactForm() {
           rows={6}
           maxLength={5000}
           placeholder="How can we help you?"
+          aria-describedby={state.errors?.message ? 'message-error' : undefined}
+          aria-invalid={state.errors?.message ? true : undefined}
           className={cn(inputBase, 'resize-y', state.errors?.message && 'border-red-400')}
         />
-        <FieldError errors={state.errors?.message} />
+        <FieldError id="message-error" errors={state.errors?.message} />
       </div>
 
       <Turnstile
@@ -146,7 +155,7 @@ export function ContactForm() {
       <Button type="submit" disabled={isPending} className="w-full sm:w-auto">
         {isPending ? (
           <span className="flex items-center gap-2">
-            <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+            <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
             </svg>

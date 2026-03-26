@@ -37,7 +37,7 @@ export function NewsletterSignupForm({
 
   if (state.success) {
     return (
-      <div className={cn('rounded-2xl p-6 text-center', isDark ? 'bg-cream-50/10' : 'border border-green-200 bg-green-50', className)}>
+      <div className={cn('rounded-2xl p-6 text-center', isDark ? 'bg-cream-50/10' : 'border border-green-200 bg-green-50', className)} role="status" aria-live="polite">
         <div className={cn(
           'mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full',
           isDark ? 'bg-cream-50/20' : 'bg-green-100'
@@ -96,6 +96,8 @@ export function NewsletterSignupForm({
             required
             placeholder="Enter your email"
             aria-label="Email address for newsletter signup"
+            aria-describedby={state.errors?.email ? 'newsletter-email-error' : undefined}
+            aria-invalid={state.errors?.email ? true : undefined}
             className={cn(
               'min-w-0 flex-1 rounded-lg border px-4 py-2.5 font-body text-sm transition-colors focus:outline-none focus:ring-2',
               isDark
@@ -129,6 +131,7 @@ export function NewsletterSignupForm({
         </div>
         {state.errors?.email && (
           <p
+            id="newsletter-email-error"
             className={cn(
               'mt-1.5 font-body text-sm',
               isDark ? 'text-red-300' : 'text-red-600'

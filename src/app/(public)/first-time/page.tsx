@@ -162,15 +162,15 @@ export default function FirstTimePage() {
                     >
                       {index + 1}
                     </span>
-                    <h3 className="font-heading text-xl font-semibold text-wood-900 sm:hidden">
+                    <h2 className="font-heading text-xl font-semibold text-wood-900 sm:hidden">
                       {guideline.title}
-                    </h3>
+                    </h2>
                   </div>
 
                   <div>
-                    <h3 className="mb-3 hidden font-heading text-2xl font-semibold text-wood-900 sm:block md:text-[1.5rem]">
+                    <h2 className="mb-3 hidden font-heading text-2xl font-semibold text-wood-900 sm:block md:text-[1.5rem]">
                       {guideline.title}
-                    </h3>
+                    </h2>
                     <div className="space-y-4">
                       {guideline.paragraphs.map((paragraph, pIndex) => (
                         <p
