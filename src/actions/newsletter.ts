@@ -1,7 +1,7 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
-import { resend } from '@/lib/resend'
+import { sendEmail } from '@/lib/email'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { verifyTurnstile } from '@/lib/turnstile'
 import { newsletterSchema } from '@/lib/validators/newsletter'
 import { NewsletterConfirmation } from '@/emails/newsletter-confirmation'
@@ -48,14 +48,19 @@ export async function subscribeNewsletter(
 
   const { email } = parsed.data
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://stbasilsboston.org'
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   // 4. Check for existing subscriber
-  const { data: existing } = await supabase
+  const { data: existing, error: existingError } = await supabase
     .from('email_subscribers')
     .select('id, confirmed, confirmation_token')
     .eq('email', email)
-    .single()
+    .maybeSingle()
+
+  if (existingError) {
+    console.error('Failed to look up subscriber:', existingError)
+    return { success: false, message: 'Something went wrong. Please try again.' }
+  }
 
   if (existing) {
     if (existing.confirmed) {
@@ -64,11 +69,16 @@ export async function subscribeNewsletter(
 
     // Re-send confirmation email for unconfirmed subscribers
     const confirmUrl = `${siteUrl}/api/newsletter/confirm?token=${existing.confirmation_token}`
-    const { error: emailError } = await resend.emails.send({
+    const { error: emailError } = await sendEmail({
       from: "St. Basil's Church <noreply@stbasilsboston.org>",
       to: email,
       subject: 'Confirm your subscription',
       react: NewsletterConfirmation({ confirmUrl, siteUrl }),
+      metadata: {
+        template: 'newsletter-confirmation',
+        confirmUrl,
+        siteUrl,
+      },
     })
 
     if (emailError) {
@@ -86,17 +96,62 @@ export async function subscribeNewsletter(
     .single()
 
   if (dbError) {
+    if (dbError.code === '23505') {
+      const { data: conflictedSubscriber, error: conflictError } = await supabase
+        .from('email_subscribers')
+        .select('confirmation_token, confirmed')
+        .eq('email', email)
+        .maybeSingle()
+
+      if (conflictError || !conflictedSubscriber) {
+        console.error('Failed to recover subscriber after conflict:', conflictError ?? dbError)
+        return { success: false, message: 'Something went wrong. Please try again.' }
+      }
+
+      if (conflictedSubscriber.confirmed) {
+        return { success: true, message: 'You are already subscribed.' }
+      }
+
+      const confirmUrl = `${siteUrl}/api/newsletter/confirm?token=${conflictedSubscriber.confirmation_token}`
+      const { error: emailError } = await sendEmail({
+        from: "St. Basil's Church <noreply@stbasilsboston.org>",
+        to: email,
+        subject: 'Confirm your subscription',
+        react: NewsletterConfirmation({ confirmUrl, siteUrl }),
+        metadata: {
+          template: 'newsletter-confirmation',
+          confirmUrl,
+          siteUrl,
+        },
+      })
+
+      if (emailError) {
+        console.error('Failed to send confirmation email:', emailError)
+        return { success: false, message: 'Failed to send confirmation email. Please try again.' }
+      }
+
+      return {
+        success: true,
+        message: 'A confirmation email has been sent. Please check your inbox.',
+      }
+    }
+
     console.error('Failed to create subscriber:', dbError)
     return { success: false, message: 'Something went wrong. Please try again.' }
   }
 
   // 6. Send confirmation email
   const confirmUrl = `${siteUrl}/api/newsletter/confirm?token=${subscriber.confirmation_token}`
-  const { error: emailError } = await resend.emails.send({
+  const { error: emailError } = await sendEmail({
     from: "St. Basil's Church <noreply@stbasilsboston.org>",
     to: email,
     subject: 'Confirm your subscription',
     react: NewsletterConfirmation({ confirmUrl, siteUrl }),
+    metadata: {
+      template: 'newsletter-confirmation',
+      confirmUrl,
+      siteUrl,
+    },
   })
 
   if (emailError) {
