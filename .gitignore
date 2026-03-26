@@ -13,6 +13,9 @@ node_modules
 # misc
 .DS_Store
 *.pem
+.claude/
+.ralph/
+REVIEW_HANDOFF_*.md
 
 # debug
 npm-debug.log*
