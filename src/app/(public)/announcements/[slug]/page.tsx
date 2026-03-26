@@ -49,12 +49,28 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     return { title: 'Announcement Not Found' }
   }
 
+  const description = `${announcement.title} — an announcement from St. Basil's Syriac Orthodox Church.`
+
   return {
     title: announcement.title,
-    description: `${announcement.title} — an announcement from St. Basil's Syriac Orthodox Church.`,
+    description,
     openGraph: {
       title: `${announcement.title} | St. Basil's Syriac Orthodox Church`,
-      description: `${announcement.title} — an announcement from St. Basil's Syriac Orthodox Church.`,
+      description,
+      images: [
+        {
+          url: `/api/og/announcements/${slug}`,
+          width: 1200,
+          height: 630,
+          alt: announcement.title,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${announcement.title} | St. Basil's Syriac Orthodox Church`,
+      description,
+      images: [`/api/og/announcements/${slug}`],
     },
   }
 }

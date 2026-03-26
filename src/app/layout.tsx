@@ -49,17 +49,19 @@ export const metadata: Metadata = {
     type: 'website',
     images: [
       {
-        url: '/logo.png',
-        alt: "St. Basil's Syriac Orthodox Church logo",
+        url: '/api/og/default',
+        width: 1200,
+        height: 630,
+        alt: "St. Basil's Syriac Orthodox Church",
       },
     ],
   },
   twitter: {
-    card: 'summary',
+    card: 'summary_large_image',
     title: "St. Basil's Syriac Orthodox Church",
     description:
       "St. Basil's Syriac Orthodox Church in Boston, Massachusetts. Serving the Jacobite Malayalee community in the New England region.",
-    images: ['/logo.png'],
+    images: ['/api/og/default'],
   },
 }
 

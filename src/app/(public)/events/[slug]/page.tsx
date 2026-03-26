@@ -66,6 +66,20 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     openGraph: {
       title: `${event.title} | St. Basil's Syriac Orthodox Church`,
       description,
+      images: [
+        {
+          url: `/api/og/events/${slug}`,
+          width: 1200,
+          height: 630,
+          alt: event.title,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${event.title} | St. Basil's Syriac Orthodox Church`,
+      description,
+      images: [`/api/og/events/${slug}`],
     },
   }
 }
