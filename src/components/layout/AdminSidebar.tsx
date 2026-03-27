@@ -79,15 +79,15 @@ export function AdminSidebar({ className }: AdminSidebarProps) {
   const sidebarContent = (
     <>
       {/* Logo */}
-      <div className="flex h-16 items-center gap-3 px-5">
+      <div className="flex h-16 items-center justify-between px-3">
+        <span className="px-3 font-heading text-lg font-semibold text-cream-50">Admin</span>
         <Image
           src="/logo.png"
           alt="St. Basil's Syriac Orthodox Church"
-          width={36}
-          height={36}
-          className="h-9 w-9 flex-shrink-0 object-contain"
+          width={48}
+          height={48}
+          className="h-12 w-12 flex-shrink-0 object-contain"
         />
-        <span className="font-heading text-lg font-semibold text-cream-50">Admin</span>
       </div>
 
       {/* Gold accent line */}
