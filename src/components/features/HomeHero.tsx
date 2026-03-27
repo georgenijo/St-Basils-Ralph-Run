@@ -41,10 +41,7 @@ export function HomeHero() {
       </video>
 
       {/* Brightness overlay */}
-      <div
-        className="pointer-events-none absolute inset-0 z-[1] bg-black/20"
-        aria-hidden="true"
-      />
+      <div className="pointer-events-none absolute inset-0 z-[1] bg-black/20" aria-hidden="true" />
 
       {/* Hero content */}
       <div className="relative z-10 mx-auto max-w-3xl px-4 text-center">
@@ -82,8 +79,8 @@ export function HomeHero() {
           {/* Psalm quote */}
           <div className="mt-5 min-h-[25px] text-center">
             <p className="animate-fade-in-delay inline-block font-body text-sm italic text-cream-50 opacity-0 sm:text-base md:text-xl">
-              &ldquo;Taste and see that the Lord is good; blessed is the one who
-              takes refuge in him.&rdquo; — Psalms 34:8
+              &ldquo;Taste and see that the Lord is good; blessed is the one who takes refuge in
+              him.&rdquo; — Psalms 34:8
             </p>
           </div>
         </div>

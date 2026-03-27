@@ -34,21 +34,33 @@
   --animate-fade-in-delay: fadeInDelay 2.5s ease-out 0.5s forwards;
 
   @keyframes typewriter {
-    from { width: 0; }
-    to { width: 100%; }
+    from {
+      width: 0;
+    }
+    to {
+      width: 100%;
+    }
   }
 
   @keyframes blinkCursor {
-    50% { border-color: transparent; }
+    50% {
+      border-color: transparent;
+    }
   }
 
   @keyframes removeCursor {
-    to { border-right-color: transparent; }
+    to {
+      border-right-color: transparent;
+    }
   }
 
   @keyframes fadeInDelay {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
   }
 
   @keyframes drop-in {
