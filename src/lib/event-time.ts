@@ -45,7 +45,7 @@ function getDateTimeParts(date: Date, timeZone: string): DateTimeParts {
     year: values.year,
     month: values.month,
     day: values.day,
-    hour: values.hour,
+    hour: values.hour % 24,
     minute: values.minute,
     second: values.second,
   }

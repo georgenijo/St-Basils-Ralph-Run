@@ -61,9 +61,28 @@ export function Navbar({ className }: NavbarProps) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
   const [activeAccordion, setActiveAccordion] = useState<string | null>(null)
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  function openDropdown(label: string) {
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current)
+      closeTimerRef.current = null
+    }
+    setActiveDropdown(label)
+  }
+
+  function scheduleCloseDropdown() {
+    closeTimerRef.current = setTimeout(() => {
+      setActiveDropdown(null)
+      closeTimerRef.current = null
+    }, 150)
+  }
 
   useEffect(() => {
     setIsClientReady(true)
+    return () => {
+      if (closeTimerRef.current) clearTimeout(closeTimerRef.current)
+    }
   }, [])
 
   // Close everything on route change
@@ -142,8 +161,8 @@ export function Navbar({ className }: NavbarProps) {
               <Image
                 src="/logo.png"
                 alt="St. Basil's Syriac Orthodox Church"
-                width={48}
-                height={48}
+                width={207}
+                height={40}
                 className="h-10 w-auto"
                 priority
               />
@@ -156,8 +175,8 @@ export function Navbar({ className }: NavbarProps) {
                   <li
                     key={item.label}
                     className="relative"
-                    onMouseEnter={() => setActiveDropdown(item.label)}
-                    onMouseLeave={() => setActiveDropdown(null)}
+                    onMouseEnter={() => openDropdown(item.label)}
+                    onMouseLeave={scheduleCloseDropdown}
                   >
                     <button
                       type="button"
