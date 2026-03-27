@@ -252,6 +252,14 @@ export function Navbar({ className }: NavbarProps) {
               )}
             </ul>
 
+            {/* ── Desktop login link ── */}
+            <Link
+              href="/login"
+              className="hidden xl:inline-flex items-center rounded-lg border border-burgundy-700 px-4 py-1.5 text-sm font-medium text-burgundy-700 transition-colors hover:bg-burgundy-700 hover:text-white"
+            >
+              Login
+            </Link>
+
             {/* ── Hamburger button ── */}
             {isClientReady ? (
               <button
@@ -359,6 +367,15 @@ export function Navbar({ className }: NavbarProps) {
                 </li>
               )
             )}
+            {/* ── Mobile login link ── */}
+            <li>
+              <Link
+                href="/login"
+                className="flex items-center justify-center rounded-lg min-h-[44px] mx-4 mt-2 border border-burgundy-700 px-4 py-3 text-base font-medium text-burgundy-700 transition-colors hover:bg-burgundy-700 hover:text-white"
+              >
+                Login
+              </Link>
+            </li>
           </ul>
         </div>
       </nav>
