@@ -48,6 +48,16 @@ CREATE POLICY "Users can update own profile"
     AND is_active = (SELECT is_active FROM public.profiles p WHERE p.id = (select auth.uid()))
   );
 
+-- 3c. "Admins can update all profiles" — exclude self-updates so admins
+--     cannot bypass the role/is_active freeze via the broader admin policy.
+--     Admins must use the self-update policy for their own profile.
+DROP POLICY "Admins can update all profiles" ON public.profiles;
+CREATE POLICY "Admins can update all profiles"
+  ON public.profiles FOR UPDATE
+  TO authenticated
+  USING (public.is_admin() AND id <> (select auth.uid()))
+  WITH CHECK (public.is_admin() AND id <> (select auth.uid()));
+
 -- ─── Step 4: Update inline EXISTS admin policies on other tables ───────
 -- All change: AND role = 'admin'  →  AND role = 'admin' AND is_active = true
 
