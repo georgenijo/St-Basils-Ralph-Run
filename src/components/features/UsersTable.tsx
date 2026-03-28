@@ -194,7 +194,7 @@ export function UsersTable({ users, currentUserId, onRowClick }: UsersTableProps
       result = result.filter((u) => matchesFilter(u, filter))
     }
 
-    return result.sort((a, b) => {
+    return [...result].sort((a, b) => {
       let cmp: number
       switch (sortKey) {
         case 'name':

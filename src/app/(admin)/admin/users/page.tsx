@@ -22,6 +22,14 @@ export default async function UsersPage() {
 
   if (error) {
     console.error('Failed to fetch profiles:', error)
+    return (
+      <main className="px-4 py-8 sm:px-6 lg:px-8">
+        <h1 className="font-heading text-3xl font-semibold text-wood-900">Users</h1>
+        <p className="mt-4 font-body text-sm text-red-600">
+          Failed to load users. Please try refreshing the page.
+        </p>
+      </main>
+    )
   }
 
   const all = profiles ?? []
