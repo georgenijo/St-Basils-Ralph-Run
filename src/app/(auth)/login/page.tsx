@@ -23,8 +23,7 @@ export default async function LoginPage({
   } = await supabase.auth.getUser()
 
   const { redirectTo } = await searchParams
-  const destination =
-    redirectTo && isValidRedirectUrl(redirectTo) ? redirectTo : '/admin/dashboard'
+  const destination = redirectTo && isValidRedirectUrl(redirectTo) ? redirectTo : '/admin/dashboard'
 
   if (user) {
     redirect(destination)

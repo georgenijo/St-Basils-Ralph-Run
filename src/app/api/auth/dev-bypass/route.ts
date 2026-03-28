@@ -14,7 +14,8 @@ export async function GET(request: NextRequest) {
 
   const rawRedirect = request.nextUrl.searchParams.get('redirectTo') || '/admin/dashboard'
   // Only allow internal paths
-  const redirectTo = rawRedirect.startsWith('/') && !rawRedirect.startsWith('//') ? rawRedirect : '/admin/dashboard'
+  const redirectTo =
+    rawRedirect.startsWith('/') && !rawRedirect.startsWith('//') ? rawRedirect : '/admin/dashboard'
   const response = NextResponse.redirect(new URL(redirectTo, request.url))
 
   const supabase = createServerClient(
