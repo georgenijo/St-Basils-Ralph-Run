@@ -9,6 +9,11 @@
 ALTER TABLE public.profiles
   ADD COLUMN is_active BOOLEAN NOT NULL DEFAULT true;
 
+-- ─── Step 1b: Add missing foreign key indexes ─────────────────────────
+
+CREATE INDEX idx_announcements_author_id ON public.announcements(author_id);
+CREATE INDEX idx_events_created_by ON public.events(created_by);
+
 -- ─── Step 2: Update is_admin() function ────────────────────────────────
 
 CREATE OR REPLACE FUNCTION public.is_admin()
