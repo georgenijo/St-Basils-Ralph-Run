@@ -221,17 +221,13 @@ export async function deactivateUser(
   }
 
   // 5. Ban in Supabase auth (invalidates sessions)
-  const { error: banError } = await adminClient.auth.admin.updateUserById(
-    parsed.data.user_id,
-    { ban_duration: '876000h' }
-  )
+  const { error: banError } = await adminClient.auth.admin.updateUserById(parsed.data.user_id, {
+    ban_duration: '876000h',
+  })
 
   if (banError) {
     // Rollback profile change
-    await adminClient
-      .from('profiles')
-      .update({ is_active: true })
-      .eq('id', parsed.data.user_id)
+    await adminClient.from('profiles').update({ is_active: true }).eq('id', parsed.data.user_id)
     return { success: false, message: 'Failed to ban user in auth' }
   }
 
@@ -288,17 +284,13 @@ export async function reactivateUser(
   }
 
   // 4. Unban in Supabase auth
-  const { error: unbanError } = await adminClient.auth.admin.updateUserById(
-    parsed.data.user_id,
-    { ban_duration: 'none' }
-  )
+  const { error: unbanError } = await adminClient.auth.admin.updateUserById(parsed.data.user_id, {
+    ban_duration: 'none',
+  })
 
   if (unbanError) {
     // Rollback profile change
-    await adminClient
-      .from('profiles')
-      .update({ is_active: false })
-      .eq('id', parsed.data.user_id)
+    await adminClient.from('profiles').update({ is_active: false }).eq('id', parsed.data.user_id)
     return { success: false, message: 'Failed to unban user in auth' }
   }
 
