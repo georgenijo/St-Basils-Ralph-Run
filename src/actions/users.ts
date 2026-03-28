@@ -12,10 +12,7 @@ type ActionState = {
   errors?: Record<string, string[]>
 }
 
-export async function inviteUser(
-  prevState: ActionState,
-  formData: FormData
-): Promise<ActionState> {
+export async function inviteUser(prevState: ActionState, formData: FormData): Promise<ActionState> {
   // 1. Validate with Zod
   const parsed = inviteUserSchema.safeParse({
     email: formData.get('email'),
@@ -51,10 +48,12 @@ export async function inviteUser(
 
   // 4. Invite user via admin client (service role required for inviteUserByEmail)
   const adminClient = createAdminClient()
-  const { data: inviteData, error: inviteError } =
-    await adminClient.auth.admin.inviteUserByEmail(parsed.data.email, {
+  const { data: inviteData, error: inviteError } = await adminClient.auth.admin.inviteUserByEmail(
+    parsed.data.email,
+    {
       data: { full_name: parsed.data.full_name },
-    })
+    }
+  )
 
   if (inviteError) {
     if (inviteError.message?.toLowerCase().includes('already')) {

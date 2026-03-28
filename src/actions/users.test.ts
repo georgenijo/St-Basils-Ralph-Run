@@ -10,19 +10,6 @@ const mockEq = vi.fn()
 const mockSingle = vi.fn()
 const mockSelect = vi.fn()
 
-function buildChain(terminal: Record<string, unknown> = {}) {
-  mockSingle.mockResolvedValue(terminal)
-  mockEq.mockReturnValue({ single: mockSingle, eq: mockEq })
-  mockSelect.mockReturnValue({ eq: mockEq })
-  mockUpdate.mockReturnValue({ eq: mockEq })
-  mockInsert.mockResolvedValue({ error: null })
-  mockFrom.mockReturnValue({
-    select: mockSelect,
-    insert: mockInsert,
-    update: mockUpdate,
-  })
-}
-
 vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn(() =>
     Promise.resolve({
