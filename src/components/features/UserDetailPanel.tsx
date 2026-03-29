@@ -15,17 +15,9 @@ import type { AuditLogEntry } from '@/actions/users'
 import { Button } from '@/components/ui'
 import { UserActionDialog } from './UserActionDialog'
 
-// ─── Types ───────────────────────────────────────────────────────────
+import type { User } from '@/types/user'
 
-interface User {
-  id: string
-  email: string | null
-  full_name: string | null
-  role: string
-  is_active: boolean
-  created_at: string
-  updated_at: string
-}
+// ─── Types ───────────────────────────────────────────────────────────
 
 interface UserDetailPanelProps {
   user: User | null
@@ -122,10 +114,18 @@ export function UserDetailPanel({ user, currentUserId, onClose }: UserDetailPane
       setAuditLog([])
       return
     }
+    let stale = false
     setAuditLoading(true)
     fetchUserAuditLog(user.id)
-      .then(setAuditLog)
-      .finally(() => setAuditLoading(false))
+      .then((entries) => {
+        if (!stale) setAuditLog(entries)
+      })
+      .finally(() => {
+        if (!stale) setAuditLoading(false)
+      })
+    return () => {
+      stale = true
+    }
   }, [user])
 
   // Escape key handler

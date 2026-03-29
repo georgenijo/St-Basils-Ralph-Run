@@ -4,16 +4,7 @@ import { useEffect, useState } from 'react'
 
 import { UsersTable } from '@/components/features/UsersTable'
 import { UserDetailPanel } from '@/components/features/UserDetailPanel'
-
-interface User {
-  id: string
-  email: string | null
-  full_name: string | null
-  role: string
-  is_active: boolean
-  created_at: string
-  updated_at: string
-}
+import type { User } from '@/types/user'
 
 interface UsersPageClientProps {
   users: User[]

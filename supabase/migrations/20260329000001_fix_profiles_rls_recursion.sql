@@ -26,6 +26,14 @@ AS $$
   SELECT is_active FROM public.profiles WHERE id = (SELECT auth.uid())
 $$;
 
+-- ─── Restrict access to authenticated role only ───────────────────────
+
+REVOKE EXECUTE ON FUNCTION public.own_role() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.own_role() TO authenticated;
+
+REVOKE EXECUTE ON FUNCTION public.own_is_active() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.own_is_active() TO authenticated;
+
 -- ─── Replace the broken policy ────────────────────────────────────────
 
 DROP POLICY "Users can update own profile" ON public.profiles;

@@ -3,18 +3,9 @@
 import { useState, useMemo } from 'react'
 
 import { cn } from '@/lib/utils'
+import type { User } from '@/types/user'
 
 // ─── Types ───────────────────────────────────────────────────────────
-
-interface User {
-  id: string
-  email: string | null
-  full_name: string | null
-  role: string
-  is_active: boolean
-  created_at: string
-  updated_at: string
-}
 
 interface UsersTableProps {
   users: User[]

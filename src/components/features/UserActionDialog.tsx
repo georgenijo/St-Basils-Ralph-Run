@@ -39,10 +39,12 @@ export function UserActionDialog({
   const dialogRef = useRef<HTMLDialogElement>(null)
 
   useEffect(() => {
-    if (open) {
-      dialogRef.current?.showModal()
-    } else {
-      dialogRef.current?.close()
+    const el = dialogRef.current
+    if (!el) return
+    if (open && !el.open) {
+      el.showModal()
+    } else if (!open && el.open) {
+      el.close()
     }
   }, [open])
 

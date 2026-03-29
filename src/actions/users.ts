@@ -424,7 +424,12 @@ export async function fetchUserAuditLog(userId: string): Promise<AuditLogEntry[]
     .eq('target_user_id', userId)
     .order('created_at', { ascending: false })
 
-  if (error || !entries) return []
+  if (error || !entries) {
+    if (error) {
+      console.error('Failed to fetch admin_audit_log:', { error, userId })
+    }
+    return []
+  }
 
   // Collect unique actor IDs to resolve names
   const actorIds = [...new Set(entries.map((e) => e.actor_id))]
