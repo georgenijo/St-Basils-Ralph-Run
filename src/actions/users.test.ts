@@ -323,25 +323,28 @@ describe('updateUserRole', () => {
             }),
           }
         }
-        if (profileCallCount === 2) {
-          // Target profile fetch
-          return {
-            select: () => ({
-              eq: () => ({
-                single: () => Promise.resolve({ data: { role: 'member' }, error: null }),
-              }),
-            }),
-          }
-        }
-        // Role update
+        // Target profile fetch
         return {
-          update: () => ({
-            eq: () => Promise.resolve({ error: null }),
+          select: () => ({
+            eq: () => ({
+              single: () => Promise.resolve({ data: { role: 'member' }, error: null }),
+            }),
           }),
         }
       }
       if (table === 'admin_audit_log') {
         return { insert: () => Promise.resolve({ error: null }) }
+      }
+      return {}
+    })
+    // Role update goes through admin client
+    mockAdminFrom.mockImplementation((table: string) => {
+      if (table === 'profiles') {
+        return {
+          update: () => ({
+            eq: () => Promise.resolve({ error: null }),
+          }),
+        }
       }
       return {}
     })
@@ -368,15 +371,19 @@ describe('updateUserRole', () => {
             }),
           }
         }
-        if (profileCallCount === 2) {
-          return {
-            select: () => ({
-              eq: () => ({
-                single: () => Promise.resolve({ data: { role: 'member' }, error: null }),
-              }),
+        return {
+          select: () => ({
+            eq: () => ({
+              single: () => Promise.resolve({ data: { role: 'member' }, error: null }),
             }),
-          }
+          }),
         }
+      }
+      return {}
+    })
+    // Role update fails via admin client
+    mockAdminFrom.mockImplementation((table: string) => {
+      if (table === 'profiles') {
         return {
           update: () => ({
             eq: () => Promise.resolve({ error: { message: 'DB error' } }),

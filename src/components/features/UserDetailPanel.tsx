@@ -186,9 +186,7 @@ export function UserDetailPanel({ user, currentUserId, onClose }: UserDetailPane
         aria-label={`Details for ${displayName}`}
         className={cn(
           'fixed inset-y-0 right-0 z-50 flex w-[520px] max-w-[90vw] flex-col bg-cream-50 shadow-[-8px_0_30px_rgba(0,0,0,0.12)] transition-transform duration-350',
-          isOpen
-            ? 'translate-x-0'
-            : 'translate-x-full'
+          isOpen ? 'translate-x-0' : 'translate-x-full'
         )}
         style={{ transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}
       >

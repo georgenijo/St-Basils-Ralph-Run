@@ -24,7 +24,7 @@ export function UsersPageClient({ users, currentUserId }: UsersPageClientProps) 
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
 
   // Derive selected user from the fresh server data so it stays in sync after actions
-  const selectedUser = selectedUserId ? users.find((u) => u.id === selectedUserId) ?? null : null
+  const selectedUser = selectedUserId ? (users.find((u) => u.id === selectedUserId) ?? null) : null
 
   // Clear selection if the user was removed from the list
   useEffect(() => {

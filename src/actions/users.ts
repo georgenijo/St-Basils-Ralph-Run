@@ -365,7 +365,11 @@ export async function sendPasswordReset(
     .single()
 
   if (profileError || !profile?.email) {
-    console.error('sendPasswordReset profile lookup failed:', { profileError, profile, user_id: parsed.data.user_id })
+    console.error('sendPasswordReset profile lookup failed:', {
+      profileError,
+      profile,
+      user_id: parsed.data.user_id,
+    })
     return { success: false, message: 'Could not find email for this user' }
   }
 
