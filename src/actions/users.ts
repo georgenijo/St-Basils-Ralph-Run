@@ -203,14 +203,25 @@ export async function deactivateUser(
   } = await supabase.auth.getUser()
   if (!user) return { success: false, message: 'Unauthorized' }
 
-  // 3. Self-protection: cannot deactivate yourself
+  // 3. Admin check
+  const { data: actorProfile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  if (actorProfile?.role !== 'admin') {
+    return { success: false, message: 'Forbidden: admin access required' }
+  }
+
+  // 4. Self-protection: cannot deactivate yourself
   if (user.id === parsed.data.user_id) {
     return { success: false, message: 'You cannot deactivate your own account' }
   }
 
   const adminClient = createAdminClient()
 
-  // 4. Set is_active = false on the profile
+  // 5. Set is_active = false on the profile
   const { error: profileError } = await adminClient
     .from('profiles')
     .update({ is_active: false })
@@ -220,7 +231,7 @@ export async function deactivateUser(
     return { success: false, message: 'Failed to deactivate user profile' }
   }
 
-  // 5. Ban in Supabase auth (invalidates sessions)
+  // 6. Ban in Supabase auth (invalidates sessions)
   const { error: banError } = await adminClient.auth.admin.updateUserById(parsed.data.user_id, {
     ban_duration: '876000h',
   })
@@ -231,7 +242,7 @@ export async function deactivateUser(
     return { success: false, message: 'Failed to ban user in auth' }
   }
 
-  // 6. Audit log (non-fatal)
+  // 7. Audit log (non-fatal)
   const { error: auditError } = await supabase.from('admin_audit_log').insert({
     actor_id: user.id,
     action: 'user.deactivate',
@@ -242,7 +253,7 @@ export async function deactivateUser(
     console.error('Failed to write audit log for user.deactivate:', auditError)
   }
 
-  // 7. Revalidate and return
+  // 8. Revalidate and return
   revalidatePath('/admin/users')
   return { success: true, message: 'User deactivated successfully' }
 }
@@ -271,9 +282,20 @@ export async function reactivateUser(
   } = await supabase.auth.getUser()
   if (!user) return { success: false, message: 'Unauthorized' }
 
+  // 3. Admin check
+  const { data: actorProfile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  if (actorProfile?.role !== 'admin') {
+    return { success: false, message: 'Forbidden: admin access required' }
+  }
+
   const adminClient = createAdminClient()
 
-  // 3. Set is_active = true on the profile
+  // 4. Set is_active = true on the profile
   const { error: profileError } = await adminClient
     .from('profiles')
     .update({ is_active: true })
@@ -283,7 +305,7 @@ export async function reactivateUser(
     return { success: false, message: 'Failed to reactivate user profile' }
   }
 
-  // 4. Unban in Supabase auth
+  // 5. Unban in Supabase auth
   const { error: unbanError } = await adminClient.auth.admin.updateUserById(parsed.data.user_id, {
     ban_duration: 'none',
   })
@@ -294,7 +316,7 @@ export async function reactivateUser(
     return { success: false, message: 'Failed to unban user in auth' }
   }
 
-  // 5. Audit log (non-fatal)
+  // 6. Audit log (non-fatal)
   const { error: auditError } = await supabase.from('admin_audit_log').insert({
     actor_id: user.id,
     action: 'user.reactivate',
@@ -305,7 +327,7 @@ export async function reactivateUser(
     console.error('Failed to write audit log for user.reactivate:', auditError)
   }
 
-  // 6. Revalidate and return
+  // 7. Revalidate and return
   revalidatePath('/admin/users')
   return { success: true, message: 'User reactivated successfully' }
 }

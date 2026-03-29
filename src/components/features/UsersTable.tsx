@@ -55,6 +55,7 @@ const FILTER_OPTIONS: { value: FilterValue; label: string }[] = [
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-US', {
+    timeZone: 'UTC',
     month: 'short',
     day: 'numeric',
     year: 'numeric',
@@ -136,7 +137,8 @@ function ActionButton({
     }
   }, [state])
 
-  return (
+  const isDisabled = disabled || isPending
+  const button = (
     <form action={formAction}>
       <input type="hidden" name="user_id" value={userId} />
       {hiddenFields &&
@@ -145,11 +147,12 @@ function ActionButton({
         ))}
       <button
         type="submit"
-        disabled={disabled || isPending}
-        title={title}
+        disabled={isDisabled}
+        aria-disabled={isDisabled || undefined}
+        aria-label={isDisabled && title ? `${label} — ${title}` : undefined}
         className={cn(
           'rounded-md px-2.5 py-1.5 font-body text-xs font-medium border transition-colors whitespace-nowrap',
-          'disabled:opacity-35 disabled:cursor-not-allowed',
+          isDisabled && 'opacity-35 cursor-not-allowed',
           className
         )}
       >
@@ -157,6 +160,17 @@ function ActionButton({
       </button>
     </form>
   )
+
+  // Wrap disabled buttons so the tooltip is accessible via the focusable wrapper
+  if (isDisabled && title) {
+    return (
+      <span title={title} className="inline-block">
+        {button}
+      </span>
+    )
+  }
+
+  return button
 }
 
 // ─── Component ───────────────────────────────────────────────────────
