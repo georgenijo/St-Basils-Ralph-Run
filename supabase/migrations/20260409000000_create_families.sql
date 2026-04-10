@@ -29,6 +29,26 @@ ALTER TABLE public.profiles
 
 CREATE INDEX idx_profiles_family_id ON public.profiles(family_id);
 
+-- Unique index on (id, family_id) to support composite FK in family_members
+-- that enforces a linked profile belongs to the same family.
+CREATE UNIQUE INDEX idx_profiles_id_family_unique ON public.profiles(id, family_id);
+
+-- ─── Protect profiles.family_id from self-assignment ────────────────────
+-- Drop and recreate the user self-update policy to also prevent users from
+-- reassigning their own family_id, which would bypass family-scoped RLS.
+
+DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
+
+CREATE POLICY "Users can update own profile"
+  ON public.profiles FOR UPDATE
+  TO authenticated
+  USING (id = (SELECT auth.uid()))
+  WITH CHECK (
+    id = (SELECT auth.uid())
+    AND role = (SELECT p.role FROM public.profiles p WHERE p.id = (SELECT auth.uid()))
+    AND family_id IS NOT DISTINCT FROM (SELECT p.family_id FROM public.profiles p WHERE p.id = (SELECT auth.uid()))
+  );
+
 -- Enable RLS
 ALTER TABLE public.families ENABLE ROW LEVEL SECURITY;
 
@@ -52,7 +72,9 @@ CREATE POLICY "Admins can insert families"
   TO authenticated
   WITH CHECK (public.is_admin());
 
--- UPDATE: members update their own family, admins update all
+-- UPDATE: members can update non-admin fields; admins can update everything.
+-- Non-admins are blocked from changing membership_status, membership_type,
+-- membership_expires_at, and head_of_household (admin-controlled columns).
 CREATE POLICY "Update families"
   ON public.families FOR UPDATE
   TO authenticated
@@ -62,7 +84,14 @@ CREATE POLICY "Update families"
   )
   WITH CHECK (
     public.is_admin()
-    OR id = (SELECT family_id FROM public.profiles WHERE id = (SELECT auth.uid()))
+    OR (
+      id = (SELECT family_id FROM public.profiles WHERE id = (SELECT auth.uid()))
+      -- Prevent non-admins from changing admin-controlled columns
+      AND membership_status = (SELECT f.membership_status FROM public.families f WHERE f.id = id)
+      AND membership_type IS NOT DISTINCT FROM (SELECT f.membership_type FROM public.families f WHERE f.id = id)
+      AND membership_expires_at IS NOT DISTINCT FROM (SELECT f.membership_expires_at FROM public.families f WHERE f.id = id)
+      AND head_of_household IS NOT DISTINCT FROM (SELECT f.head_of_household FROM public.families f WHERE f.id = id)
+    )
   );
 
 -- DELETE: admins only

@@ -7,7 +7,10 @@ CREATE TABLE public.event_charges (
   family_id UUID NOT NULL REFERENCES public.families(id) ON DELETE CASCADE,
   amount NUMERIC NOT NULL,
   paid BOOLEAN NOT NULL DEFAULT false,
-  created_at TIMESTAMPTZ DEFAULT now() NOT NULL
+  created_at TIMESTAMPTZ DEFAULT now() NOT NULL,
+
+  -- Prevent duplicate charges for the same family per event
+  CONSTRAINT uq_event_charges_event_family UNIQUE (event_id, family_id)
 );
 
 -- Indexes

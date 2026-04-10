@@ -6,7 +6,8 @@ CREATE TABLE public.shares (
   family_id UUID NOT NULL REFERENCES public.families(id) ON DELETE CASCADE,
   person_name TEXT NOT NULL,
   year INT NOT NULL,
-  amount NUMERIC NOT NULL DEFAULT 50,
+  -- amount must be non-negative; paid status is always false on insert (see trigger)
+  amount NUMERIC NOT NULL DEFAULT 50 CHECK (amount >= 0),
   paid BOOLEAN NOT NULL DEFAULT false,
   created_at TIMESTAMPTZ DEFAULT now() NOT NULL
 );
@@ -15,6 +16,23 @@ CREATE TABLE public.shares (
 CREATE INDEX idx_shares_family_id ON public.shares(family_id);
 CREATE INDEX idx_shares_year ON public.shares(year);
 CREATE INDEX idx_shares_year_paid ON public.shares(year, paid);
+
+-- ─── Trigger: block paid=true on INSERT ──────────────────────────────────
+-- Members should not be able to mark a share as paid at insert time.
+-- Paid status is admin-only via UPDATE. This trigger enforces it at the DB
+-- level regardless of the RLS path used.
+
+CREATE OR REPLACE FUNCTION fn_shares_block_paid_on_insert()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.paid := false;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_shares_block_paid_on_insert
+  BEFORE INSERT ON public.shares
+  FOR EACH ROW EXECUTE FUNCTION fn_shares_block_paid_on_insert();
 
 -- Enable RLS
 ALTER TABLE public.shares ENABLE ROW LEVEL SECURITY;
@@ -34,6 +52,7 @@ CREATE POLICY "Select shares"
   );
 
 -- INSERT: members buy shares for their own family, admins insert any
+-- paid=true is always forced to false by the trigger regardless.
 CREATE POLICY "Insert shares"
   ON public.shares FOR INSERT
   TO authenticated
