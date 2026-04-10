@@ -51,14 +51,19 @@ CREATE POLICY "Select shares"
     OR family_id = (SELECT family_id FROM public.profiles WHERE id = (SELECT auth.uid()))
   );
 
--- INSERT: members buy shares for their own family, admins insert any
--- paid=true is always forced to false by the trigger regardless.
+-- INSERT: members buy shares for their own family at the fixed $50 rate.
+-- Non-admins are restricted to paid=false and amount=50 at the policy level.
+-- The trigger also forces paid=false as a DB-level safety net for all paths.
 CREATE POLICY "Insert shares"
   ON public.shares FOR INSERT
   TO authenticated
   WITH CHECK (
     public.is_admin()
-    OR family_id = (SELECT family_id FROM public.profiles WHERE id = (SELECT auth.uid()))
+    OR (
+      family_id = (SELECT family_id FROM public.profiles WHERE id = (SELECT auth.uid()))
+      AND paid = false
+      AND amount = 50
+    )
   );
 
 -- UPDATE: admins only (paid status, corrections)
