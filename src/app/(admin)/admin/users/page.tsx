@@ -16,6 +16,8 @@ export default async function UsersPage() {
     data: { user },
   } = await supabase.auth.getUser()
 
+  // perPage: 1000 — single-page fetch is fine for a parish-sized user base.
+  // If the church ever exceeds 1000 users, paginate with the page param.
   const [profilesResult, authUsersResult] = await Promise.all([
     supabase
       .from('profiles')
@@ -38,9 +40,13 @@ export default async function UsersPage() {
     )
   }
 
-  // Build a map of user ID → email_confirmed_at from auth.users
+  // Build a map of user ID → email_confirmed_at from auth.users.
+  // If listUsers failed, the map stays empty and we fall back to showing
+  // all users as "Pending" rather than breaking the page entirely.
   const confirmedMap = new Map<string, string | null>()
-  if (authUsersResult.data?.users) {
+  if (authUsersResult.error) {
+    console.error('Failed to fetch auth users:', authUsersResult.error)
+  } else if (authUsersResult.data?.users) {
     for (const authUser of authUsersResult.data.users) {
       confirmedMap.set(authUser.id, authUser.email_confirmed_at ?? null)
     }
