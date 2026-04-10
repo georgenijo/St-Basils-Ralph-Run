@@ -33,6 +33,15 @@ CREATE INDEX idx_profiles_family_id ON public.profiles(family_id);
 -- that enforces a linked profile belongs to the same family.
 CREATE UNIQUE INDEX idx_profiles_id_family_unique ON public.profiles(id, family_id);
 
+-- Composite FK: ensures head_of_household profile belongs to THIS family.
+-- Requires idx_profiles_id_family_unique above to exist first.
+-- MATCH SIMPLE (default): skipped when head_of_household IS NULL, so families
+-- can be created before a head is assigned.
+ALTER TABLE public.families
+  ADD CONSTRAINT fk_families_head_of_household_family
+  FOREIGN KEY (head_of_household, id)
+  REFERENCES public.profiles(id, family_id);
+
 -- ─── Protect profiles.family_id from self-assignment ────────────────────
 -- Drop and recreate the user self-update policy to also prevent users from
 -- reassigning their own family_id, which would bypass family-scoped RLS.
@@ -42,10 +51,11 @@ DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
 CREATE POLICY "Users can update own profile"
   ON public.profiles FOR UPDATE
   TO authenticated
-  USING (id = (SELECT auth.uid()))
+  USING (id = (SELECT auth.uid()) AND is_active = true)
   WITH CHECK (
     id = (SELECT auth.uid())
     AND role = (SELECT p.role FROM public.profiles p WHERE p.id = (SELECT auth.uid()))
+    AND is_active IS NOT DISTINCT FROM (SELECT p.is_active FROM public.profiles p WHERE p.id = (SELECT auth.uid()))
     AND family_id IS NOT DISTINCT FROM (SELECT p.family_id FROM public.profiles p WHERE p.id = (SELECT auth.uid()))
   );
 
@@ -86,11 +96,13 @@ CREATE POLICY "Update families"
     public.is_admin()
     OR (
       id = (SELECT family_id FROM public.profiles WHERE id = (SELECT auth.uid()))
-      -- Prevent non-admins from changing admin-controlled columns
-      AND membership_status = (SELECT f.membership_status FROM public.families f WHERE f.id = id)
-      AND membership_type IS NOT DISTINCT FROM (SELECT f.membership_type FROM public.families f WHERE f.id = id)
-      AND membership_expires_at IS NOT DISTINCT FROM (SELECT f.membership_expires_at FROM public.families f WHERE f.id = id)
-      AND head_of_household IS NOT DISTINCT FROM (SELECT f.head_of_household FROM public.families f WHERE f.id = id)
+      -- Prevent non-admins from changing admin-controlled columns.
+      -- Use families.id (outer row reference) so the subquery filters to THIS
+      -- family, not f.id = f.id (always-true self-match via the inner alias).
+      AND membership_status = (SELECT f.membership_status FROM public.families f WHERE f.id = families.id)
+      AND membership_type IS NOT DISTINCT FROM (SELECT f.membership_type FROM public.families f WHERE f.id = families.id)
+      AND membership_expires_at IS NOT DISTINCT FROM (SELECT f.membership_expires_at FROM public.families f WHERE f.id = families.id)
+      AND head_of_household IS NOT DISTINCT FROM (SELECT f.head_of_household FROM public.families f WHERE f.id = families.id)
     )
   );
 

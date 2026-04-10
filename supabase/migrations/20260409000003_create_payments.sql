@@ -10,7 +10,11 @@ CREATE TABLE public.payments (
   note TEXT,
   recorded_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
   related_event_id UUID REFERENCES public.events(id) ON DELETE SET NULL,
-  related_share_id UUID REFERENCES public.shares(id) ON DELETE SET NULL,
+  -- Composite FK: ensures the referenced share belongs to the same family as
+  -- this payment. Requires uq_shares_id_family on shares(id, family_id).
+  -- MATCH SIMPLE (default): skipped when related_share_id IS NULL.
+  related_share_id UUID,
+  FOREIGN KEY (related_share_id, family_id) REFERENCES public.shares(id, family_id) ON DELETE SET NULL,
   created_at TIMESTAMPTZ DEFAULT now() NOT NULL,
 
   -- Enforce consistency between type and relation columns to prevent impossible combos
