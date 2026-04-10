@@ -12,6 +12,10 @@ CREATE TABLE public.shares (
   created_at TIMESTAMPTZ DEFAULT now() NOT NULL
 );
 
+-- Unique key on (id, family_id) to support composite FK from payments,
+-- ensuring a payment cannot reference a share owned by a different family.
+ALTER TABLE public.shares ADD CONSTRAINT uq_shares_id_family UNIQUE (id, family_id);
+
 -- Indexes
 CREATE INDEX idx_shares_family_id ON public.shares(family_id);
 CREATE INDEX idx_shares_year ON public.shares(year);
