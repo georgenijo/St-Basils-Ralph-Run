@@ -4,10 +4,19 @@
 CREATE TABLE public.family_members (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   family_id UUID NOT NULL REFERENCES public.families(id) ON DELETE CASCADE,
-  profile_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+  -- No single-column FK on profile_id; composite FK below enforces same-family integrity.
+  -- profile_id is nullable — not all household members have a login account.
+  profile_id UUID,
   full_name TEXT NOT NULL,
   relationship TEXT NOT NULL CHECK (relationship IN ('self', 'spouse', 'child', 'parent', 'sibling', 'other')),
-  created_at TIMESTAMPTZ DEFAULT now() NOT NULL
+  created_at TIMESTAMPTZ DEFAULT now() NOT NULL,
+  -- Composite FK: ensures the linked profile belongs to the same family.
+  -- MATCH SIMPLE (default): skipped when profile_id IS NULL, so optional members work fine.
+  -- ON DELETE SET NULL (profile_id): when a profile is deleted, profile_id is nulled
+  -- while family_id remains intact.
+  FOREIGN KEY (profile_id, family_id)
+    REFERENCES public.profiles(id, family_id)
+    ON DELETE SET NULL (profile_id)
 );
 
 -- Indexes

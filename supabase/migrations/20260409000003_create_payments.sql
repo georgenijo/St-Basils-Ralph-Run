@@ -11,7 +11,15 @@ CREATE TABLE public.payments (
   recorded_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
   related_event_id UUID REFERENCES public.events(id) ON DELETE SET NULL,
   related_share_id UUID REFERENCES public.shares(id) ON DELETE SET NULL,
-  created_at TIMESTAMPTZ DEFAULT now() NOT NULL
+  created_at TIMESTAMPTZ DEFAULT now() NOT NULL,
+
+  -- Enforce consistency between type and relation columns to prevent impossible combos
+  CONSTRAINT chk_payments_share_relation
+    CHECK (type != 'share' OR (related_share_id IS NOT NULL AND related_event_id IS NULL)),
+  CONSTRAINT chk_payments_event_relation
+    CHECK (type != 'event' OR (related_event_id IS NOT NULL AND related_share_id IS NULL)),
+  CONSTRAINT chk_payments_no_relation
+    CHECK (type NOT IN ('membership', 'donation') OR (related_share_id IS NULL AND related_event_id IS NULL))
 );
 
 -- Indexes
@@ -36,7 +44,9 @@ CREATE POLICY "Select payments"
     OR family_id = (SELECT family_id FROM public.profiles WHERE id = (SELECT auth.uid()))
   );
 
--- INSERT: members can record donations for their own family; admins record any type
+-- INSERT: members can record donations for their own family only.
+-- Requires recorded_by = their own auth.uid() to prevent impersonation.
+-- Admins can record any payment type.
 CREATE POLICY "Insert payments"
   ON public.payments FOR INSERT
   TO authenticated
@@ -45,6 +55,7 @@ CREATE POLICY "Insert payments"
     OR (
       type = 'donation'
       AND family_id = (SELECT family_id FROM public.profiles WHERE id = (SELECT auth.uid()))
+      AND recorded_by = (SELECT auth.uid())
     )
   );
 
