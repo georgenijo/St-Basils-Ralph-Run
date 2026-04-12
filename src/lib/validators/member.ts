@@ -45,6 +45,13 @@ export const buySharesSchema = z.object({
 })
 
 export const recordDonationSchema = z.object({
+  donation_type: z.enum(
+    ['general', 'car_blessing', 'christmas_caroling', 'event_specific', 'other'],
+    {
+      message:
+        'Donation type must be one of: general, car_blessing, christmas_caroling, event_specific, other',
+    }
+  ),
   amount: z.coerce
     .number()
     .positive('Amount must be greater than zero')
