@@ -6,8 +6,8 @@ CREATE TABLE public.shares (
   family_id UUID NOT NULL REFERENCES public.families(id) ON DELETE CASCADE,
   person_name TEXT NOT NULL,
   year INT NOT NULL,
-  -- amount must be non-negative; paid status is always false on insert (see trigger)
-  amount NUMERIC(10,2) NOT NULL DEFAULT 50 CHECK (amount >= 0),
+  -- amount is fixed at $50/year (ticket #147); paid status is always false on insert (see trigger)
+  amount NUMERIC(10,2) NOT NULL DEFAULT 50 CHECK (amount = 50),
   paid BOOLEAN NOT NULL DEFAULT false,
   created_at TIMESTAMPTZ DEFAULT now() NOT NULL,
   updated_at TIMESTAMPTZ DEFAULT now() NOT NULL,
