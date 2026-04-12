@@ -1,0 +1,14 @@
+{
+  "assignees": [],
+  "body": "## Context\nMembers can record donations they've made (general, car blessing, Christmas caroling, etc.). Admin confirms payment was received.\n\n## What to do\n\n### Add to `src/actions/donations.ts`\n\n**`recordDonation(prevState, formData)`**\n- Validate: type (general/car_blessing/christmas_caroling/event_specific/other), amount, note (optional)\n- Auth check — must be a member with a family\n- Creates a payment record (type='donation', family_id from profile)\n- `revalidatePath('/member')`\n\n## Acceptance criteria\n- [ ] Members can record a donation for their own family\n- [ ] Donation types are constrained\n- [ ] Shows up in the member's payment history\n\n## Dependencies\n- #148 (payments table)\n- #150 (validators)",
+  "comments": [],
+  "labels": [
+    {
+      "id": "LA_kwDORwoC1M8AAAACcwlcXw",
+      "name": "enhancement",
+      "description": "New feature or request",
+      "color": "a2eeef"
+    }
+  ],
+  "title": "Server actions: donations"
+}
