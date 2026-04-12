@@ -1,19 +1,12 @@
 import type { Metadata } from 'next'
-import dynamic from 'next/dynamic'
 
 import { toRRuleUtcTimestamp } from '@/lib/event-time'
 import { createClient } from '@/lib/supabase/server'
 import { Button } from '@/components/ui'
 import { CalendarLegend } from '@/components/features/CalendarLegend'
-import { CalendarSkeleton } from '@/components/features/CalendarSkeleton'
+import { AdminEventCalendar } from '@/components/features/AdminEventCalendar'
 
 import type { AdminCalendarEvent } from '@/components/features/AdminCalendarView'
-
-const AdminCalendarView = dynamic(
-  () =>
-    import('@/components/features/AdminCalendarView').then((mod) => mod.AdminCalendarView),
-  { ssr: false, loading: () => <CalendarSkeleton className="mt-6" /> }
-)
 
 export const metadata: Metadata = {
   title: 'Events Calendar',
@@ -233,7 +226,7 @@ export default async function AdminCalendarPage() {
         <CalendarLegend variant="admin" />
       </div>
 
-      <AdminCalendarView events={calendarEvents} />
+      <AdminEventCalendar events={calendarEvents} />
     </main>
   )
 }
