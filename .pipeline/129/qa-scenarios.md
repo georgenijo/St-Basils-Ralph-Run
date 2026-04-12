@@ -3,6 +3,7 @@
 ## Scenarios
 
 ### S1: Admin settings page requires authentication
+
 - **Type:** happy-path
 - **Preconditions:** User is not logged in
 - **Steps:**
@@ -11,6 +12,7 @@
 - **Method:** playwright-cli
 
 ### S2: Login page still renders correctly (regression)
+
 - **Type:** regression
 - **Preconditions:** None
 - **Steps:**
@@ -19,6 +21,7 @@
 - **Method:** playwright-cli
 
 ### S3: Admin sidebar contains Settings link
+
 - **Type:** happy-path
 - **Preconditions:** None (test via auth guard redirect — verify route exists)
 - **Steps:**
@@ -28,6 +31,7 @@
 - **Method:** playwright-cli
 
 ### S4: Public homepage still loads (regression)
+
 - **Type:** regression
 - **Preconditions:** None
 - **Steps:**
@@ -36,6 +40,7 @@
 - **Method:** playwright-cli
 
 ### S5: DynamicFonts doesn't break public pages
+
 - **Type:** regression
 - **Preconditions:** None (no custom fonts saved = defaults)
 - **Steps:**
@@ -46,6 +51,7 @@
 - **Method:** playwright-cli
 
 ### S6: Other admin routes still protected (regression)
+
 - **Type:** regression
 - **Preconditions:** Not logged in
 - **Steps:**
@@ -54,6 +60,7 @@
 - **Method:** playwright-cli
 
 ### S7: Public pages render with correct status codes (regression)
+
 - **Type:** regression
 - **Preconditions:** None
 - **Steps:**
@@ -62,6 +69,7 @@
 - **Method:** playwright-cli
 
 ### S8: Settings route returns valid response (not 404/500)
+
 - **Type:** happy-path
 - **Preconditions:** Not logged in
 - **Steps:**
@@ -71,6 +79,7 @@
 - **Method:** playwright-cli
 
 ### S9: Mobile viewport — admin settings auth guard works
+
 - **Type:** responsive
 - **Preconditions:** Not logged in, mobile viewport
 - **Steps:**
@@ -79,6 +88,7 @@
 - **Method:** playwright-cli
 
 ### S10: Visual verification of settings page (authenticated)
+
 - **Type:** happy-path
 - **Preconditions:** Admin login credentials
 - **Steps:**

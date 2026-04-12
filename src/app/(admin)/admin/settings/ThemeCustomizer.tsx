@@ -100,13 +100,10 @@ export function ThemeCustomizer({ currentFonts, currentSectionOrder }: ThemeCust
     }
   }, [fonts])
 
-  const handleFontChange = useCallback(
-    (role: FontRole, font: FontChoice) => {
-      loadGoogleFont(font.family)
-      setFonts((prev) => ({ ...prev, [role]: font }))
-    },
-    []
-  )
+  const handleFontChange = useCallback((role: FontRole, font: FontChoice) => {
+    loadGoogleFont(font.family)
+    setFonts((prev) => ({ ...prev, [role]: font }))
+  }, [])
 
   return (
     <form action={formAction} className="space-y-8">
@@ -181,9 +178,7 @@ export function ThemeCustomizer({ currentFonts, currentSectionOrder }: ThemeCust
         <h2 className="mb-4 font-heading text-xl font-semibold text-wood-900">
           Homepage Section Order
         </h2>
-        <p className="mb-6 text-sm text-wood-800/60">
-          Drag and drop to reorder homepage sections.
-        </p>
+        <p className="mb-6 text-sm text-wood-800/60">Drag and drop to reorder homepage sections.</p>
 
         <SectionReorder sections={sectionOrder} onChange={setSectionOrder} />
       </section>
@@ -205,10 +200,7 @@ export function ThemeCustomizer({ currentFonts, currentSectionOrder }: ThemeCust
 
         {state.message && (
           <p
-            className={cn(
-              'text-sm font-medium',
-              state.success ? 'text-green-700' : 'text-red-700'
-            )}
+            className={cn('text-sm font-medium', state.success ? 'text-green-700' : 'text-red-700')}
             role="status"
           >
             {state.message}

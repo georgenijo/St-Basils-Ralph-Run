@@ -82,11 +82,7 @@ export async function updateThemeSettings(
   if (!user) return { success: false, message: 'Unauthorized' }
 
   // 4. Upsert the singleton row
-  const { data: existing } = await supabase
-    .from('site_settings')
-    .select('id')
-    .limit(1)
-    .single()
+  const { data: existing } = await supabase.from('site_settings').select('id').limit(1).single()
 
   if (existing) {
     const { error } = await supabase

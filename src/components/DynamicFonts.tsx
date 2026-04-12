@@ -43,11 +43,7 @@ function isCustomFont(fonts: FontsConfig): boolean {
 export async function DynamicFonts() {
   const supabase = await createClient()
 
-  const { data } = await supabase
-    .from('site_settings')
-    .select('fonts')
-    .limit(1)
-    .single()
+  const { data } = await supabase.from('site_settings').select('fonts').limit(1).single()
 
   if (!data?.fonts) return null
 

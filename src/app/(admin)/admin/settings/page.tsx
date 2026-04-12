@@ -19,10 +19,7 @@ export default async function SettingsPage() {
         </p>
       </div>
 
-      <ThemeCustomizer
-        currentFonts={settings.fonts}
-        currentSectionOrder={settings.section_order}
-      />
+      <ThemeCustomizer currentFonts={settings.fonts} currentSectionOrder={settings.section_order} />
     </main>
   )
 }
