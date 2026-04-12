@@ -12,10 +12,7 @@ type ActionState = {
   errors?: Record<string, string[]>
 }
 
-export async function submitRsvp(
-  prevState: ActionState,
-  formData: FormData
-): Promise<ActionState> {
+export async function submitRsvp(prevState: ActionState, formData: FormData): Promise<ActionState> {
   const slug = formData.get('slug') as string
   if (!slug) {
     return { success: false, message: 'Event not found' }

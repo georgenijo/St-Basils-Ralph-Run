@@ -50,14 +50,16 @@ export default async function AdminEventDetailPage({ params }: PageProps) {
   if (rsvpSettings.enabled) {
     const { data } = await supabase
       .from('event_rsvps')
-      .select('id, name, headcount, children_count, dietary, bringing, notes, family_id, created_at, families!left(family_name)')
+      .select(
+        'id, name, headcount, children_count, dietary, bringing, notes, family_id, created_at, families!left(family_name)'
+      )
       .eq('event_id', id)
       .order('created_at', { ascending: false })
 
     // Supabase returns joined table as array; flatten to single object
     rsvps = (data ?? []).map((row) => ({
       ...row,
-      families: Array.isArray(row.families) ? row.families[0] ?? null : row.families,
+      families: Array.isArray(row.families) ? (row.families[0] ?? null) : row.families,
     })) as RsvpRow[]
   }
 
@@ -143,12 +145,7 @@ export default async function AdminEventDetailPage({ params }: PageProps) {
             <p className="font-body text-sm text-wood-800/60">
               RSVP is not enabled for this event.
             </p>
-            <Button
-              href={`/admin/events/${id}/edit`}
-              size="sm"
-              variant="ghost"
-              className="mt-3"
-            >
+            <Button href={`/admin/events/${id}/edit`} size="sm" variant="ghost" className="mt-3">
               Edit event to enable RSVP
             </Button>
           </Card.Body>

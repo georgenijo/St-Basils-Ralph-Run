@@ -84,7 +84,10 @@ export function RsvpForm({ slug, settings, userName }: RsvpFormProps) {
 
       {/* Name */}
       <div>
-        <label htmlFor="rsvp-name" className="mb-1.5 block font-body text-sm font-medium text-wood-900">
+        <label
+          htmlFor="rsvp-name"
+          className="mb-1.5 block font-body text-sm font-medium text-wood-900"
+        >
           Your Name <span className="text-burgundy-700">*</span>
         </label>
         <input

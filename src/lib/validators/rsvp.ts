@@ -4,7 +4,11 @@ export const rsvpSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100, 'Name must be 100 characters or less'),
   headcount: z.coerce.number().int().min(1, 'At least 1 person required').max(20, 'Maximum 20'),
   children_count: z.coerce.number().int().min(0).max(50).nullable().optional(),
-  dietary: z.string().max(500, 'Dietary notes must be 500 characters or less').nullable().optional(),
+  dietary: z
+    .string()
+    .max(500, 'Dietary notes must be 500 characters or less')
+    .nullable()
+    .optional(),
   bringing: z
     .string()
     .max(500, 'Bringing notes must be 500 characters or less')

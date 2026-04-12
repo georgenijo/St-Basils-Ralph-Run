@@ -357,9 +357,21 @@ export function EventForm({ event }: EventFormProps) {
 
         {rsvpEnabled && (
           <div className="ml-14 space-y-3">
-            <ToggleField label="Children count field" checked={rsvpChildrenCount} onChange={setRsvpChildrenCount} />
-            <ToggleField label="Dietary needs field" checked={rsvpDietary} onChange={setRsvpDietary} />
-            <ToggleField label="Bringing something field" checked={rsvpBringing} onChange={setRsvpBringing} />
+            <ToggleField
+              label="Children count field"
+              checked={rsvpChildrenCount}
+              onChange={setRsvpChildrenCount}
+            />
+            <ToggleField
+              label="Dietary needs field"
+              checked={rsvpDietary}
+              onChange={setRsvpDietary}
+            />
+            <ToggleField
+              label="Bringing something field"
+              checked={rsvpBringing}
+              onChange={setRsvpBringing}
+            />
             <ToggleField label="Notes field" checked={rsvpNotes} onChange={setRsvpNotes} />
           </div>
         )}

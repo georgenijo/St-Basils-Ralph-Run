@@ -3,6 +3,7 @@
 ## Scenarios
 
 ### S1: RSVP page renders for valid event with RSVP enabled
+
 - **Type:** happy-path
 - **Preconditions:** An event exists with `rsvp_settings.enabled = true`
 - **Steps:**
@@ -12,6 +13,7 @@
 - **Method:** playwright-cli
 
 ### S2: RSVP page returns 404 for non-existent slug
+
 - **Type:** error-state
 - **Preconditions:** No event exists with slug `nonexistent-event-12345`
 - **Steps:**
@@ -20,6 +22,7 @@
 - **Method:** playwright-cli
 
 ### S3: RSVP page returns 404 for event with RSVP disabled
+
 - **Type:** error-state
 - **Preconditions:** An event exists with `rsvp_settings.enabled = false`
 - **Steps:**
@@ -28,6 +31,7 @@
 - **Method:** playwright-cli
 
 ### S4: Headcount picker buttons work correctly
+
 - **Type:** happy-path
 - **Preconditions:** RSVP page is loaded
 - **Steps:**
@@ -38,6 +42,7 @@
 - **Method:** playwright-cli
 
 ### S5: Conditional fields respect RSVP settings
+
 - **Type:** happy-path
 - **Preconditions:** Event has `rsvp_settings = { enabled: true, dietary: true, children_count: false, bringing: false, notes: true }`
 - **Steps:**
@@ -47,6 +52,7 @@
 - **Method:** agent-browser (requires DB seeded event)
 
 ### S6: Name field is required
+
 - **Type:** edge-case
 - **Preconditions:** RSVP page is loaded
 - **Steps:**
@@ -56,6 +62,7 @@
 - **Method:** playwright-cli
 
 ### S7: Admin event detail page renders with RSVP panel
+
 - **Type:** happy-path
 - **Preconditions:** Admin is logged in, event with RSVP enabled exists
 - **Steps:**
@@ -65,6 +72,7 @@
 - **Method:** agent-browser (requires auth)
 
 ### S8: Admin event detail page shows disabled message when RSVP off
+
 - **Type:** edge-case
 - **Preconditions:** Admin logged in, event with RSVP disabled
 - **Steps:**
@@ -73,6 +81,7 @@
 - **Method:** agent-browser (requires auth)
 
 ### S9: Events table links to detail page
+
 - **Type:** happy-path
 - **Preconditions:** Admin is logged in, events exist
 - **Steps:**
@@ -82,6 +91,7 @@
 - **Method:** agent-browser (requires auth)
 
 ### S10: WhatsApp share link has correct format
+
 - **Type:** happy-path
 - **Preconditions:** Admin views event detail with RSVP enabled
 - **Steps:**
@@ -90,6 +100,7 @@
 - **Method:** playwright-cli (inspect DOM)
 
 ### S11: Copy link button works
+
 - **Type:** happy-path
 - **Preconditions:** Admin views event detail with RSVP enabled
 - **Steps:**
@@ -98,6 +109,7 @@
 - **Method:** agent-browser (requires auth + clipboard API)
 
 ### S12: CSV export generates downloadable file
+
 - **Type:** happy-path
 - **Preconditions:** Admin views event detail with RSVPs
 - **Steps:**
@@ -106,6 +118,7 @@
 - **Method:** agent-browser (requires auth)
 
 ### S13: EventForm shows RSVP settings toggles
+
 - **Type:** happy-path
 - **Preconditions:** Admin is on event create page
 - **Steps:**
@@ -115,6 +128,7 @@
 - **Method:** agent-browser (requires auth)
 
 ### S14: OG meta tags set correctly for RSVP page
+
 - **Type:** happy-path
 - **Preconditions:** Event with RSVP enabled exists
 - **Steps:**
@@ -124,6 +138,7 @@
 - **Method:** playwright-cli
 
 ### S15: RSVP form renders on mobile viewport
+
 - **Type:** responsive
 - **Preconditions:** Event with RSVP enabled
 - **Steps:**
@@ -132,6 +147,7 @@
 - **Method:** playwright-cli (mobile project)
 
 ### S16: Existing public pages still load (regression)
+
 - **Type:** regression
 - **Preconditions:** None
 - **Steps:**
@@ -140,6 +156,7 @@
 - **Method:** playwright-cli
 
 ### S17: Zod validator rejects invalid headcount
+
 - **Type:** edge-case
 - **Preconditions:** N/A — unit test of validator
 - **Steps:**
@@ -149,6 +166,7 @@
 - **Method:** playwright-cli (use evaluateHandle or direct import)
 
 ### S18: Migration SQL syntax is valid
+
 - **Type:** happy-path
 - **Preconditions:** Migration file exists
 - **Steps:**
