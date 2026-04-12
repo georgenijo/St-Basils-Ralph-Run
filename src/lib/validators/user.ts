@@ -18,6 +18,20 @@ export const userActionSchema = z.object({
   user_id: z.string().uuid('Invalid user ID'),
 })
 
+export const setPasswordSchema = z
+  .object({
+    password: z
+      .string()
+      .min(8, 'Password must be at least 8 characters')
+      .max(72, 'Password must be 72 characters or less'),
+    confirmPassword: z.string().min(1, 'Please confirm your password'),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'Passwords do not match',
+    path: ['confirmPassword'],
+  })
+
 export type InviteUserData = z.infer<typeof inviteUserSchema>
 export type UpdateRoleData = z.infer<typeof updateRoleSchema>
 export type UserActionData = z.infer<typeof userActionSchema>
+export type SetPasswordData = z.infer<typeof setPasswordSchema>
