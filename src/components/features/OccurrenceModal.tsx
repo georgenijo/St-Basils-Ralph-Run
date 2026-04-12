@@ -252,6 +252,18 @@ function EditView({
           />
         </div>
 
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="edit-notify"
+            name="notify_subscribers"
+            className="h-4 w-4 rounded border-wood-800/20 text-burgundy-700 focus:ring-burgundy-700/20"
+          />
+          <label htmlFor="edit-notify" className="font-body text-sm text-wood-800/80">
+            Send notification to subscribers
+          </label>
+        </div>
+
         <div className="flex justify-end gap-3 border-t border-wood-800/10 pt-4">
           <Button type="button" variant="ghost" size="sm" onClick={() => onModeChange('action')} disabled={isPending}>
             Back
@@ -311,6 +323,19 @@ function CancelView({
             placeholder="e.g. No service — Holy Week services at the Cathedral"
             className={cn(inputBase, 'resize-none')}
           />
+        </div>
+
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="cancel-notify"
+            name="notify_subscribers"
+            defaultChecked
+            className="h-4 w-4 rounded border-wood-800/20 text-burgundy-700 focus:ring-burgundy-700/20"
+          />
+          <label htmlFor="cancel-notify" className="font-body text-sm text-wood-800/80">
+            Send notification to subscribers
+          </label>
         </div>
 
         <div className="flex justify-end gap-3 border-t border-wood-800/10 pt-4">
@@ -404,9 +429,20 @@ function ModifiedView({
           ✎ Edit again
         </button>
 
-        <form action={formAction}>
+        <form action={formAction} className="space-y-2">
           <input type="hidden" name="event_id" value={event.eventId} />
           <input type="hidden" name="original_date" value={instance.originalDate} />
+          <div className="flex items-center gap-2 px-4">
+            <input
+              type="checkbox"
+              id="restore-notify"
+              name="notify_subscribers"
+              className="h-4 w-4 rounded border-wood-800/20 text-burgundy-700 focus:ring-burgundy-700/20"
+            />
+            <label htmlFor="restore-notify" className="font-body text-sm text-wood-800/80">
+              Send notification to subscribers
+            </label>
+          </div>
           <button
             type="submit"
             disabled={isPending}
@@ -480,9 +516,20 @@ function CancelledView({
       {!state.success && state.message && <ErrorAlert message={state.message} />}
 
       <div className="mt-4 border-t border-wood-800/10 pt-4">
-        <form action={formAction}>
+        <form action={formAction} className="space-y-3">
           <input type="hidden" name="event_id" value={event.eventId} />
           <input type="hidden" name="original_date" value={instance.originalDate} />
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="cancelled-restore-notify"
+              name="notify_subscribers"
+              className="h-4 w-4 rounded border-wood-800/20 text-burgundy-700 focus:ring-burgundy-700/20"
+            />
+            <label htmlFor="cancelled-restore-notify" className="font-body text-sm text-wood-800/80">
+              Send notification to subscribers
+            </label>
+          </div>
           <Button type="submit" size="sm" disabled={isPending}>
             {isPending ? 'Restoring...' : 'Restore this occurrence'}
           </Button>
