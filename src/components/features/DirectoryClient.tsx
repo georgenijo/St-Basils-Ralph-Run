@@ -183,11 +183,13 @@ export function DirectoryClient({ families, members }: DirectoryClientProps) {
                       )}
                     </div>
                     <div className="mt-0.5 text-xs text-wood-800/50">
-                      {headName !== '—' ? headName : ''}{' '}
-                      {headName !== '—' && family.phone ? '·' : ''}{' '}
-                      {family.phone ?? ''}{' '}
-                      {(headName !== '—' || family.phone) && family.address ? '·' : ''}{' '}
-                      {family.address ?? ''}
+                      {[
+                        headName !== '—' ? headName : null,
+                        family.phone,
+                        family.address,
+                      ]
+                        .filter(Boolean)
+                        .join(' · ') || '—'}
                     </div>
                   </div>
 
