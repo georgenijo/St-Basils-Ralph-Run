@@ -4,7 +4,6 @@ import { useState } from 'react'
 
 import { formatInChurchTimeZone } from '@/lib/event-time'
 import { Card } from '@/components/ui'
-import { cn } from '@/lib/utils'
 
 interface Rsvp {
   id: string
