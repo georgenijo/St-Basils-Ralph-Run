@@ -240,9 +240,7 @@ function DirectoryVisibilityToggle({ visible }: { visible: boolean }) {
     <Card variant="outlined" className="mb-6">
       <div className="flex items-center justify-between px-5 py-4">
         <div className="flex-1 min-w-0">
-          <h2 className="font-heading text-base font-semibold text-wood-900">
-            Member Directory
-          </h2>
+          <h2 className="font-heading text-base font-semibold text-wood-900">Member Directory</h2>
           <p className="mt-0.5 text-xs text-wood-800/50">
             Other members can see your family name and phone number
           </p>
@@ -272,7 +270,9 @@ function DirectoryVisibilityToggle({ visible }: { visible: boolean }) {
       </div>
       {state.message && !state.success && (
         <div className="border-t border-wood-800/5 px-5 py-2">
-          <p className="text-xs text-red-600" role="alert">{state.message}</p>
+          <p className="text-xs text-red-600" role="alert">
+            {state.message}
+          </p>
         </div>
       )}
     </Card>

@@ -33,7 +33,9 @@ test.describe('Issue #185: Member Directory', () => {
 
     // If we're authed (status 200 and on /member), check sidebar
     if (response?.status() === 200 && page.url().includes('/member')) {
-      const directoryLink = page.locator('nav[aria-label="Member navigation"] a[href="/member/directory"]')
+      const directoryLink = page.locator(
+        'nav[aria-label="Member navigation"] a[href="/member/directory"]'
+      )
       await expect(directoryLink).toBeVisible()
       await expect(directoryLink).toContainText('Directory')
 

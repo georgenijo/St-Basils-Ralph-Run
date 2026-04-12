@@ -52,9 +52,7 @@ export default async function DirectoryPage() {
     <main className="p-6 lg:p-8">
       <div className="mb-6">
         <h1 className="font-heading text-2xl font-semibold text-wood-900">Directory</h1>
-        <p className="mt-1 text-sm text-wood-800/60">
-          Find and connect with parish families
-        </p>
+        <p className="mt-1 text-sm text-wood-800/60">Find and connect with parish families</p>
       </div>
 
       <DirectoryClient families={families ?? []} members={members ?? []} />

@@ -183,11 +183,7 @@ export function DirectoryClient({ families, members }: DirectoryClientProps) {
                       )}
                     </div>
                     <div className="mt-0.5 text-xs text-wood-800/50">
-                      {[
-                        headName !== '—' ? headName : null,
-                        family.phone,
-                        family.address,
-                      ]
+                      {[headName !== '—' ? headName : null, family.phone, family.address]
                         .filter(Boolean)
                         .join(' · ') || '—'}
                     </div>
@@ -223,10 +219,7 @@ export function DirectoryClient({ families, members }: DirectoryClientProps) {
                     ) : (
                       <ul className="divide-y divide-wood-800/5 px-5">
                         {familyMembers.map((member) => (
-                          <li
-                            key={member.id}
-                            className="flex items-center justify-between py-3"
-                          >
+                          <li key={member.id} className="flex items-center justify-between py-3">
                             <span className="text-sm text-wood-900">{member.full_name}</span>
                             <span className="inline-flex items-center rounded-full bg-wood-800/5 px-2 py-0.5 text-[10px] font-medium text-wood-800/50">
                               {relationshipLabel(member.relationship)}
