@@ -144,8 +144,7 @@ describe('buyShares', () => {
       }
       if (table === 'shares') {
         return {
-          insert: () =>
-            Promise.resolve({ error: { code: '23505', message: 'duplicate key' } }),
+          insert: () => Promise.resolve({ error: { code: '23505', message: 'duplicate key' } }),
         }
       }
       return {}

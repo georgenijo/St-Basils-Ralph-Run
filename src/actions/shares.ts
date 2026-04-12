@@ -29,10 +29,7 @@ function parseStringArray(formData: FormData, key: string): string[] {
   return []
 }
 
-export async function buyShares(
-  prevState: ActionState,
-  formData: FormData
-): Promise<ActionState> {
+export async function buyShares(prevState: ActionState, formData: FormData): Promise<ActionState> {
   // 1. Validate with Zod
   const parsed = buySharesSchema.safeParse({
     names: parseStringArray(formData, 'names'),
@@ -183,7 +180,8 @@ export async function markSharesPaid(
     // Shares are already marked paid — log but don't fail the whole action
     return {
       success: true,
-      message: 'Shares marked as paid but payment records could not be created. Please contact support.',
+      message:
+        'Shares marked as paid but payment records could not be created. Please contact support.',
     }
   }
 
