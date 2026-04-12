@@ -1,26 +1,16 @@
 'use client'
 
-import { useState, useMemo, useEffect, useActionState } from 'react'
+import { useState, useMemo } from 'react'
 
 import { cn } from '@/lib/utils'
-import { updateUserRole, deactivateUser, reactivateUser } from '@/actions/users'
+import type { User } from '@/types/user'
 
 // ─── Types ───────────────────────────────────────────────────────────
-
-interface User {
-  id: string
-  email: string | null
-  full_name: string | null
-  role: string
-  is_active: boolean
-  created_at: string
-  updated_at: string
-  email_confirmed_at: string | null
-}
 
 interface UsersTableProps {
   users: User[]
   currentUserId: string
+  selectedUserId?: string | null
   onRowClick?: (user: User) => void
 }
 
@@ -114,79 +104,9 @@ function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
   )
 }
 
-// ─── Action Button ───────────────────────────────────────────────────
-
-function ActionButton({
-  action,
-  userId,
-  hiddenFields,
-  label,
-  className,
-  disabled,
-  title,
-}: {
-  action: (
-    state: { success: boolean; message: string },
-    formData: FormData
-  ) => Promise<{ success: boolean; message: string }>
-  userId: string
-  hiddenFields?: Record<string, string>
-  label: string
-  className?: string
-  disabled?: boolean
-  title?: string
-}) {
-  const [state, formAction, isPending] = useActionState(action, {
-    success: false,
-    message: '',
-  })
-
-  useEffect(() => {
-    if (state.message && !state.success) {
-      // Surface error to user via window alert (lightweight, no toast library needed)
-      window.alert(state.message)
-    }
-  }, [state])
-
-  const isDisabled = disabled || isPending
-  const button = (
-    <form action={formAction}>
-      <input type="hidden" name="user_id" value={userId} />
-      {hiddenFields &&
-        Object.entries(hiddenFields).map(([name, value]) => (
-          <input key={name} type="hidden" name={name} value={value} />
-        ))}
-      <button
-        type="submit"
-        disabled={isDisabled}
-        aria-disabled={isDisabled || undefined}
-        aria-label={isDisabled && title ? `${label} — ${title}` : undefined}
-        className={cn(
-          'rounded-md px-2.5 py-1.5 font-body text-xs font-medium border transition-colors whitespace-nowrap',
-          isDisabled && 'opacity-35 cursor-not-allowed',
-          className
-        )}
-      >
-        {isPending ? '...' : label}
-      </button>
-    </form>
-  )
-
-  // Wrap disabled buttons so the tooltip is accessible via the focusable wrapper
-  if (isDisabled && title) {
-    return (
-      <span title={title} className="inline-block">
-        {button}
-      </span>
-    )
-  }
-
-  return button
-}
-
 // ─── Component ───────────────────────────────────────────────────────
 
-export function UsersTable({ users, currentUserId, onRowClick }: UsersTableProps) {
+export function UsersTable({ users, currentUserId: _currentUserId, selectedUserId, onRowClick }: UsersTableProps) {
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<FilterValue>('')
   const [sortKey, setSortKey] = useState<SortKey>('created_at')
@@ -331,16 +251,13 @@ export function UsersTable({ users, currentUserId, onRowClick }: UsersTableProps
                 Joined
                 <SortIcon active={sortKey === 'created_at'} dir={sortDir} />
               </th>
-              <th className="px-4 py-3 text-right font-body text-xs font-medium uppercase tracking-wider text-wood-800/60">
-                Actions
-              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-wood-800/5">
             {paginated.length === 0 ? (
               <tr>
                 <td
-                  colSpan={5}
+                  colSpan={4}
                   className="px-4 py-12 text-center font-body text-sm text-wood-800/60"
                 >
                   {search || filter ? 'No users match your filters.' : 'No users yet.'}
@@ -348,8 +265,8 @@ export function UsersTable({ users, currentUserId, onRowClick }: UsersTableProps
               </tr>
             ) : (
               paginated.map((user) => {
-                const isSelf = user.id === currentUserId
                 const status = getStatus(user)
+                const isSelected = user.id === selectedUserId
 
                 return (
                   <tr
@@ -358,6 +275,7 @@ export function UsersTable({ users, currentUserId, onRowClick }: UsersTableProps
                     className={cn(
                       'transition-colors',
                       onRowClick && 'cursor-pointer',
+                      isSelected && 'bg-burgundy-700/[0.04]',
                       !user.is_active ? 'opacity-60' : 'hover:bg-cream-100/30'
                     )}
                   >
@@ -404,42 +322,6 @@ export function UsersTable({ users, currentUserId, onRowClick }: UsersTableProps
                     {/* Joined date */}
                     <td className="hidden px-4 py-3 font-body text-sm text-wood-800/60 sm:table-cell">
                       {formatDate(user.created_at)}
-                    </td>
-
-                    {/* Actions */}
-                    <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                      <div className="flex items-center justify-end gap-1.5">
-                        {user.is_active ? (
-                          <>
-                            <ActionButton
-                              action={updateUserRole}
-                              userId={user.id}
-                              hiddenFields={{
-                                role: user.role === 'admin' ? 'member' : 'admin',
-                              }}
-                              label="Change Role"
-                              className="border-wood-800/15 bg-white text-wood-800 hover:bg-cream-100"
-                              disabled={isSelf}
-                              title={isSelf ? 'You cannot change your own role' : undefined}
-                            />
-                            <ActionButton
-                              action={deactivateUser}
-                              userId={user.id}
-                              label="Deactivate"
-                              className="border-red-200 bg-white text-red-600 hover:bg-red-50"
-                              disabled={isSelf}
-                              title={isSelf ? 'You cannot deactivate yourself' : undefined}
-                            />
-                          </>
-                        ) : (
-                          <ActionButton
-                            action={reactivateUser}
-                            userId={user.id}
-                            label="Reactivate"
-                            className="border-emerald-200 bg-white text-emerald-600 hover:bg-emerald-50"
-                          />
-                        )}
-                      </div>
                     </td>
                   </tr>
                 )
