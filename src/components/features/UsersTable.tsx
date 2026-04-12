@@ -16,7 +16,7 @@ interface UsersTableProps {
 
 type SortKey = 'name' | 'role' | 'status' | 'created_at'
 type SortDir = 'asc' | 'desc'
-type FilterValue = '' | 'admin' | 'member' | 'deactivated'
+type FilterValue = '' | 'admin' | 'member' | 'pending' | 'deactivated'
 
 const PAGE_SIZE = 20
 
@@ -34,6 +34,7 @@ const ROLE_COLORS: Record<string, string> = {
 
 const STATUS_COLORS = {
   active: 'bg-emerald-50 text-emerald-700',
+  pending: 'bg-yellow-50 text-yellow-800',
   deactivated: 'bg-red-50 text-red-700',
 }
 
@@ -41,6 +42,7 @@ const FILTER_OPTIONS: { value: FilterValue; label: string }[] = [
   { value: '', label: 'All' },
   { value: 'admin', label: 'Admins' },
   { value: 'member', label: 'Members' },
+  { value: 'pending', label: 'Pending' },
   { value: 'deactivated', label: 'Deactivated' },
 ]
 
@@ -57,12 +59,20 @@ function getName(u: User): string {
   return u.full_name || u.email || 'Unknown'
 }
 
+function getStatus(u: User): 'active' | 'pending' | 'deactivated' {
+  if (!u.is_active) return 'deactivated'
+  if (!u.email_confirmed_at) return 'pending'
+  return 'active'
+}
+
 function matchesFilter(u: User, filter: FilterValue): boolean {
   switch (filter) {
     case 'admin':
       return u.role === 'admin'
     case 'member':
       return u.role === 'member' && u.is_active
+    case 'pending':
+      return u.is_active && !u.email_confirmed_at
     case 'deactivated':
       return !u.is_active
     default:
@@ -96,7 +106,7 @@ function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
 
 // ─── Component ───────────────────────────────────────────────────────
 
-export function UsersTable({ users, currentUserId, selectedUserId, onRowClick }: UsersTableProps) {
+export function UsersTable({ users, currentUserId: _currentUserId, selectedUserId, onRowClick }: UsersTableProps) {
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<FilterValue>('')
   const [sortKey, setSortKey] = useState<SortKey>('created_at')
@@ -139,8 +149,8 @@ export function UsersTable({ users, currentUserId, selectedUserId, onRowClick }:
           cmp = a.role.localeCompare(b.role)
           break
         case 'status': {
-          const sa = a.is_active ? 'active' : 'deactivated'
-          const sb = b.is_active ? 'active' : 'deactivated'
+          const sa = getStatus(a)
+          const sb = getStatus(b)
           cmp = sa.localeCompare(sb)
           break
         }
@@ -255,7 +265,7 @@ export function UsersTable({ users, currentUserId, selectedUserId, onRowClick }:
               </tr>
             ) : (
               paginated.map((user) => {
-                const status = user.is_active ? 'active' : 'deactivated'
+                const status = getStatus(user)
                 const isSelected = user.id === selectedUserId
 
                 return (
@@ -301,7 +311,11 @@ export function UsersTable({ users, currentUserId, selectedUserId, onRowClick }:
                           STATUS_COLORS[status]
                         )}
                       >
-                        {status === 'active' ? 'Active' : 'Deactivated'}
+                        {status === 'active'
+                          ? 'Active'
+                          : status === 'pending'
+                            ? 'Pending'
+                            : 'Deactivated'}
                       </span>
                     </td>
 
