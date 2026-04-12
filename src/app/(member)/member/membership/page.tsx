@@ -45,9 +45,7 @@ export default async function MembershipPage() {
   const [{ data: family }, { data: payments }] = await Promise.all([
     supabase
       .from('families')
-      .select(
-        'family_name, membership_status, membership_type, membership_expires_at, created_at'
-      )
+      .select('family_name, membership_status, membership_type, membership_expires_at, created_at')
       .eq('id', profile.family_id)
       .single(),
     supabase
@@ -97,18 +95,17 @@ export default async function MembershipPage() {
       })
     : null
 
-  const nextPayment =
-    family.membership_expires_at
-      ? (() => {
-          const d = new Date(family.membership_expires_at + 'T00:00:00')
-          d.setDate(d.getDate() + 1)
-          return d.toLocaleDateString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric',
-          })
-        })()
-      : null
+  const nextPayment = family.membership_expires_at
+    ? (() => {
+        const d = new Date(family.membership_expires_at + 'T00:00:00')
+        d.setDate(d.getDate() + 1)
+        return d.toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+        })
+      })()
+    : null
 
   const progressPercent = Math.round((monthsPaid / 12) * 100)
 
@@ -118,9 +115,7 @@ export default async function MembershipPage() {
     <main className="p-6 lg:p-8">
       <div className="mb-6">
         <h1 className="font-heading text-2xl font-semibold text-wood-900">Membership</h1>
-        <p className="mt-1 text-sm text-wood-800/60">
-          Your membership plan and payment history.
-        </p>
+        <p className="mt-1 text-sm text-wood-800/60">Your membership plan and payment history.</p>
       </div>
 
       {/* ─── Cards Grid ──────────────────────────────────────────── */}
@@ -148,9 +143,7 @@ export default async function MembershipPage() {
           <div className="px-5 py-4">
             <div className="mb-1 flex justify-between text-xs text-wood-800/50">
               <span>Year progress</span>
-              <span>
-                {monthsPaid} of 12 months paid
-              </span>
+              <span>{monthsPaid} of 12 months paid</span>
             </div>
             <div
               className="h-2 overflow-hidden rounded-full bg-wood-800/10"
@@ -283,7 +276,13 @@ function StatusBadge({ status }: { status: string }) {
   const c = config[status as keyof typeof config] ?? config.pending
 
   return (
-    <span className={cn('inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium', c.bg, c.text)}>
+    <span
+      className={cn(
+        'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium',
+        c.bg,
+        c.text
+      )}
+    >
       {c.label}
     </span>
   )
