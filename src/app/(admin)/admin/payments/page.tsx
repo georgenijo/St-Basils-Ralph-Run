@@ -12,7 +12,7 @@ export default async function PaymentsPage() {
   const supabase = await createClient()
 
   // Fetch payments with joined family, event, and share data
-  const [paymentsResult, familiesResult, eventsResult, sharesResult] = await Promise.all([
+  const [paymentsResult, pendingResult, familiesResult, eventsResult, sharesResult] = await Promise.all([
     supabase
       .from('payments')
       .select(
@@ -26,6 +26,16 @@ export default async function PaymentsPage() {
       `
       )
       .order('created_at', { ascending: false }),
+    supabase
+      .from('payments')
+      .select(
+        `
+        id, type, amount, method, reference_memo, created_at,
+        families(family_name)
+      `
+      )
+      .eq('status', 'pending')
+      .order('created_at', { ascending: true }),
     supabase.from('families').select('id, family_name').order('family_name', { ascending: true }),
     supabase.from('events').select('id, title').order('start_at', { ascending: false }),
     supabase
@@ -94,6 +104,20 @@ export default async function PaymentsPage() {
     }
   })
 
+  // Transform pending payments for the queue
+  const pendingPayments = (pendingResult.data ?? []).map((p) => {
+    const family = p.families as unknown as { family_name: string } | null
+    return {
+      id: p.id,
+      family_name: family?.family_name ?? null,
+      type: p.type,
+      method: p.method,
+      amount: p.amount,
+      reference_memo: p.reference_memo,
+      created_at: p.created_at,
+    }
+  })
+
   // Summary counts
   const total = payments.length
   const pendingCount = payments.filter((p) => p.status === 'pending').length
@@ -123,6 +147,7 @@ export default async function PaymentsPage() {
 
       <PaymentsPageClient
         payments={payments}
+        pendingPayments={pendingPayments}
         families={familiesResult.data ?? []}
         events={eventsResult.data ?? []}
         unpaidShares={sharesResult.data ?? []}
