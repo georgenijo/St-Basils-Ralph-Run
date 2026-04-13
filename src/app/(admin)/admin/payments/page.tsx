@@ -19,7 +19,7 @@ export default async function PaymentsPage() {
         `
         id, family_id, type, amount, method, note,
         recorded_by, related_event_id, related_share_id,
-        created_at,
+        created_at, status, reference_memo,
         families(family_name),
         events(title),
         shares(person_name, year)
@@ -89,11 +89,14 @@ export default async function PaymentsPage() {
       event_title: event?.title ?? null,
       share_label: share ? `${share.person_name} (${share.year})` : null,
       recorded_by_name: p.recorded_by ? (recorderMap.get(p.recorded_by) ?? null) : null,
+      status: (p.status ?? 'confirmed') as Payment['status'],
+      reference_memo: p.reference_memo ?? null,
     }
   })
 
   // Summary counts
   const total = payments.length
+  const pendingCount = payments.filter((p) => p.status === 'pending').length
   const membershipCount = payments.filter((p) => p.type === 'membership').length
   const shareCount = payments.filter((p) => p.type === 'share').length
   const eventCount = payments.filter((p) => p.type === 'event').length
@@ -109,8 +112,9 @@ export default async function PaymentsPage() {
       </div>
 
       {/* Summary cards */}
-      <div className="mb-8 grid gap-4 sm:grid-cols-5">
+      <div className="mb-8 grid gap-4 sm:grid-cols-6">
         <SummaryCard label="Total" count={total} />
+        <SummaryCard label="Pending" count={pendingCount} accent="amber" />
         <SummaryCard label="Membership" count={membershipCount} accent="indigo" />
         <SummaryCard label="Share" count={shareCount} accent="amber" />
         <SummaryCard label="Event" count={eventCount} accent="green" />
