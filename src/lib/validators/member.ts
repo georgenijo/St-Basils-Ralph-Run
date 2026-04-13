@@ -185,7 +185,10 @@ export const confirmPaymentSchema = z.object({
 
 export const rejectPaymentSchema = z.object({
   payment_id: z.string().uuid('Invalid payment ID'),
-  reason: z.string().min(1, 'Rejection reason is required').max(500, 'Reason must be 500 characters or less'),
+  reason: z
+    .string()
+    .min(1, 'Rejection reason is required')
+    .max(500, 'Reason must be 500 characters or less'),
 })
 
 export type UpdateFamilyData = z.infer<typeof updateFamilySchema>

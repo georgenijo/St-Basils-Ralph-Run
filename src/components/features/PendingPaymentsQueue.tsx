@@ -142,7 +142,9 @@ function PendingPaymentRow({ payment }: { payment: PendingPayment }) {
           {METHOD_LABELS[payment.method ?? ''] ?? payment.method ?? '—'}
         </td>
         <td className="whitespace-nowrap px-4 py-3">
-          <code className="font-mono text-xs text-wood-800/70">{payment.reference_memo ?? '—'}</code>
+          <code className="font-mono text-xs text-wood-800/70">
+            {payment.reference_memo ?? '—'}
+          </code>
         </td>
         <td className="whitespace-nowrap px-4 py-3 text-right font-body text-sm font-medium text-wood-900 tabular-nums">
           {usd.format(payment.amount)}

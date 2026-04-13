@@ -91,30 +91,30 @@ export default async function PaymentsPage() {
   const familyId = profile.family_id
 
   // ─── Fetch data in parallel ──────────────────────────────────────
-  const [paymentsResult, unpaidChargesResult, unpaidSharesResult, familyResult] = await Promise.all([
-    supabase
-      .from('payments')
-      .select('id, type, amount, method, note, created_at, related_event_id, status, reference_memo')
-      .eq('family_id', familyId)
-      .neq('type', 'membership')
-      .order('created_at', { ascending: false }),
-    supabase
-      .from('event_charges')
-      .select('id, event_id, amount, created_at')
-      .eq('family_id', familyId)
-      .eq('paid', false),
-    supabase
-      .from('shares')
-      .select('id, person_name, year')
-      .eq('family_id', familyId)
-      .eq('paid', false)
-      .order('year', { ascending: false }),
-    supabase
-      .from('families')
-      .select('family_name')
-      .eq('id', familyId)
-      .single(),
-  ])
+  const [paymentsResult, unpaidChargesResult, unpaidSharesResult, familyResult] = await Promise.all(
+    [
+      supabase
+        .from('payments')
+        .select(
+          'id, type, amount, method, note, created_at, related_event_id, status, reference_memo'
+        )
+        .eq('family_id', familyId)
+        .neq('type', 'membership')
+        .order('created_at', { ascending: false }),
+      supabase
+        .from('event_charges')
+        .select('id, event_id, amount, created_at')
+        .eq('family_id', familyId)
+        .eq('paid', false),
+      supabase
+        .from('shares')
+        .select('id, person_name, year')
+        .eq('family_id', familyId)
+        .eq('paid', false)
+        .order('year', { ascending: false }),
+      supabase.from('families').select('family_name').eq('id', familyId).single(),
+    ]
+  )
 
   const payments = paymentsResult.data ?? []
   const unpaidCharges = unpaidChargesResult.data ?? []
@@ -290,10 +290,7 @@ export default async function PaymentsPage() {
             </h2>
           </div>
           <div className="p-5">
-            <MemberPaymentsClient
-              familyName={familyName}
-              outstandingItems={outstandingItems}
-            />
+            <MemberPaymentsClient familyName={familyName} outstandingItems={outstandingItems} />
           </div>
         </Card>
       )}

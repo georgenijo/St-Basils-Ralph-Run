@@ -15,7 +15,12 @@ type MemoInput =
 function familySuffix(name: string): string {
   const parts = name.trim().split(/\s+/)
   const last = parts[parts.length - 1] ?? 'UNKNOWN'
-  return last.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 10) || 'UNKNOWN'
+  return (
+    last
+      .toUpperCase()
+      .replace(/[^A-Z]/g, '')
+      .slice(0, 10) || 'UNKNOWN'
+  )
 }
 
 /** First name only, uppercase, stripped of non-alpha. */
@@ -26,10 +31,12 @@ function firstName(full: string): string {
 
 /** Uppercase slug, max 12 chars, only alphanumeric + dash. */
 function slugify(text: string): string {
-  return text
-    .toUpperCase()
-    .replace(/[^A-Z0-9-]/g, '')
-    .slice(0, 12) || 'EVENT'
+  return (
+    text
+      .toUpperCase()
+      .replace(/[^A-Z0-9-]/g, '')
+      .slice(0, 12) || 'EVENT'
+  )
 }
 
 export function generateReferenceMemo(input: MemoInput): string {
@@ -42,10 +49,7 @@ export function generateReferenceMemo(input: MemoInput): string {
       return `DUES-${mon}${yy}-${family}`
     }
     case 'share': {
-      const names = input.personNames
-        .slice(0, 3)
-        .map(firstName)
-        .join('-')
+      const names = input.personNames.slice(0, 3).map(firstName).join('-')
       return `SHARE-${input.year}-${names}-${family}`
     }
     case 'event': {
@@ -53,7 +57,11 @@ export function generateReferenceMemo(input: MemoInput): string {
       return `EVENT-${slug}-${family}`
     }
     case 'donation': {
-      const dtype = input.donationType.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 6) || 'GEN'
+      const dtype =
+        input.donationType
+          .toUpperCase()
+          .replace(/[^A-Z]/g, '')
+          .slice(0, 6) || 'GEN'
       const mon = MONTHS[input.date.getMonth()]
       const yy = String(input.date.getFullYear()).slice(-2)
       return `DONATE-${dtype}-${mon}${yy}-${family}`

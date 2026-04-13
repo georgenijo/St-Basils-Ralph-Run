@@ -226,7 +226,10 @@ async function applyPaymentSideEffects(
         .eq('id', payment.family_id)
 
       if (error) {
-        console.error('[applyPaymentSideEffects] Failed to update membership expiry:', error.message)
+        console.error(
+          '[applyPaymentSideEffects] Failed to update membership expiry:',
+          error.message
+        )
         warning = ' (but failed to update membership expiry — please check manually)'
       }
     } else {
@@ -373,7 +376,7 @@ export async function rejectPayment(
     const emails = familyProfiles.map((p) => p.email).filter(Boolean) as string[]
     if (emails.length > 0) {
       await sendEmail({
-        from: 'St. Basil\'s Church <noreply@stbasilsboston.org>',
+        from: "St. Basil's Church <noreply@stbasilsboston.org>",
         to: emails,
         subject: 'Payment Not Confirmed',
         react: PaymentRejected({

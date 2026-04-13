@@ -12,11 +12,12 @@ export default async function PaymentsPage() {
   const supabase = await createClient()
 
   // Fetch payments with joined family, event, and share data
-  const [paymentsResult, pendingResult, familiesResult, eventsResult, sharesResult] = await Promise.all([
-    supabase
-      .from('payments')
-      .select(
-        `
+  const [paymentsResult, pendingResult, familiesResult, eventsResult, sharesResult] =
+    await Promise.all([
+      supabase
+        .from('payments')
+        .select(
+          `
         id, family_id, type, amount, method, note,
         recorded_by, related_event_id, related_share_id,
         created_at, status, reference_memo,
@@ -24,26 +25,26 @@ export default async function PaymentsPage() {
         events(title),
         shares(person_name, year)
       `
-      )
-      .order('created_at', { ascending: false }),
-    supabase
-      .from('payments')
-      .select(
-        `
+        )
+        .order('created_at', { ascending: false }),
+      supabase
+        .from('payments')
+        .select(
+          `
         id, type, amount, method, reference_memo, created_at,
         families(family_name)
       `
-      )
-      .eq('status', 'pending')
-      .order('created_at', { ascending: true }),
-    supabase.from('families').select('id, family_name').order('family_name', { ascending: true }),
-    supabase.from('events').select('id, title').order('start_at', { ascending: false }),
-    supabase
-      .from('shares')
-      .select('id, family_id, person_name, year')
-      .eq('paid', false)
-      .order('year', { ascending: false }),
-  ])
+        )
+        .eq('status', 'pending')
+        .order('created_at', { ascending: true }),
+      supabase.from('families').select('id, family_name').order('family_name', { ascending: true }),
+      supabase.from('events').select('id, title').order('start_at', { ascending: false }),
+      supabase
+        .from('shares')
+        .select('id, family_id, person_name, year')
+        .eq('paid', false)
+        .order('year', { ascending: false }),
+    ])
 
   if (paymentsResult.error) {
     console.error('Failed to fetch payments:', paymentsResult.error)

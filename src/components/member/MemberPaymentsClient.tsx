@@ -24,10 +24,7 @@ interface MemberPaymentsClientProps {
 
 // ─── Component ──────────────────────────────────────────────────────
 
-export function MemberPaymentsClient({
-  familyName,
-  outstandingItems,
-}: MemberPaymentsClientProps) {
+export function MemberPaymentsClient({ familyName, outstandingItems }: MemberPaymentsClientProps) {
   const [selectedItem, setSelectedItem] = useState<OutstandingItem | null>(null)
 
   return (
@@ -40,12 +37,8 @@ export function MemberPaymentsClient({
               className="flex items-center justify-between rounded-lg border border-wood-800/10 bg-white px-4 py-3"
             >
               <div>
-                <p className="font-body text-sm font-medium text-wood-900">
-                  {item.description}
-                </p>
-                <p className="font-body text-xs capitalize text-wood-800/50">
-                  {item.type}
-                </p>
+                <p className="font-body text-sm font-medium text-wood-900">{item.description}</p>
+                <p className="font-body text-xs capitalize text-wood-800/50">{item.type}</p>
               </div>
               <div className="flex items-center gap-3">
                 <span className="font-heading text-base font-semibold text-red-600">

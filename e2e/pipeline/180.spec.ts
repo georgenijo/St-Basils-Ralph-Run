@@ -38,13 +38,21 @@ test.describe('Issue #180: Zero-fee Payment Flow', () => {
   })
 
   // ── S11: Reference memo — membership format ───────────────────────
-  test('S11: reference memo generates DUES-MON-YY-FAMILY format', async ({
-    page,
-  }) => {
+  test('S11: reference memo generates DUES-MON-YY-FAMILY format', async ({ page }) => {
     const result = await page.evaluate(() => {
       const MONTHS = [
-        'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
-        'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC',
+        'JAN',
+        'FEB',
+        'MAR',
+        'APR',
+        'MAY',
+        'JUN',
+        'JUL',
+        'AUG',
+        'SEP',
+        'OCT',
+        'NOV',
+        'DEC',
       ]
 
       function familyKey(name: string): string {
@@ -64,9 +72,7 @@ test.describe('Issue #180: Zero-fee Payment Flow', () => {
   })
 
   // ── S14: Zod validator — rejects 'cash' as member payment method ──
-  test('S14: submitPaymentSchema rejects cash/check/online methods', async ({
-    page,
-  }) => {
+  test('S14: submitPaymentSchema rejects cash/check/online methods', async ({ page }) => {
     const result = await page.evaluate(() => {
       const allowed = ['zelle', 'venmo', 'cashapp']
       const rejected = ['cash', 'check', 'online']
@@ -99,9 +105,7 @@ test.describe('Issue #180: Zero-fee Payment Flow', () => {
   })
 
   // ── S18: Mobile responsive — member payments ──────────────────────
-  test('S18: member payments page renders on mobile viewport', async ({
-    browser,
-  }) => {
+  test('S18: member payments page renders on mobile viewport', async ({ browser }) => {
     const context = await browser.newContext({
       viewport: { width: 375, height: 812 },
     })

@@ -28,7 +28,9 @@ export function PaymentRejected({
   return (
     <Html>
       <Head />
-      <Preview>Your {paymentType} payment of {amount} could not be confirmed</Preview>
+      <Preview>
+        Your {paymentType} payment of {amount} could not be confirmed
+      </Preview>
       <Body style={body}>
         <Container style={container}>
           <Heading style={heading}>Payment Not Confirmed</Heading>
