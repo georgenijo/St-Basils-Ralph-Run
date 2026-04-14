@@ -143,3 +143,39 @@ const footerLink = {
   color: '#9ca3af',
   textDecoration: 'underline',
 }
+
+export const emailStyles = {
+  paragraph: {
+    fontSize: '14px',
+    color: '#352618',
+    lineHeight: '1.6',
+    margin: '0 0 16px',
+  } as const,
+  label: {
+    fontSize: '12px',
+    fontWeight: '600' as const,
+    color: '#6b7280',
+    textTransform: 'uppercase' as const,
+    letterSpacing: '0.05em',
+    margin: '16px 0 4px',
+  } as const,
+  value: {
+    fontSize: '14px',
+    color: '#352618',
+    margin: '0 0 8px',
+  } as const,
+  ctaSection: {
+    marginTop: '24px',
+    textAlign: 'center' as const,
+  } as const,
+  ctaButton: {
+    display: 'inline-block' as const,
+    padding: '10px 24px',
+    backgroundColor: '#9B1B3D',
+    color: '#FFFDF8',
+    textDecoration: 'none',
+    borderRadius: '8px',
+    fontSize: '14px',
+    fontWeight: '500' as const,
+  } as const,
+}
