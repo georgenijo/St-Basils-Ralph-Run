@@ -3,8 +3,11 @@
 import { revalidatePath } from 'next/cache'
 
 import { createClient } from '@/lib/supabase/server'
-import { sendEmail } from '@/lib/email'
+import { sendFamilyNotification } from '@/lib/notifications'
 import { PaymentRejected } from '@/emails/payment-rejected'
+import { PaymentConfirmed } from '@/emails/payment-confirmed'
+import { EventChargeAssigned } from '@/emails/event-charge-assigned'
+import { MembershipRenewed } from '@/emails/membership-renewed'
 import {
   assignEventCostsSchema,
   recordPaymentSchema,
@@ -92,7 +95,26 @@ export async function assignEventCosts(
     return { success: false, message: 'Failed to assign event costs' }
   }
 
-  // 5. Revalidate and return
+  // 5. Send notification emails — one per family
+  const { data: eventRow } = await supabase
+    .from('events')
+    .select('title')
+    .eq('id', parsed.data.event_id)
+    .maybeSingle()
+
+  const eventTitle = eventRow?.title ?? 'an event'
+
+  for (const charge of parsed.data.charges) {
+    await sendFamilyNotification(supabase, charge.family_id, 'events', {
+      subject: `You've been charged ${usd.format(charge.amount)} for ${eventTitle}`,
+      react: EventChargeAssigned({
+        eventTitle,
+        amount: usd.format(charge.amount),
+      }),
+    })
+  }
+
+  // 6. Revalidate and return
   revalidatePath('/admin')
   return { success: true, message: `Assigned costs to ${parsed.data.charges.length} families` }
 }
@@ -150,7 +172,26 @@ export async function recordPaymentReceived(
     related_share_id: parsed.data.type === 'share' ? (parsed.data.related_share_id ?? null) : null,
   })
 
-  // 5. Revalidate and return
+  // 5. Send membership renewal email if applicable
+  if (parsed.data.type === 'membership') {
+    const { data: family } = await supabase
+      .from('families')
+      .select('family_name, membership_expires_at')
+      .eq('id', parsed.data.family_id)
+      .maybeSingle()
+
+    if (family?.membership_expires_at) {
+      await sendFamilyNotification(supabase, parsed.data.family_id, 'membership', {
+        subject: `Membership extended through ${formatDate(family.membership_expires_at)}`,
+        react: MembershipRenewed({
+          familyName: family.family_name ?? 'St. Basil\'s',
+          newExpiryDate: formatDate(family.membership_expires_at),
+        }),
+      })
+    }
+  }
+
+  // 6. Revalidate and return
   revalidatePath('/admin')
   return {
     success: true,
@@ -253,6 +294,17 @@ const METHOD_LABELS: Record<string, string> = {
 
 const usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' })
 
+function formatDate(dateString: string): string {
+  const [year, month, day] = dateString.split('-').map(Number)
+  const d = new Date(Date.UTC(year, month - 1, day))
+  return d.toLocaleDateString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+    timeZone: 'UTC',
+  })
+}
+
 export async function confirmPayment(
   prevState: ActionState,
   formData: FormData
@@ -305,6 +357,16 @@ export async function confirmPayment(
 
   // Apply side effects
   const warning = await applyPaymentSideEffects(supabase, payment)
+
+  // Notify family of confirmation
+  await sendFamilyNotification(supabase, payment.family_id, 'payments', {
+    subject: `Your ${usd.format(payment.amount)} payment was confirmed`,
+    react: PaymentConfirmed({
+      paymentType: payment.type,
+      amount: usd.format(payment.amount),
+      method: METHOD_LABELS[payment.method ?? ''] ?? payment.method ?? 'Unknown',
+    }),
+  })
 
   revalidatePath('/admin')
   return {
@@ -365,30 +427,17 @@ export async function rejectPayment(
     return { success: false, message: 'Failed to reject payment' }
   }
 
-  // Send rejection email to family members
-  const { data: familyProfiles } = await supabase
-    .from('profiles')
-    .select('email')
-    .eq('family_id', payment.family_id)
-    .not('email', 'is', null)
-
-  if (familyProfiles && familyProfiles.length > 0) {
-    const emails = familyProfiles.map((p) => p.email).filter(Boolean) as string[]
-    if (emails.length > 0) {
-      await sendEmail({
-        from: "St. Basil's Church <noreply@stbasilsboston.org>",
-        to: emails,
-        subject: 'Payment Not Confirmed',
-        react: PaymentRejected({
-          paymentType: payment.type,
-          amount: usd.format(payment.amount),
-          method: METHOD_LABELS[payment.method ?? ''] ?? payment.method ?? 'Unknown',
-          referenceMemo: payment.reference_memo ?? '—',
-          reason: parsed.data.reason,
-        }),
-      })
-    }
-  }
+  // Send rejection email to family members (preference-gated)
+  await sendFamilyNotification(supabase, payment.family_id, 'payments', {
+    subject: 'Payment Not Confirmed',
+    react: PaymentRejected({
+      paymentType: payment.type,
+      amount: usd.format(payment.amount),
+      method: METHOD_LABELS[payment.method ?? ''] ?? payment.method ?? 'Unknown',
+      referenceMemo: payment.reference_memo ?? '—',
+      reason: parsed.data.reason,
+    }),
+  })
 
   revalidatePath('/admin')
   return { success: true, message: 'Payment rejected and member notified' }
