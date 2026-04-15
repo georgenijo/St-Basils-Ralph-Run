@@ -17,6 +17,7 @@ interface Subscriber {
 
 interface SubscribersTableProps {
   subscribers: Subscriber[]
+  profileEmails?: Set<string>
 }
 
 type SortKey = 'email' | 'status' | 'created_at'
@@ -78,7 +79,14 @@ function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
 
 // ─── Component ───────────────────────────────────────────────────────
 
-export function SubscribersTable({ subscribers }: SubscribersTableProps) {
+export function SubscribersTable({
+  subscribers,
+  profileEmails = new Set(),
+}: SubscribersTableProps) {
+  function hasAccount(email: string): boolean {
+    return profileEmails.has(email.toLowerCase())
+  }
+
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('')
   const [sortKey, setSortKey] = useState<SortKey>('created_at')
@@ -122,13 +130,13 @@ export function SubscribersTable({ subscribers }: SubscribersTableProps) {
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   function exportCsv() {
-    const header = 'Email,Status,Confirmed At,Signed Up\n'
+    const header = 'Email,Status,Has Account,Confirmed At,Signed Up\n'
     const rows = filtered
       .map((s) => {
         const status = getStatus(s)
         const confirmedAt = s.confirmed_at ? new Date(s.confirmed_at).toISOString() : ''
         const createdAt = new Date(s.created_at).toISOString()
-        return `${s.email},${status},${confirmedAt},${createdAt}`
+        return `${s.email},${status},${hasAccount(s.email) ? 'yes' : 'no'},${confirmedAt},${createdAt}`
       })
       .join('\n')
 
@@ -209,6 +217,7 @@ export function SubscribersTable({ subscribers }: SubscribersTableProps) {
                 Status
                 <SortIcon active={sortKey === 'status'} dir={sortDir} />
               </th>
+              <th className={cn(thClass, 'hidden md:table-cell cursor-default')}>Account</th>
               <th
                 className={cn(thClass, 'hidden sm:table-cell')}
                 onClick={() => toggleSort('created_at')}
@@ -222,7 +231,7 @@ export function SubscribersTable({ subscribers }: SubscribersTableProps) {
             {paginated.length === 0 ? (
               <tr>
                 <td
-                  colSpan={3}
+                  colSpan={4}
                   className="px-4 py-12 text-center font-body text-sm text-wood-800/60"
                 >
                   {search || statusFilter
@@ -233,6 +242,7 @@ export function SubscribersTable({ subscribers }: SubscribersTableProps) {
             ) : (
               paginated.map((subscriber) => {
                 const status = getStatus(subscriber)
+                const linked = hasAccount(subscriber.email)
                 return (
                   <tr key={subscriber.id} className="transition-colors hover:bg-cream-100/30">
                     <td className="px-4 py-3 font-body text-sm text-wood-900">
@@ -247,6 +257,15 @@ export function SubscribersTable({ subscribers }: SubscribersTableProps) {
                       >
                         {STATUS_LABELS[status]}
                       </span>
+                    </td>
+                    <td className="hidden px-4 py-3 md:table-cell">
+                      {linked ? (
+                        <span className="inline-flex rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
+                          Has Account
+                        </span>
+                      ) : (
+                        <span className="font-body text-xs text-wood-800/40">—</span>
+                      )}
                     </td>
                     <td className="hidden px-4 py-3 font-body text-sm text-wood-800/60 sm:table-cell">
                       {formatDate(subscriber.created_at)}
