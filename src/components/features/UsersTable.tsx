@@ -11,6 +11,7 @@ interface UsersTableProps {
   users: User[]
   currentUserId: string
   selectedUserId?: string | null
+  subscribedEmails?: Set<string>
   onRowClick?: (user: User) => void
 }
 
@@ -110,8 +111,14 @@ export function UsersTable({
   users,
   currentUserId: _currentUserId,
   selectedUserId,
+  subscribedEmails,
   onRowClick,
 }: UsersTableProps) {
+  const isSubscribed = (email: string | null | undefined): boolean => {
+    if (!email || !subscribedEmails) return false
+    return subscribedEmails.has(email.toLowerCase())
+  }
+
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<FilterValue>('')
   const [sortKey, setSortKey] = useState<SortKey>('created_at')
@@ -256,13 +263,14 @@ export function UsersTable({
                 Joined
                 <SortIcon active={sortKey === 'created_at'} dir={sortDir} />
               </th>
+              <th className={cn(thClass, 'hidden lg:table-cell cursor-default')}>Newsletter</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-wood-800/5">
             {paginated.length === 0 ? (
               <tr>
                 <td
-                  colSpan={4}
+                  colSpan={5}
                   className="px-4 py-12 text-center font-body text-sm text-wood-800/60"
                 >
                   {search || filter ? 'No users match your filters.' : 'No users yet.'}
@@ -327,6 +335,17 @@ export function UsersTable({
                     {/* Joined date */}
                     <td className="hidden px-4 py-3 font-body text-sm text-wood-800/60 sm:table-cell">
                       {formatDate(user.created_at)}
+                    </td>
+
+                    {/* Newsletter badge */}
+                    <td className="hidden px-4 py-3 lg:table-cell">
+                      {isSubscribed(user.email) ? (
+                        <span className="inline-flex rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
+                          Subscribed
+                        </span>
+                      ) : (
+                        <span className="font-body text-xs text-wood-800/40">—</span>
+                      )}
                     </td>
                   </tr>
                 )
