@@ -1,6 +1,6 @@
 # QA Results — Issue #184: Transactional notification emails
 
-## VERDICT: ALL_PASSED (with deferred scenarios)
+## VERDICT: PASS_WITH_DEFERRED
 
 ## Summary
 - Total scenarios: 15 (4 runnable locally, 1 manual, 10 deferred to ship stage)

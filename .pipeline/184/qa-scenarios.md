@@ -25,7 +25,7 @@ Recommendation: push branch, let Vercel build a preview, apply migration in the 
 - **Expected:** 401.
 - **Method:** playwright-cli
 
-### S3: Cron route returns 401 with `Bearer undefined` (regression — prior CVE from code review)
+### S3: Cron route returns 401 with `Bearer undefined` (regression — prior auth fail-closed bug)
 - **Type:** error-state (security)
 - **Preconditions:** `CRON_SECRET` unset in local env.
 - **Steps:** GET with `Authorization: Bearer undefined`.
