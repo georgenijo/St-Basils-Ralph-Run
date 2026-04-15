@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 
 import { createClient } from '@/lib/supabase/server'
 import { SubscribersTable } from '@/components/features/SubscribersTable'
@@ -10,12 +11,19 @@ export const metadata: Metadata = {
 export default async function SubscribersPage() {
   const supabase = await createClient()
 
-  const { data: subscribers } = await supabase
-    .from('email_subscribers')
-    .select('id, email, confirmed, confirmed_at, unsubscribed_at, created_at')
-    .order('created_at', { ascending: false })
+  const [subsRes, profilesRes] = await Promise.all([
+    supabase
+      .from('email_subscribers')
+      .select('id, email, confirmed, confirmed_at, unsubscribed_at, created_at')
+      .order('created_at', { ascending: false }),
+    supabase.from('profiles').select('email'),
+  ])
 
-  const all = subscribers ?? []
+  const profileEmails = new Set(
+    (profilesRes.data ?? []).map((p) => (p.email ?? '').toLowerCase()).filter((e) => e.length > 0)
+  )
+
+  const all = subsRes.data ?? []
   const activeCount = all.filter((s) => s.confirmed && s.unsubscribed_at === null).length
   const unconfirmedCount = all.filter((s) => !s.confirmed && s.unsubscribed_at === null).length
   const unsubscribedCount = all.filter((s) => s.unsubscribed_at !== null).length
@@ -27,6 +35,14 @@ export default async function SubscribersPage() {
         <p className="mt-1 font-body text-sm text-wood-800/60">
           View and manage newsletter subscribers.
         </p>
+        <p className="mt-3 inline-block rounded-lg bg-cream-100 px-3 py-2 font-body text-xs text-wood-800/70">
+          <strong>Note:</strong> Subscribers are newsletter-only email signups — they do not have
+          portal accounts. Invited members with accounts appear under{' '}
+          <Link href="/admin/users" className="text-burgundy-700 underline hover:text-burgundy-800">
+            Users
+          </Link>
+          .
+        </p>
       </div>
 
       {/* Summary cards */}
@@ -37,7 +53,7 @@ export default async function SubscribersPage() {
         <SummaryCard label="Unsubscribed" count={unsubscribedCount} accent="red" />
       </div>
 
-      <SubscribersTable subscribers={all} />
+      <SubscribersTable subscribers={all} profileEmails={profileEmails} />
     </main>
   )
 }

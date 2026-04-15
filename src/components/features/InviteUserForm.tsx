@@ -110,6 +110,23 @@ export function InviteUserForm() {
         <FieldError id="role-error" errors={state.errors?.role} />
       </div>
 
+      {/* Newsletter opt-in */}
+      <div className="flex items-start gap-2.5">
+        <input
+          type="checkbox"
+          id="newsletter_opt_in"
+          name="newsletter_opt_in"
+          defaultChecked
+          className="mt-1 h-4 w-4 rounded border-wood-800/20 text-burgundy-700 focus:ring-burgundy-700"
+        />
+        <label htmlFor="newsletter_opt_in" className="font-body text-sm text-wood-800 leading-snug">
+          Subscribe to the parish newsletter
+          <span className="block text-xs text-wood-800/60">
+            They can unsubscribe any time from the footer of any newsletter.
+          </span>
+        </label>
+      </div>
+
       {/* Submit / Cancel */}
       <div className="flex items-center gap-4 border-t border-wood-800/10 pt-6">
         <Button type="submit" disabled={isPending}>

@@ -9,9 +9,10 @@ import type { User } from '@/types/user'
 interface UsersPageClientProps {
   users: User[]
   currentUserId: string
+  subscribedEmails?: Set<string>
 }
 
-export function UsersPageClient({ users, currentUserId }: UsersPageClientProps) {
+export function UsersPageClient({ users, currentUserId, subscribedEmails }: UsersPageClientProps) {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
 
   // Derive selected user from the fresh server data so it stays in sync after actions
@@ -30,6 +31,7 @@ export function UsersPageClient({ users, currentUserId }: UsersPageClientProps) 
         users={users}
         currentUserId={currentUserId}
         selectedUserId={selectedUserId}
+        subscribedEmails={subscribedEmails}
         onRowClick={(user) => setSelectedUserId(user.id)}
       />
       <UserDetailPanel

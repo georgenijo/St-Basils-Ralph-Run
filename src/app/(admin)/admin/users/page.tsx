@@ -18,13 +18,24 @@ export default async function UsersPage() {
 
   // perPage: 1000 — single-page fetch is fine for a parish-sized user base.
   // If the church ever exceeds 1000 users, paginate with the page param.
-  const [profilesResult, authUsersResult] = await Promise.all([
+  const [profilesResult, authUsersResult, subscribersResult] = await Promise.all([
     supabase
       .from('profiles')
       .select('id, email, full_name, role, is_active, created_at, updated_at')
       .order('created_at', { ascending: false }),
     createAdminClient().auth.admin.listUsers({ perPage: 1000 }),
+    supabase
+      .from('email_subscribers')
+      .select('email')
+      .eq('confirmed', true)
+      .is('unsubscribed_at', null),
   ])
+
+  const subscribedEmails = new Set(
+    (subscribersResult.data ?? [])
+      .map((s) => (s.email ?? '').toLowerCase())
+      .filter((e) => e.length > 0)
+  )
 
   const { data: profiles, error } = profilesResult
 
@@ -101,7 +112,11 @@ export default async function UsersPage() {
         <SummaryCard label="Deactivated" count={deactivatedCount} accent="red" />
       </div>
 
-      <UsersPageClient users={all} currentUserId={user?.id ?? ''} />
+      <UsersPageClient
+        users={all}
+        currentUserId={user?.id ?? ''}
+        subscribedEmails={subscribedEmails}
+      />
     </main>
   )
 }
