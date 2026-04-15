@@ -25,9 +25,7 @@ export function EventChargeAssigned({
       <Text style={emailStyles.paragraph}>
         A charge of {amount} has been assigned to your family for <strong>{eventTitle}</strong>.
       </Text>
-      <Text style={emailStyles.paragraph}>
-        Please submit payment at your earliest convenience.
-      </Text>
+      <Text style={emailStyles.paragraph}>Please submit payment at your earliest convenience.</Text>
       <Section style={emailStyles.ctaSection}>
         <Link href={portalUrl} style={emailStyles.ctaButton}>
           View payments

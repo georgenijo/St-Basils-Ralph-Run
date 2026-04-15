@@ -22,9 +22,7 @@ export function MembershipRenewed({
       portalLabel="View membership"
       siteUrl={siteUrl}
     >
-      <Text style={emailStyles.paragraph}>
-        Dear {familyName} family,
-      </Text>
+      <Text style={emailStyles.paragraph}>Dear {familyName} family,</Text>
       <Text style={emailStyles.paragraph}>
         Your membership has been renewed and is active through <strong>{newExpiryDate}</strong>.
         Thank you for your continued support of St. Basil&apos;s.

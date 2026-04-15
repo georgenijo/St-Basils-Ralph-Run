@@ -184,7 +184,7 @@ export async function recordPaymentReceived(
       await sendFamilyNotification(supabase, parsed.data.family_id, 'membership', {
         subject: `Membership extended through ${formatDate(family.membership_expires_at)}`,
         react: MembershipRenewed({
-          familyName: family.family_name ?? 'St. Basil\'s',
+          familyName: family.family_name ?? "St. Basil's",
           newExpiryDate: formatDate(family.membership_expires_at),
         }),
       })

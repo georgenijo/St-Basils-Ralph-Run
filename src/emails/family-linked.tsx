@@ -22,9 +22,7 @@ export function FamilyLinked({
       portalLabel="View your family"
       siteUrl={siteUrl}
     >
-      <Text style={emailStyles.paragraph}>
-        Hello {fullName},
-      </Text>
+      <Text style={emailStyles.paragraph}>Hello {fullName},</Text>
       <Text style={emailStyles.paragraph}>
         Your account has been linked to the <strong>{familyName}</strong> family.
       </Text>

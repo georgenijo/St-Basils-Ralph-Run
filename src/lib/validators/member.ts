@@ -211,6 +211,4 @@ export const updateNotificationPreferencesSchema = z.object({
   events: z.boolean(),
 })
 
-export type UpdateNotificationPreferencesData = z.infer<
-  typeof updateNotificationPreferencesSchema
->
+export type UpdateNotificationPreferencesData = z.infer<typeof updateNotificationPreferencesSchema>

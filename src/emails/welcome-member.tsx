@@ -20,12 +20,10 @@ export function WelcomeMember({
       portalLabel="Visit your portal"
       siteUrl={siteUrl}
     >
+      <Text style={emailStyles.paragraph}>Dear {fullName},</Text>
       <Text style={emailStyles.paragraph}>
-        Dear {fullName},
-      </Text>
-      <Text style={emailStyles.paragraph}>
-        Welcome to the St. Basil&apos;s Syriac Orthodox Church community. Your member account
-        is now active.
+        Welcome to the St. Basil&apos;s Syriac Orthodox Church community. Your member account is now
+        active.
       </Text>
       <Text style={emailStyles.paragraph}>
         Join us on Sundays for Morning Prayer at 8:30 AM and Holy Qurbono at 9:15 AM.

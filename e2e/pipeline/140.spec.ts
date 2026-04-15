@@ -65,15 +65,14 @@ test.describe('User detail panel @pipeline-140', () => {
     // Type a non-matching query
     await searchInput.fill('zzz_no_match_999')
     // Wait for the empty state or empty table
-    await expect(page.locator('table tbody tr').first()).toContainText(
-      /No users match|no_match/i,
-      { timeout: 5_000 }
-    ).catch(async () => {
-      // If the table updated, check row count
-      const count = await page.locator('table tbody tr').count()
-      // Should have exactly 1 row with the "no results" message
-      expect(count).toBeLessThanOrEqual(1)
-    })
+    await expect(page.locator('table tbody tr').first())
+      .toContainText(/No users match|no_match/i, { timeout: 5_000 })
+      .catch(async () => {
+        // If the table updated, check row count
+        const count = await page.locator('table tbody tr').count()
+        // Should have exactly 1 row with the "no results" message
+        expect(count).toBeLessThanOrEqual(1)
+      })
 
     // Clear and verify users reappear
     await searchInput.clear()
@@ -145,11 +144,11 @@ test.describe('User detail panel @pipeline-140', () => {
     await expect(panel.getByRole('heading', { name: 'Activity' })).toBeVisible()
 
     // Should show loading, entries, or empty state
-    await expect(
-      panel.locator('text=/Loading activity|No activity recorded|invited this user/')
-    ).toBeVisible({ timeout: 10_000 }).catch(() => {
-      // Activity section exists — any content is fine
-    })
+    await expect(panel.locator('text=/Loading activity|No activity recorded|invited this user/'))
+      .toBeVisible({ timeout: 10_000 })
+      .catch(() => {
+        // Activity section exists — any content is fine
+      })
   })
 
   // ─── Close behavior ───────────────────────────────────────────────

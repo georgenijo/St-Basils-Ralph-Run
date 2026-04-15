@@ -25,12 +25,10 @@ export function DuesReminder({
       portalLabel="Renew membership"
       siteUrl={siteUrl}
     >
+      <Text style={emailStyles.paragraph}>Dear {familyName} family,</Text>
       <Text style={emailStyles.paragraph}>
-        Dear {familyName} family,
-      </Text>
-      <Text style={emailStyles.paragraph}>
-        Your family&apos;s membership expires on <strong>{expiryDate}</strong>
-        {' '}({daysUntilExpiry} {dayWord} from today). Please renew to maintain active status.
+        Your family&apos;s membership expires on <strong>{expiryDate}</strong> ({daysUntilExpiry}{' '}
+        {dayWord} from today). Please renew to maintain active status.
       </Text>
       <Section style={emailStyles.ctaSection}>
         <Link href={portalUrl} style={emailStyles.ctaButton}>

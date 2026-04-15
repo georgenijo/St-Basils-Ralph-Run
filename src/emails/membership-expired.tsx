@@ -22,12 +22,10 @@ export function MembershipExpired({
       portalLabel="Renew membership"
       siteUrl={siteUrl}
     >
+      <Text style={emailStyles.paragraph}>Dear {familyName} family,</Text>
       <Text style={emailStyles.paragraph}>
-        Dear {familyName} family,
-      </Text>
-      <Text style={emailStyles.paragraph}>
-        Your family&apos;s membership expired on <strong>{expiryDate}</strong>. Renew now to
-        restore your active status.
+        Your family&apos;s membership expired on <strong>{expiryDate}</strong>. Renew now to restore
+        your active status.
       </Text>
       <Section style={emailStyles.ctaSection}>
         <Link href={portalUrl} style={emailStyles.ctaButton}>

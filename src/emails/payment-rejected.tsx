@@ -35,7 +35,14 @@ export function PaymentRejected({
       <Text style={emailStyles.value}>{referenceMemo}</Text>
       <Text style={emailStyles.label}>Reason</Text>
       <Text style={emailStyles.value}>{reason}</Text>
-      <Text style={{ ...emailStyles.paragraph, fontStyle: 'italic', color: '#6b7280', fontSize: '13px' }}>
+      <Text
+        style={{
+          ...emailStyles.paragraph,
+          fontStyle: 'italic',
+          color: '#6b7280',
+          fontSize: '13px',
+        }}
+      >
         If you believe this is an error, please contact the church treasurer.
       </Text>
     </EmailLayout>
