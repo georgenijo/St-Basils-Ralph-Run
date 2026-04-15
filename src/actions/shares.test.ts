@@ -18,6 +18,18 @@ vi.mock('next/cache', () => ({
   revalidatePath: vi.fn(),
 }))
 
+vi.mock('@/lib/notifications', () => ({
+  sendFamilyNotification: vi.fn().mockResolvedValue(undefined),
+}))
+
+vi.mock('@/emails/shares-purchased', () => ({
+  SharesPurchased: vi.fn(() => null),
+}))
+
+vi.mock('@/emails/shares-paid', () => ({
+  SharesPaid: vi.fn(() => null),
+}))
+
 import { buyShares, markSharesPaid } from '@/actions/shares'
 
 // --- Helpers ---

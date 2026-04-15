@@ -3,7 +3,12 @@
 import { revalidatePath } from 'next/cache'
 
 import { createClient } from '@/lib/supabase/server'
+import { sendFamilyNotification } from '@/lib/notifications'
+import { SharesPurchased } from '@/emails/shares-purchased'
+import { SharesPaid } from '@/emails/shares-paid'
 import { buySharesSchema, markSharesPaidSchema } from '@/lib/validators/member'
+
+const usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' })
 
 type ActionState = {
   success: boolean
@@ -88,7 +93,15 @@ export async function buyShares(prevState: ActionState, formData: FormData): Pro
     return { success: false, message: 'Failed to purchase shares' }
   }
 
-  // 5. Revalidate and return
+  // 5. Send notification
+  const count = parsed.data.names.length
+  const totalAmount = usd.format(count * 50)
+  await sendFamilyNotification(supabase, profile.family_id, 'shares', {
+    subject: `${count} share${count === 1 ? '' : 's'} purchased — pending payment`,
+    react: SharesPurchased({ count, totalAmount }),
+  })
+
+  // 6. Revalidate and return
   revalidatePath('/member')
   return {
     success: true,
@@ -185,7 +198,23 @@ export async function markSharesPaid(
     }
   }
 
-  // 7. Revalidate and return
+  // 7. Send notifications — group by family
+  const byFamily = new Map<string, { count: number; total: number }>()
+  for (const share of shares) {
+    const current = byFamily.get(share.family_id) ?? { count: 0, total: 0 }
+    current.count += 1
+    current.total += Number(share.amount ?? 0)
+    byFamily.set(share.family_id, current)
+  }
+
+  for (const [familyId, group] of byFamily) {
+    await sendFamilyNotification(supabase, familyId, 'shares', {
+      subject: `Your ${group.count} share${group.count === 1 ? '' : 's'} (${usd.format(group.total)}) ${group.count === 1 ? 'has' : 'have'} been confirmed`,
+      react: SharesPaid({ count: group.count, totalAmount: usd.format(group.total) }),
+    })
+  }
+
+  // 8. Revalidate and return
   revalidatePath('/admin')
   return {
     success: true,
