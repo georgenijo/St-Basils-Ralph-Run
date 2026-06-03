@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 
+import { sendInviteEmail } from '@/lib/invite-email'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 import { inviteUserSchema, updateRoleSchema, userActionSchema } from '@/lib/validators/user'
@@ -10,6 +11,12 @@ type ActionState = {
   success: boolean
   message: string
   errors?: Record<string, string[]>
+}
+
+function inviteActionUrl(hashedToken: string, type: 'invite' | 'recovery'): string {
+  const base = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://stbasilsboston.org'
+  const params = new URLSearchParams({ token_hash: hashedToken, type })
+  return `${base}/api/auth/callback?${params.toString()}`
 }
 
 export async function inviteUser(prevState: ActionState, formData: FormData): Promise<ActionState> {
@@ -36,10 +43,10 @@ export async function inviteUser(prevState: ActionState, formData: FormData): Pr
   } = await supabase.auth.getUser()
   if (!user) return { success: false, message: 'Unauthorized' }
 
-  // 3. Admin check
+  // 3. Admin check (also grab inviter's name for the branded email)
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role')
+    .select('role, full_name')
     .eq('id', user.id)
     .single()
 
@@ -47,17 +54,26 @@ export async function inviteUser(prevState: ActionState, formData: FormData): Pr
     return { success: false, message: 'Forbidden: admin access required' }
   }
 
-  // 4. Invite user via admin client (service role required for inviteUserByEmail)
-  const adminClient = createAdminClient()
-  const { data: inviteData, error: inviteError } = await adminClient.auth.admin.inviteUserByEmail(
-    parsed.data.email,
-    {
-      data: { full_name: parsed.data.full_name },
-    }
-  )
+  const inviterName = profile?.full_name || user.email || "St. Basil's Boston"
 
-  if (inviteError) {
-    if (inviteError.message?.toLowerCase().includes('already')) {
+  // 4. Create the user + generate the invite token WITHOUT sending Supabase's
+  //    default mailer, then send our own branded email via Resend. We build the
+  //    link from the hashed_token (verified server-side via verifyOtp in the auth
+  //    callback) rather than properties.action_link — action_link points at
+  //    Supabase's /verify endpoint which redirects with an implicit-flow
+  //    #access_token hash the server callback cannot read.
+  const adminClient = createAdminClient()
+  const { data: linkData, error: linkError } = await adminClient.auth.admin.generateLink({
+    type: 'invite',
+    email: parsed.data.email,
+    options: {
+      data: { full_name: parsed.data.full_name },
+    },
+  })
+
+  if (linkError) {
+    const msg = linkError.message?.toLowerCase() ?? ''
+    if (msg.includes('already') || msg.includes('registered') || msg.includes('exists')) {
       return {
         success: false,
         message: 'A user with this email already exists',
@@ -67,7 +83,12 @@ export async function inviteUser(prevState: ActionState, formData: FormData): Pr
     return { success: false, message: 'Failed to invite user' }
   }
 
-  const newUserId = inviteData.user.id
+  const newUserId = linkData.user?.id
+  const hashedToken = linkData.properties?.hashed_token
+  if (!newUserId || !hashedToken) {
+    return { success: false, message: 'Failed to invite user' }
+  }
+  const actionUrl = inviteActionUrl(hashedToken, 'invite')
 
   // 5. If role is admin, update the profile (handle_new_user trigger defaults to "member")
   if (parsed.data.role === 'admin') {
@@ -94,7 +115,24 @@ export async function inviteUser(prevState: ActionState, formData: FormData): Pr
     )
   }
 
-  // 7. Write audit log (authenticated client — RLS enforces admin-only inserts)
+  // 7. Send the branded invite email via Resend. Non-fatal: the user already
+  //    exists, so on failure report it and let the admin resend rather than
+  //    leaving the account in a half-created state.
+  let inviteEmailError: unknown = null
+  try {
+    const { error } = await sendInviteEmail({
+      email: parsed.data.email,
+      inviteeName: parsed.data.full_name,
+      inviterName,
+      role: parsed.data.role,
+      actionUrl,
+    })
+    inviteEmailError = error
+  } catch (error) {
+    inviteEmailError = error
+  }
+
+  // 8. Write audit log (authenticated client — RLS enforces admin-only inserts)
   await supabase.from('admin_audit_log').insert({
     actor_id: user.id,
     action: 'user.invite',
@@ -107,9 +145,19 @@ export async function inviteUser(prevState: ActionState, formData: FormData): Pr
     },
   })
 
-  // 8. Revalidate and return
+  // 9. Revalidate and return
   revalidatePath('/admin/users')
   revalidatePath('/admin/subscribers')
+
+  if (inviteEmailError) {
+    console.error('Invite created but email failed to send:', inviteEmailError)
+    return {
+      success: false,
+      message:
+        'User created, but the invitation email failed to send. Use "Resend invite" to try again.',
+    }
+  }
+
   return { success: true, message: 'Invitation sent successfully' }
 }
 
@@ -413,6 +461,118 @@ export async function sendPasswordReset(
   // 6. Revalidate and return
   revalidatePath('/admin/users')
   return { success: true, message: 'Password reset email sent successfully' }
+}
+
+export async function resendInvite(
+  prevState: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  // 1. Validate with Zod
+  const parsed = userActionSchema.safeParse({
+    user_id: formData.get('user_id'),
+  })
+
+  if (!parsed.success) {
+    return {
+      success: false,
+      message: 'Validation failed',
+      errors: parsed.error.flatten().fieldErrors as Record<string, string[]>,
+    }
+  }
+
+  // 2. Auth check
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { success: false, message: 'Unauthorized' }
+
+  // 3. Admin check (also grab inviter's name for the branded email)
+  const { data: actorProfile } = await supabase
+    .from('profiles')
+    .select('role, full_name')
+    .eq('id', user.id)
+    .single()
+
+  if (actorProfile?.role !== 'admin') {
+    return { success: false, message: 'Forbidden: admin access required' }
+  }
+
+  // 4. Look up the target user's details
+  const { data: target, error: targetError } = await supabase
+    .from('profiles')
+    .select('email, full_name, role')
+    .eq('id', parsed.data.user_id)
+    .single()
+
+  if (targetError || !target?.email) {
+    return { success: false, message: 'Could not find email for this user' }
+  }
+
+  const adminClient = createAdminClient()
+
+  // 5. Only resend to users who have not yet accepted (never signed in).
+  //    last_sign_in_at is a server-trusted signal the client cannot mutate.
+  const { data: authUser, error: authUserError } = await adminClient.auth.admin.getUserById(
+    parsed.data.user_id
+  )
+  if (authUserError || !authUser?.user) {
+    return { success: false, message: 'Could not load user account' }
+  }
+  if (authUser.user.last_sign_in_at) {
+    return { success: false, message: 'This user has already accepted their invitation' }
+  }
+
+  // 6. Generate a fresh link. For an existing user, type 'recovery' is the type
+  //    that issues a new link (type 'invite' rejects existing users); the auth
+  //    callback routes recovery → /set-password, so the invitee still sets a
+  //    password and lands logged in.
+  const { data: linkData, error: linkError } = await adminClient.auth.admin.generateLink({
+    type: 'recovery',
+    email: target.email,
+  })
+
+  if (linkError || !linkData.properties?.hashed_token) {
+    return { success: false, message: 'Failed to generate invite link' }
+  }
+
+  // 7. Send the same branded invite email
+  const inviterName = actorProfile?.full_name || user.email || "St. Basil's Boston"
+  let inviteEmailError: unknown = null
+  try {
+    const { error } = await sendInviteEmail({
+      email: target.email,
+      inviteeName: target.full_name || target.email,
+      inviterName,
+      role: target.role as 'admin' | 'member',
+      actionUrl: inviteActionUrl(linkData.properties.hashed_token, 'recovery'),
+    })
+    inviteEmailError = error
+  } catch (error) {
+    inviteEmailError = error
+  }
+
+  // 8. Audit log (non-fatal)
+  const { error: auditError } = await supabase.from('admin_audit_log').insert({
+    actor_id: user.id,
+    action: 'user.invite.resend',
+    target_user_id: parsed.data.user_id,
+    metadata: { email: target.email, role: target.role },
+  })
+
+  if (auditError) {
+    console.error('Failed to write audit log for user.invite.resend:', auditError)
+  }
+
+  // 9. Revalidate and return
+  revalidatePath('/admin/users')
+
+  if (inviteEmailError) {
+    console.error('Resend invite email failed:', inviteEmailError)
+    return { success: false, message: 'Failed to send invitation email' }
+  }
+
+  return { success: true, message: 'Invitation resent successfully' }
 }
 
 // ─── Audit Log Query ─────────────────────────────────────────────────

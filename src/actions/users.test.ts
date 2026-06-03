@@ -20,28 +20,44 @@ vi.mock('@/lib/supabase/server', () => ({
 }))
 
 const mockAdminFrom = vi.fn()
-const mockAdminInvite = vi.fn()
+const mockGenerateLink = vi.fn()
+const mockGetUserById = vi.fn()
 const mockAdminUpdate = vi.fn()
 const mockAdminEq = vi.fn()
 
 vi.mock('@/lib/supabase/admin', () => ({
   createAdminClient: vi.fn(() => ({
-    auth: { admin: { inviteUserByEmail: mockAdminInvite } },
+    auth: { admin: { generateLink: mockGenerateLink, getUserById: mockGetUserById } },
     from: mockAdminFrom,
   })),
+}))
+
+const mockSendInviteEmail = vi.fn()
+vi.mock('@/lib/invite-email', () => ({
+  sendInviteEmail: (...args: unknown[]) => mockSendInviteEmail(...args),
 }))
 
 vi.mock('next/cache', () => ({
   revalidatePath: vi.fn(),
 }))
 
-import { inviteUser, updateUserRole } from '@/actions/users'
+import { inviteUser, resendInvite, updateUserRole } from '@/actions/users'
 
 // --- Helpers ---
 
 const ADMIN_ID = '550e8400-e29b-41d4-a716-446655440001'
 const TARGET_ID = '550e8400-e29b-41d4-a716-446655440002'
 const INITIAL_STATE = { success: false, message: '' }
+
+// generateLink success payload: returns the created user + the hashed token we
+// build the (server-verified) callback link from.
+const LINK_SUCCESS = {
+  data: {
+    user: { id: TARGET_ID },
+    properties: { hashed_token: 'hash123', action_link: 'https://supabase.co/verify' },
+  },
+  error: null,
+}
 
 function makeFormData(entries: Record<string, string>): FormData {
   const fd = new FormData()
@@ -85,6 +101,7 @@ function mockAuthenticatedAdmin() {
 describe('inviteUser', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockSendInviteEmail.mockResolvedValue({ data: {}, error: null })
   })
 
   it('returns validation errors for invalid input', async () => {
@@ -125,8 +142,8 @@ describe('inviteUser', () => {
 
   it('returns error for duplicate email', async () => {
     mockAuthenticatedAdmin()
-    mockAdminInvite.mockResolvedValue({
-      data: null,
+    mockGenerateLink.mockResolvedValue({
+      data: { user: null, properties: null },
       error: { message: 'User already registered' },
     })
 
@@ -140,8 +157,8 @@ describe('inviteUser', () => {
 
   it('returns generic error for other invite failures', async () => {
     mockAuthenticatedAdmin()
-    mockAdminInvite.mockResolvedValue({
-      data: null,
+    mockGenerateLink.mockResolvedValue({
+      data: { user: null, properties: null },
       error: { message: 'SMTP connection failed' },
     })
 
@@ -152,12 +169,9 @@ describe('inviteUser', () => {
     expect(result.message).toBe('Failed to invite user')
   })
 
-  it('invites a member successfully', async () => {
+  it('invites a member successfully and sends the branded email', async () => {
     mockAuthenticatedAdmin()
-    mockAdminInvite.mockResolvedValue({
-      data: { user: { id: TARGET_ID } },
-      error: null,
-    })
+    mockGenerateLink.mockResolvedValue(LINK_SUCCESS)
     mockInsert.mockResolvedValue({ error: null })
 
     const fd = makeFormData({ email: 'new@example.com', full_name: 'New User', role: 'member' })
@@ -165,16 +179,48 @@ describe('inviteUser', () => {
 
     expect(result.success).toBe(true)
     expect(result.message).toBe('Invitation sent successfully')
+    // Branded email sent via Resend with a server-verified callback link
+    // (token_hash → verifyOtp), not Supabase's implicit action_link.
+    expect(mockSendInviteEmail).toHaveBeenCalledWith(
+      expect.objectContaining({
+        email: 'new@example.com',
+        role: 'member',
+        actionUrl: expect.stringContaining('/api/auth/callback?token_hash=hash123&type=invite'),
+      })
+    )
     // Should NOT update role for members (default is member)
     expect(mockAdminFrom).not.toHaveBeenCalled()
   })
 
+  it('generates an invite-type link (no Supabase mailer)', async () => {
+    mockAuthenticatedAdmin()
+    mockGenerateLink.mockResolvedValue(LINK_SUCCESS)
+    mockInsert.mockResolvedValue({ error: null })
+
+    const fd = makeFormData({ email: 'new@example.com', full_name: 'New User', role: 'member' })
+    await inviteUser(INITIAL_STATE, fd)
+
+    expect(mockGenerateLink).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'invite', email: 'new@example.com' })
+    )
+  })
+
+  it('reports a non-fatal warning when the invite email fails', async () => {
+    mockAuthenticatedAdmin()
+    mockGenerateLink.mockResolvedValue(LINK_SUCCESS)
+    mockInsert.mockResolvedValue({ error: null })
+    mockSendInviteEmail.mockResolvedValue({ data: null, error: { message: 'Resend down' } })
+
+    const fd = makeFormData({ email: 'new@example.com', full_name: 'New User', role: 'member' })
+    const result = await inviteUser(INITIAL_STATE, fd)
+
+    expect(result.success).toBe(false)
+    expect(result.message).toContain('failed to send')
+  })
+
   it('invites an admin and updates role', async () => {
     mockAuthenticatedAdmin()
-    mockAdminInvite.mockResolvedValue({
-      data: { user: { id: TARGET_ID } },
-      error: null,
-    })
+    mockGenerateLink.mockResolvedValue(LINK_SUCCESS)
     mockAdminEq.mockResolvedValue({ error: null })
     mockAdminUpdate.mockReturnValue({ eq: mockAdminEq })
     mockAdminFrom.mockReturnValue({ update: mockAdminUpdate })
@@ -189,10 +235,7 @@ describe('inviteUser', () => {
 
   it('returns error when admin role update fails', async () => {
     mockAuthenticatedAdmin()
-    mockAdminInvite.mockResolvedValue({
-      data: { user: { id: TARGET_ID } },
-      error: null,
-    })
+    mockGenerateLink.mockResolvedValue(LINK_SUCCESS)
     mockAdminEq.mockResolvedValue({ error: { message: 'update failed' } })
     mockAdminUpdate.mockReturnValue({ eq: mockAdminEq })
     mockAdminFrom.mockReturnValue({ update: mockAdminUpdate })
@@ -202,6 +245,99 @@ describe('inviteUser', () => {
 
     expect(result.success).toBe(false)
     expect(result.message).toBe('User invited but failed to set admin role')
+  })
+})
+
+describe('resendInvite', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockSendInviteEmail.mockResolvedValue({ data: {}, error: null })
+  })
+
+  // Sets up: authenticated admin, target profile fetch, pending auth user.
+  function mockResendHappyPath(authUserOverride: Record<string, unknown> = {}) {
+    mockAuthenticatedAdmin()
+    // 2nd profiles call = target fetch (email, full_name, role)
+    mockSingle.mockResolvedValue({
+      data: { email: 'pending@example.com', full_name: 'Pending User', role: 'member' },
+      error: null,
+    })
+    mockEq.mockReturnValue({ single: mockSingle })
+    mockSelect.mockReturnValue({ eq: mockEq })
+    mockInsert.mockResolvedValue({ error: null })
+    mockGetUserById.mockResolvedValue({
+      data: { user: { last_sign_in_at: null, ...authUserOverride } },
+      error: null,
+    })
+    mockGenerateLink.mockResolvedValue(LINK_SUCCESS)
+  }
+
+  it('returns Unauthorized when no user session', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: null } })
+
+    const fd = makeFormData({ user_id: TARGET_ID })
+    const result = await resendInvite(INITIAL_STATE, fd)
+
+    expect(result.success).toBe(false)
+    expect(result.message).toBe('Unauthorized')
+  })
+
+  it('returns Forbidden when caller is not admin', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: ADMIN_ID } } })
+    mockFrom.mockReturnValue({
+      select: () => ({
+        eq: () => ({
+          single: () => Promise.resolve({ data: { role: 'member' }, error: null }),
+        }),
+      }),
+    })
+
+    const fd = makeFormData({ user_id: TARGET_ID })
+    const result = await resendInvite(INITIAL_STATE, fd)
+
+    expect(result.success).toBe(false)
+    expect(result.message).toBe('Forbidden: admin access required')
+  })
+
+  it('blocks resending to a user who has already accepted', async () => {
+    mockResendHappyPath({ last_sign_in_at: '2026-01-01T00:00:00Z' })
+
+    const fd = makeFormData({ user_id: TARGET_ID })
+    const result = await resendInvite(INITIAL_STATE, fd)
+
+    expect(result.success).toBe(false)
+    expect(result.message).toBe('This user has already accepted their invitation')
+    expect(mockGenerateLink).not.toHaveBeenCalled()
+  })
+
+  it('resends a recovery-type link via the branded email', async () => {
+    mockResendHappyPath()
+
+    const fd = makeFormData({ user_id: TARGET_ID })
+    const result = await resendInvite(INITIAL_STATE, fd)
+
+    expect(result.success).toBe(true)
+    expect(result.message).toBe('Invitation resent successfully')
+    expect(mockGenerateLink).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'recovery', email: 'pending@example.com' })
+    )
+    expect(mockSendInviteEmail).toHaveBeenCalledWith(
+      expect.objectContaining({
+        email: 'pending@example.com',
+        actionUrl: expect.stringContaining('/api/auth/callback?token_hash=hash123&type=recovery'),
+      })
+    )
+  })
+
+  it('reports failure when the resend email fails', async () => {
+    mockResendHappyPath()
+    mockSendInviteEmail.mockResolvedValue({ data: null, error: { message: 'Resend down' } })
+
+    const fd = makeFormData({ user_id: TARGET_ID })
+    const result = await resendInvite(INITIAL_STATE, fd)
+
+    expect(result.success).toBe(false)
+    expect(result.message).toBe('Failed to send invitation email')
   })
 })
 

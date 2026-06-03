@@ -1,14 +1,19 @@
 import { createServerClient } from '@supabase/ssr'
+import type { EmailOtpType } from '@supabase/supabase-js'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function GET(request: NextRequest) {
   const code = request.nextUrl.searchParams.get('code')
+  // token_hash is the server-side verification path used by our branded
+  // invite/recovery emails (generateLink → verifyOtp). code is the PKCE/OAuth path.
+  const tokenHash = request.nextUrl.searchParams.get('token_hash')
   const type = request.nextUrl.searchParams.get('type')
 
-  if (!code) {
+  if (!code && !tokenHash) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     url.searchParams.delete('code')
+    url.searchParams.delete('token_hash')
     url.searchParams.delete('type')
     url.searchParams.set('error', 'missing_code')
     return NextResponse.redirect(url)
@@ -44,7 +49,12 @@ export async function GET(request: NextRequest) {
     }
   )
 
-  const { error } = await supabase.auth.exchangeCodeForSession(code)
+  const { error } = tokenHash
+    ? await supabase.auth.verifyOtp({
+        type: (type as EmailOtpType | null) ?? 'email',
+        token_hash: tokenHash,
+      })
+    : await supabase.auth.exchangeCodeForSession(code!)
 
   if (error) {
     const errorUrl = request.nextUrl.clone()
