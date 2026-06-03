@@ -10,15 +10,15 @@ Living checklist for shrinking the active codebase and keeping history/reference
 - [x] **UX mockups** → `archive/mockups/` (`mockup-*.html`)
 - [x] **IDE cruft** → `archive/ide/` (`.idea/`, `.user.ini`)
 - [x] Tooling ignores updated (ESLint, Prettier, `.gitignore`)
+- [x] **Tracked dev artifacts** → removed root `.DS_Store` and `.playwright-mcp/` screenshots
+- [x] **Legacy server/template leftovers** → removed `web.config`, `License.txt`, and `Readme.txt`
 
 Redirects in `next.config.ts` and `e2e/smoke/redirects.spec.ts` are unchanged; they do not depend on files at the repo root.
 
 ## Phase 2 — Sync and docs (next)
 
 - [ ] **Fast-forward `main`** — local branch was behind `origin/main`; pull before large feature work
-- [ ] **Rewrite `CLAUDE.md`** — still describes the static HTML site as the product; point to `README.md` + `archive/legacy-static-site/`
 - [ ] **Close [#240](https://github.com/georgenijo/St-Basils-Rebuild/issues/240)** after merge (legacy root cleanup)
-- [ ] **`.playwright-cli/`** — add to `.gitignore` (local CLI snapshots only)
 
 ## Phase 3 — Repo size (optional, higher impact)
 

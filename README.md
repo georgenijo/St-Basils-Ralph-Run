@@ -8,15 +8,15 @@ Next.js rebuild of [stbasilsboston.org](https://stbasilsboston.org) for St. Basi
 
 ## Stack
 
-| Layer | Technology |
-| --- | --- |
-| App | Next.js 15 (App Router), React 19, TypeScript (strict), Tailwind CSS 4 |
-| Structured data | Supabase — events, announcements, subscribers, contact, families, payments, profiles |
-| Editorial content | Sanity — clergy, organizations, page copy, useful links |
-| Email | Resend + React Email templates |
-| Forms | Server Actions, Zod, Cloudflare Turnstile |
-| Calendar | FullCalendar + RRULE, ICS export at `/api/events/feed.ics` |
-| Hosting | Vercel (preview deploys on PRs) |
+| Layer             | Technology                                                                           |
+| ----------------- | ------------------------------------------------------------------------------------ |
+| App               | Next.js 15 (App Router), React 19, TypeScript (strict), Tailwind CSS 4               |
+| Structured data   | Supabase — events, announcements, subscribers, contact, families, payments, profiles |
+| Editorial content | Sanity — clergy, organizations, page copy, useful links                              |
+| Email             | Resend + React Email templates                                                       |
+| Forms             | Server Actions, Zod, Cloudflare Turnstile                                            |
+| Calendar          | FullCalendar + RRULE, ICS export at `/api/events/feed.ics`                           |
+| Hosting           | Vercel (preview deploys on PRs)                                                      |
 
 All event timestamps are stored in UTC and displayed in `America/New_York`.
 
@@ -55,15 +55,15 @@ Open [http://localhost:3000](http://localhost:3000). Studio: [http://localhost:3
 
 Copy `.env.local.example` and set at minimum:
 
-| Variable | Purpose |
-| --- | --- |
-| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Client + SSR Supabase |
-| `SUPABASE_SERVICE_ROLE_KEY` | Server-only admin operations |
-| `NEXT_PUBLIC_SANITY_PROJECT_ID`, `NEXT_PUBLIC_SANITY_DATASET` | Sanity content |
-| `SANITY_WEBHOOK_SECRET` | ISR revalidation webhook |
-| `NEXT_PUBLIC_SITE_URL` | Canonical URLs in emails and metadata |
-| `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` | Public form CAPTCHA |
-| `RESEND_API_KEY`, `RESEND_AUDIENCE_ID` | Transactional + newsletter email |
+| Variable                                                      | Purpose                               |
+| ------------------------------------------------------------- | ------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`   | Client + SSR Supabase                 |
+| `SUPABASE_SERVICE_ROLE_KEY`                                   | Server-only admin operations          |
+| `NEXT_PUBLIC_SANITY_PROJECT_ID`, `NEXT_PUBLIC_SANITY_DATASET` | Sanity content                        |
+| `SANITY_WEBHOOK_SECRET`                                       | ISR revalidation webhook              |
+| `NEXT_PUBLIC_SITE_URL`                                        | Canonical URLs in emails and metadata |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY`      | Public form CAPTCHA                   |
+| `RESEND_API_KEY`, `RESEND_AUDIENCE_ID`                        | Transactional + newsletter email      |
 
 For local development without Resend, use the mock email sink:
 
@@ -78,18 +78,18 @@ E2E and test API routes also use `E2E_MODE`, `TEST_SUPPORT_ENABLED`, and related
 
 ## Scripts
 
-| Command | Description |
-| --- | --- |
-| `npm run dev` | Development server |
-| `npm run build` | Production build |
+| Command               | Description                                    |
+| --------------------- | ---------------------------------------------- |
+| `npm run dev`         | Development server                             |
+| `npm run build`       | Production build                               |
 | `npm run ci:validate` | Format check, lint, typecheck, build (CI gate) |
-| `npm test` | Vitest unit tests |
-| `npm run test:smoke` | Playwright smoke tests (`@smoke`) |
-| `npm run test:e2e:ci` | Full E2E (smoke + CI integration) |
+| `npm test`            | Vitest unit tests                              |
+| `npm run test:smoke`  | Playwright smoke tests (`@smoke`)              |
+| `npm run test:e2e:ci` | Full E2E (smoke + CI integration)              |
 
 ## Project layout
 
-```
+```text
 src/
 ├── app/
 │   ├── (public)/          # Marketing pages + Navbar/Footer
@@ -135,13 +135,13 @@ The pre-rebuild Bootstrap site lives under [`archive/legacy-static-site/`](./arc
 
 ## Documentation
 
-| Doc | Contents |
-| --- | --- |
-| [CLAUDE.md](./CLAUDE.md) | Legacy static site reference and known issues |
-| [.claude/docs/conventions.md](./.claude/docs/conventions.md) | Code style, naming, directory patterns |
-| [.claude/docs/design-system.md](./.claude/docs/design-system.md) | Colors, typography, components |
-| [.claude/docs/ticket-map.md](./.claude/docs/ticket-map.md) | Original phased ticket map |
-| [prompts/PROMPT_CHAT.md](./prompts/PROMPT_CHAT.md) | Architecture context for AI-assisted work |
+| Doc                                                              | Contents                                      |
+| ---------------------------------------------------------------- | --------------------------------------------- |
+| [CLAUDE.md](./CLAUDE.md)                                         | Legacy static site reference and known issues |
+| [.claude/docs/conventions.md](./.claude/docs/conventions.md)     | Code style, naming, directory patterns        |
+| [.claude/docs/design-system.md](./.claude/docs/design-system.md) | Colors, typography, components                |
+| [.claude/docs/ticket-map.md](./.claude/docs/ticket-map.md)       | Original phased ticket map                    |
+| [prompts/PROMPT_CHAT.md](./prompts/PROMPT_CHAT.md)               | Architecture context for AI-assisted work     |
 
 ## License
 

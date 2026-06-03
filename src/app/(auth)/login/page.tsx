@@ -44,10 +44,12 @@ export default async function LoginPage({
     redirect(destination)
   }
 
-  // Auto-login bypass for dev/preview environments (blocked in production)
+  const isLocalDev = process.env.NODE_ENV === 'development' && !process.env.VERCEL
+
+  // Auto-login bypass is only available during local development.
   if (
+    isLocalDev &&
     process.env.DEV_ADMIN_BYPASS === 'true' &&
-    process.env.VERCEL_ENV !== 'production' &&
     process.env.DEV_ADMIN_EMAIL &&
     process.env.DEV_ADMIN_PASSWORD
   ) {

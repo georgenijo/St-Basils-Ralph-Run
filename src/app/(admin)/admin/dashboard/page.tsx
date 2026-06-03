@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 
 import { createClient } from '@/lib/supabase/server'
 import { Card } from '@/components/ui'
@@ -46,13 +47,17 @@ export default async function DashboardPage() {
     data: { user },
   } = await supabase.auth.getUser()
 
+  if (!user) {
+    redirect('/login')
+  }
+
   const { data: profile } = await supabase
     .from('profiles')
     .select('full_name, role')
-    .eq('id', user!.id)
+    .eq('id', user.id)
     .single()
 
-  const displayName = profile?.full_name || user!.email
+  const displayName = profile?.full_name || user.email
 
   return (
     <main className="px-4 py-8 sm:px-6 lg:px-8">
@@ -62,7 +67,7 @@ export default async function DashboardPage() {
           Welcome, {displayName}
         </h1>
         <p className="mt-2 text-sm text-wood-800/60">
-          Signed in as <span className="font-medium text-wood-800">{user!.email}</span>
+          Signed in as <span className="font-medium text-wood-800">{user.email}</span>
         </p>
         <span className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-burgundy-100 px-3 py-1 text-xs font-medium text-burgundy-700">
           <span className="h-1.5 w-1.5 rounded-full bg-burgundy-700" aria-hidden="true" />
