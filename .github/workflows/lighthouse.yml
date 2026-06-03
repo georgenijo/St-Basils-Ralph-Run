@@ -61,6 +61,9 @@ jobs:
             const a11y = score(summary.accessibility);
             const seo = score(summary.seo);
             const bp = score(summary['best-practices']);
+            const seoStatus = seo >= 90
+              ? badge(seo, 90)
+              : 'Preview noindex expected';
 
             const reportUrl = Object.values(links)[0];
 
@@ -71,7 +74,7 @@ jobs:
               '|----------|-------|-----------|--------|',
               `| Performance | **${perf}** | >= 90 | ${badge(perf, 90)} |`,
               `| Accessibility | **${a11y}** | >= 95 | ${badge(a11y, 95)} |`,
-              `| SEO | **${seo}** | >= 90 | ${badge(seo, 90)} |`,
+              `| SEO | **${seo}** | individual audits | ${seoStatus} |`,
               `| Best Practices | **${bp}** | — | — |`,
               '',
               reportUrl ? `[Full Report](${reportUrl})` : '',
