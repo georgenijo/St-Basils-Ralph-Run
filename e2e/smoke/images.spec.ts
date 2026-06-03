@@ -56,8 +56,8 @@ test.describe('Image loading @smoke', () => {
     const logo = page.locator('nav img[alt="St. Basil\'s Syriac Orthodox Church"]')
     await expect(logo).toBeVisible()
 
-    // Verify natural dimensions (not broken)
-    const naturalWidth = await logo.evaluate((img: HTMLImageElement) => img.naturalWidth)
-    expect(naturalWidth).toBeGreaterThan(0)
+    await expect
+      .poll(() => logo.evaluate((img: HTMLImageElement) => img.naturalWidth))
+      .toBeGreaterThan(0)
   })
 })

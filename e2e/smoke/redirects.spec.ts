@@ -41,15 +41,18 @@ const REDIRECTS: { source: string; destination: string }[] = [
 test.describe('Legacy .html redirects @smoke', () => {
   for (const { source, destination } of REDIRECTS) {
     test(`${source} → ${destination} (308)`, async ({ request, baseURL }) => {
-      const response = await request.get(`${baseURL}${source}`, {
+      const base = new URL(baseURL ?? 'http://localhost:3000')
+      const redirectUrl = new URL(source, base)
+      redirectUrl.search = base.search
+
+      const response = await request.get(redirectUrl.toString(), {
         maxRedirects: 0,
       })
 
       expect(response.status()).toBe(308)
 
       const location = response.headers()['location']
-      // Next.js may return absolute or relative Location headers
-      const resolved = location?.startsWith('http') ? new URL(location).pathname : location
+      const resolved = location ? new URL(location, base).pathname : undefined
 
       expect(resolved).toBe(destination)
     })
