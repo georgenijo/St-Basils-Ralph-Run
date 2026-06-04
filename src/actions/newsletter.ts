@@ -1,6 +1,7 @@
 'use server'
 
 import { sendEmail } from '@/lib/email'
+import { getSiteUrl } from '@/lib/site-url'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { verifyTurnstile } from '@/lib/turnstile'
 import { newsletterSchema } from '@/lib/validators/newsletter'
@@ -47,7 +48,7 @@ export async function subscribeNewsletter(
   }
 
   const { email } = parsed.data
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://stbasilsboston.org'
+  const siteUrl = getSiteUrl()
   const supabase = createAdminClient()
 
   // 4. Check for existing subscriber
