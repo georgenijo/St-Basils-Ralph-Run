@@ -141,7 +141,8 @@ The pre-rebuild Bootstrap site lives under [`archive/legacy-static-site/`](./arc
 | [.claude/docs/conventions.md](./.claude/docs/conventions.md)     | Code style, naming, directory patterns        |
 | [.claude/docs/design-system.md](./.claude/docs/design-system.md) | Colors, typography, components                |
 | [.claude/docs/ticket-map.md](./.claude/docs/ticket-map.md)       | Original phased ticket map                    |
-| [prompts/PROMPT_CHAT.md](./prompts/PROMPT_CHAT.md)               | Architecture context for AI-assisted work     |
+| [prompts/PROMPT.md](./prompts/PROMPT.md)                         | Issue workflow for `work <issue>`             |
+| [prompts/PROMPT_CHAT.md](./prompts/PROMPT_CHAT.md)               | Architecture context for `chat` sessions      |
 
 ## License
 
