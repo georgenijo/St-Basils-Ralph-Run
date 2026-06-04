@@ -1,9 +1,5 @@
-# Legacy static site
-*.html
-assets/
-documentation/
-forms/
-PSD/
+# Archived legacy site, design, mockups (see archive/README.md)
+archive/
 
 # Vendor / generated
 node_modules/

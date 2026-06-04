@@ -2,11 +2,14 @@ import { defineConfig, devices } from '@playwright/test'
 
 export default defineConfig({
   testDir: './e2e',
+  outputDir: 'archive/test-results',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
-  reporter: process.env.CI ? 'github' : 'html',
+  reporter: process.env.CI
+    ? 'github'
+    : [['html', { outputFolder: 'archive/playwright-report', open: 'never' }]],
   timeout: 30_000,
 
   use: {

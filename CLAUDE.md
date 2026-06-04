@@ -1,5 +1,7 @@
 # St. Basil's Syriac Orthodox Church Website
 
+> **Note:** The production app is the **Next.js** rebuild (`src/`, `README.md`). The old Bootstrap static site is archived under `archive/legacy-static-site/`. The sections below describe that legacy site for reference.
+
 ## Overview
 Static HTML website for St. Basil's Syriac Orthodox Church in Boston, Massachusetts. Serves the Jacobite Malayalee community in the New England region.
 

@@ -71,7 +71,6 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           max_timeout: 300
           check_interval: 10
-          vercel_password: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
 
       - name: Install Playwright Chromium
         run: npx playwright install chromium --with-deps
@@ -86,5 +85,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: playwright-smoke-report
-          path: test-results/
+          path: archive/test-results/
           retention-days: 14

@@ -2,10 +2,12 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 
 export async function GET(request: NextRequest) {
-  // Blocked in production even if DEV_ADMIN_BYPASS leaks
+  const isLocalDev = process.env.NODE_ENV === 'development' && !process.env.VERCEL
+
+  // Blocked outside local dev even if DEV_ADMIN_BYPASS leaks into hosted envs.
   if (
+    !isLocalDev ||
     process.env.DEV_ADMIN_BYPASS !== 'true' ||
-    process.env.VERCEL_ENV === 'production' ||
     !process.env.DEV_ADMIN_EMAIL ||
     !process.env.DEV_ADMIN_PASSWORD
   ) {

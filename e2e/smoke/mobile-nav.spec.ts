@@ -56,10 +56,12 @@ test.describe('Mobile navigation @smoke', () => {
     await hamburger.click()
 
     // Click a direct link
-    await page.locator('#mobile-menu').getByText('Giving').click()
+    await Promise.all([
+      page.waitForURL('**/giving'),
+      page.locator('#mobile-menu').getByText('Giving').click(),
+    ])
 
     // Should navigate and close menu
-    await page.waitForURL('**/giving')
     await expect(hamburger).toHaveAttribute('aria-expanded', 'false')
   })
 })
