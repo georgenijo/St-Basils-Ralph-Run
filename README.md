@@ -63,7 +63,7 @@ Copy `.env.local.example` and set at minimum:
 | `SANITY_WEBHOOK_SECRET`                                       | ISR revalidation webhook              |
 | `NEXT_PUBLIC_SITE_URL`                                        | Canonical URLs in emails and metadata |
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY`      | Public form CAPTCHA                   |
-| `RESEND_API_KEY`, `RESEND_AUDIENCE_ID`                        | Transactional + newsletter email      |
+| `RESEND_API_KEY`                                              | Transactional + newsletter email      |
 
 For local development without Resend, use the mock email sink:
 
@@ -74,7 +74,7 @@ EMAIL_SINK_DIR=.e2e/mailbox
 
 E2E and test API routes also use `E2E_MODE`, `TEST_SUPPORT_ENABLED`, and related vars documented in `.env.local.example`.
 
-**Production email:** Resend must be configured with a verified `stbasilsboston.org` sending domain and `RESEND_API_KEY` on Vercel. Until then, email features degrade gracefully but do not deliver (see [issue #242](https://github.com/georgenijo/St-Basils-Rebuild/issues/242)).
+**Production email:** Resend must be configured with a verified `stbasilsboston.org` sending domain and `RESEND_API_KEY` on Vercel. Newsletter contact sync uses Resend's current global Contacts API and does not require an audience ID. Until Resend is configured, email features degrade gracefully but do not deliver (see [issue #242](https://github.com/georgenijo/St-Basils-Rebuild/issues/242)).
 
 ## Scripts
 

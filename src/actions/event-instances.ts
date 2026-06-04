@@ -5,6 +5,7 @@ import { rrulestr } from 'rrule'
 
 import { sendEmail } from '@/lib/email'
 import { formatInChurchTimeZone, parseDatetimeLocalInTimeZone } from '@/lib/event-time'
+import { getSiteUrl } from '@/lib/site-url'
 import { createClient } from '@/lib/supabase/server'
 import {
   eventInstanceSchema,
@@ -20,7 +21,7 @@ type ActionState = {
 }
 
 const FROM_ADDRESS = "St. Basil's Church <noreply@stbasilsboston.org>"
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://stbasilsboston.org'
+const SITE_URL = getSiteUrl()
 
 const dateFormat: Intl.DateTimeFormatOptions = {
   weekday: 'long',
