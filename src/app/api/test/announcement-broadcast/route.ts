@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import { AnnouncementBroadcast } from '@/emails/announcement-broadcast'
 import { sendEmail } from '@/lib/email'
+import { getSiteUrl } from '@/lib/site-url'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { renderTiptapHTML } from '@/lib/tiptap'
 import {
@@ -58,7 +59,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to fetch subscribers' }, { status: 500 })
   }
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin
+  const siteUrl = getSiteUrl(request.nextUrl.origin)
   const bodyHtml = announcement.body ? renderTiptapHTML(announcement.body) : '<p>No content</p>'
 
   for (const subscriber of subscribers ?? []) {

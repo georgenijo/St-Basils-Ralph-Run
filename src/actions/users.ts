@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 
 import { sendInviteEmail } from '@/lib/invite-email'
+import { getSiteUrl } from '@/lib/site-url'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 import { inviteUserSchema, updateRoleSchema, userActionSchema } from '@/lib/validators/user'
@@ -14,7 +15,7 @@ type ActionState = {
 }
 
 function inviteActionUrl(hashedToken: string, type: 'invite' | 'recovery'): string {
-  const base = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://stbasilsboston.org'
+  const base = getSiteUrl()
   const params = new URLSearchParams({ token_hash: hashedToken, type })
   return `${base}/api/auth/callback?${params.toString()}`
 }

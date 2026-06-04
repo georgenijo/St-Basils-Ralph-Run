@@ -20,25 +20,19 @@ export const resend = new Proxy({} as Resend, {
 export async function addContactToAudience(email: string): Promise<void> {
   if (isMockEmailTransportEnabled()) return
 
-  const audienceId = process.env.RESEND_AUDIENCE_ID
-  if (!audienceId) return
-
   try {
-    await getResend().contacts.create({ email, audienceId })
+    await getResend().contacts.create({ email })
   } catch (error) {
-    console.error('Failed to add contact to Resend Audience:', error)
+    console.error('Failed to add contact to Resend Contacts:', error)
   }
 }
 
 export async function removeContactFromAudience(email: string): Promise<void> {
   if (isMockEmailTransportEnabled()) return
 
-  const audienceId = process.env.RESEND_AUDIENCE_ID
-  if (!audienceId) return
-
   try {
-    await getResend().contacts.remove({ audienceId, email })
+    await getResend().contacts.remove({ email })
   } catch (error) {
-    console.error('Failed to remove contact from Resend Audience:', error)
+    console.error('Failed to remove contact from Resend Contacts:', error)
   }
 }
