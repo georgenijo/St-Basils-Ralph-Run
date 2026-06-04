@@ -14,7 +14,8 @@ vi.mock('@/lib/sanity/client', () => ({
   get hasSanityConfig() {
     return sanityState.hasConfig
   },
-  getSanityClient: () => ({ fetch: mockSanityFetch }),
+  // checkCms() chains .withConfig({ useCdn: false }) before .fetch — mirror that.
+  getSanityClient: () => ({ withConfig: () => ({ fetch: mockSanityFetch }) }),
 }))
 
 import { createAdminClient } from '@/lib/supabase/admin'

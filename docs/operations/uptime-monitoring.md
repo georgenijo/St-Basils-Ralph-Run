@@ -86,7 +86,7 @@ Notes:
 
 - **Primary channel:** Slack `#st-basils-alerts` (create the channel, add BetterStack's Slack
   integration). If Slack is not ready, fall back to **email** to the admin distribution list.
-- **Sunday-morning escalation:** during the service window (**8:30–11:00 EST Sundays**), an outage is
+- **Sunday-morning escalation:** during the service window (**8:30–11:00 ET Sundays**, `America/New_York`), an outage is
   high-impact. Configure **SMS/phone** escalation for at least one on-call admin for that window.
 - **Always-on:** no quiet hours — alerts fire 24/7.
 
@@ -144,10 +144,10 @@ When an alert fires:
 | `latency_ms` | Total time to probe both dependencies.                             |
 
 - **HTTP status:** `200` when `ok`, **`503`** when any dependency is down.
-- **Caching (asymmetric):** healthy `200` responses are `public, s-maxage=30, stale-while-revalidate=30`
-  — cached at the CDN edge for 30s to shed load from repeated/public requests. Failure `503` responses
-  are `no-store` — never cached, so an outage surfaces immediately and recovery is never delayed by a
-  stale `503`. The 3-minute monitor interval is far longer than the 30s TTL, so probes always see a
-  fresh check.
+- **Caching (asymmetric):** healthy `200` responses are `public, max-age=0, s-maxage=30` — cached at
+  the CDN edge for 30s to shed load from repeated/public requests, with no `stale-while-revalidate` so
+  a stale `200` can't outlive the 30s window. Failure `503` responses are `no-store` — never cached, so
+  an outage surfaces immediately and recovery is never delayed by a stale `503`. The 3-minute monitor
+  interval is far longer than the 30s TTL, so probes always see a fresh check.
 - **No PII:** the endpoint never returns content rows, user data, or error stack traces — only the
   booleans above.

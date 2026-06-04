@@ -49,7 +49,13 @@ function checkDb(): Promise<boolean> {
   return withTimeout(probe, PROBE_TIMEOUT_MS)
 }
 
-/** GROQ literal ping against Sanity. Touches no content/documents, returns no PII. */
+/**
+ * GROQ literal ping against Sanity. Touches no content/documents, returns no PII.
+ *
+ * Forces `useCdn: false` so the probe hits `api.sanity.io` (the Content Lake)
+ * directly. The shared client uses the CDN, which can serve a cached success
+ * even while the dataset backend is unreachable — useless for a health check.
+ */
 function checkCms(): Promise<boolean> {
   if (!hasSanityConfig) {
     return Promise.resolve(false)
@@ -57,6 +63,7 @@ function checkCms(): Promise<boolean> {
   let probe: Promise<boolean>
   try {
     probe = getSanityClient()
+      .withConfig({ useCdn: false })
       .fetch('1', {}, { signal: AbortSignal.timeout(PROBE_TIMEOUT_MS) })
       .then(() => true)
   } catch {
