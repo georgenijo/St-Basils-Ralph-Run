@@ -47,23 +47,39 @@ beforeEach(() => {
 })
 
 describe('checkDependencies', () => {
+  // Per-dependency latency is non-deterministic; assert the booleans exactly and
+  // that each latency field is a number.
+  const withLatency = (flags: { ok: boolean; db: boolean; cms: boolean }) => ({
+    ...flags,
+    db_latency_ms: expect.any(Number),
+    cms_latency_ms: expect.any(Number),
+  })
+
   it('reports all healthy when DB and CMS both respond', async () => {
-    await expect(checkDependencies()).resolves.toEqual({ ok: true, db: true, cms: true })
+    await expect(checkDependencies()).resolves.toEqual(
+      withLatency({ ok: true, db: true, cms: true })
+    )
   })
 
   it('reports db false on a Supabase error response', async () => {
     mockedCreateAdminClient.mockReturnValue(stubAdmin({ resolve: { error: { message: 'boom' } } }))
-    await expect(checkDependencies()).resolves.toEqual({ ok: false, db: false, cms: true })
+    await expect(checkDependencies()).resolves.toEqual(
+      withLatency({ ok: false, db: false, cms: true })
+    )
   })
 
   it('reports db false when the Supabase query rejects (timeout/connection)', async () => {
     mockedCreateAdminClient.mockReturnValue(stubAdmin({ reject: new Error('ETIMEDOUT') }))
-    await expect(checkDependencies()).resolves.toEqual({ ok: false, db: false, cms: true })
+    await expect(checkDependencies()).resolves.toEqual(
+      withLatency({ ok: false, db: false, cms: true })
+    )
   })
 
   it('reports cms false when the Sanity ping rejects', async () => {
     mockSanityFetch.mockRejectedValue(new Error('cms down'))
-    await expect(checkDependencies()).resolves.toEqual({ ok: false, db: true, cms: false })
+    await expect(checkDependencies()).resolves.toEqual(
+      withLatency({ ok: false, db: true, cms: false })
+    )
   })
 
   it('reports both false when Supabase env is missing and Sanity is unconfigured', async () => {
@@ -71,7 +87,9 @@ describe('checkDependencies', () => {
       throw new Error('Missing Supabase admin environment variables')
     })
     sanityState.hasConfig = false
-    await expect(checkDependencies()).resolves.toEqual({ ok: false, db: false, cms: false })
+    await expect(checkDependencies()).resolves.toEqual(
+      withLatency({ ok: false, db: false, cms: false })
+    )
     // Unconfigured Sanity must not even attempt a network ping.
     expect(mockSanityFetch).not.toHaveBeenCalled()
   })
