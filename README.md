@@ -55,15 +55,16 @@ Open [http://localhost:3000](http://localhost:3000). Studio: [http://localhost:3
 
 Copy `.env.local.example` and set at minimum:
 
-| Variable                                                      | Purpose                               |
-| ------------------------------------------------------------- | ------------------------------------- |
-| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`   | Client + SSR Supabase                 |
-| `SUPABASE_SERVICE_ROLE_KEY`                                   | Server-only admin operations          |
-| `NEXT_PUBLIC_SANITY_PROJECT_ID`, `NEXT_PUBLIC_SANITY_DATASET` | Sanity content                        |
-| `SANITY_WEBHOOK_SECRET`                                       | ISR revalidation webhook              |
-| `NEXT_PUBLIC_SITE_URL`                                        | Canonical URLs in emails and metadata |
-| `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY`      | Public form CAPTCHA                   |
-| `RESEND_API_KEY`, `RESEND_AUDIENCE_ID`                        | Transactional + newsletter email      |
+| Variable                                                      | Purpose                                                                   |
+| ------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`   | Client + SSR Supabase                                                     |
+| `SUPABASE_SERVICE_ROLE_KEY`                                   | Server-only admin operations                                              |
+| `NEXT_PUBLIC_SANITY_PROJECT_ID`, `NEXT_PUBLIC_SANITY_DATASET` | Sanity content                                                            |
+| `SANITY_WEBHOOK_SECRET`                                       | ISR revalidation webhook                                                  |
+| `NEXT_PUBLIC_SITE_URL`                                        | Canonical URLs in emails and metadata                                     |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY`      | Public form CAPTCHA                                                       |
+| `RESEND_API_KEY`, `RESEND_AUDIENCE_ID`                        | Transactional + newsletter email                                          |
+| `NEXT_PUBLIC_STATUS_PAGE_URL`                                 | Public BetterStack status page URL; gates the footer "System Status" link |
 
 For local development without Resend, use the mock email sink:
 
@@ -135,13 +136,14 @@ The pre-rebuild Bootstrap site lives under [`archive/legacy-static-site/`](./arc
 
 ## Documentation
 
-| Doc                                                              | Contents                                      |
-| ---------------------------------------------------------------- | --------------------------------------------- |
-| [CLAUDE.md](./CLAUDE.md)                                         | Legacy static site reference and known issues |
-| [.claude/docs/conventions.md](./.claude/docs/conventions.md)     | Code style, naming, directory patterns        |
-| [.claude/docs/design-system.md](./.claude/docs/design-system.md) | Colors, typography, components                |
-| [.claude/docs/ticket-map.md](./.claude/docs/ticket-map.md)       | Original phased ticket map                    |
-| [prompts/PROMPT_CHAT.md](./prompts/PROMPT_CHAT.md)               | Architecture context for AI-assisted work     |
+| Doc                                                                            | Contents                                            |
+| ------------------------------------------------------------------------------ | --------------------------------------------------- |
+| [CLAUDE.md](./CLAUDE.md)                                                       | Legacy static site reference and known issues       |
+| [.claude/docs/conventions.md](./.claude/docs/conventions.md)                   | Code style, naming, directory patterns              |
+| [.claude/docs/design-system.md](./.claude/docs/design-system.md)               | Colors, typography, components                      |
+| [.claude/docs/ticket-map.md](./.claude/docs/ticket-map.md)                     | Original phased ticket map                          |
+| [prompts/PROMPT_CHAT.md](./prompts/PROMPT_CHAT.md)                             | Architecture context for AI-assisted work           |
+| [docs/operations/uptime-monitoring.md](./docs/operations/uptime-monitoring.md) | BetterStack uptime monitoring + status page runbook |
 
 ## License
 

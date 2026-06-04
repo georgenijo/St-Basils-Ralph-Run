@@ -5,6 +5,9 @@ import { NewsletterSignupForm } from '@/components/features/NewsletterSignupForm
 
 export function Footer() {
   const currentYear = new Date().getFullYear()
+  // Only render the status link once the BetterStack status page + DNS are live
+  // and NEXT_PUBLIC_STATUS_PAGE_URL is set — never ship a default to a dead domain.
+  const statusUrl = process.env.NEXT_PUBLIC_STATUS_PAGE_URL
 
   return (
     <footer className="bg-charcoal text-cream-50">
@@ -66,6 +69,18 @@ export function Footer() {
                     Terms of Use
                   </Link>
                 </li>
+                {statusUrl && (
+                  <li>
+                    <a
+                      href={statusUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex min-h-[44px] items-center transition-colors hover:text-cream-50"
+                    >
+                      System Status
+                    </a>
+                  </li>
+                )}
               </ul>
             </nav>
             <div className="mt-6">
