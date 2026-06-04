@@ -22,12 +22,16 @@ vi.mock('@/lib/supabase/server', () => ({
 const mockAdminFrom = vi.fn()
 const mockGenerateLink = vi.fn()
 const mockGetUserById = vi.fn()
+const mockResetPasswordForEmail = vi.fn()
 const mockAdminUpdate = vi.fn()
 const mockAdminEq = vi.fn()
 
 vi.mock('@/lib/supabase/admin', () => ({
   createAdminClient: vi.fn(() => ({
-    auth: { admin: { generateLink: mockGenerateLink, getUserById: mockGetUserById } },
+    auth: {
+      admin: { generateLink: mockGenerateLink, getUserById: mockGetUserById },
+      resetPasswordForEmail: mockResetPasswordForEmail,
+    },
     from: mockAdminFrom,
   })),
 }))
@@ -41,7 +45,7 @@ vi.mock('next/cache', () => ({
   revalidatePath: vi.fn(),
 }))
 
-import { inviteUser, resendInvite, updateUserRole } from '@/actions/users'
+import { inviteUser, resendInvite, sendPasswordReset, updateUserRole } from '@/actions/users'
 
 // --- Helpers ---
 
@@ -338,6 +342,46 @@ describe('resendInvite', () => {
 
     expect(result.success).toBe(false)
     expect(result.message).toBe('Failed to send invitation email')
+  })
+})
+
+describe('sendPasswordReset', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockResetPasswordForEmail.mockResolvedValue({ error: null })
+  })
+
+  it('sends reset email with the recovery callback redirect URL', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: ADMIN_ID } } })
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'profiles') {
+        return {
+          select: () => ({
+            eq: () => ({
+              single: () =>
+                Promise.resolve({
+                  data: { email: 'member@example.com' },
+                  error: null,
+                }),
+            }),
+          }),
+        }
+      }
+      if (table === 'admin_audit_log') {
+        return { insert: mockInsert }
+      }
+      return {}
+    })
+    mockInsert.mockResolvedValue({ error: null })
+
+    const fd = makeFormData({ user_id: TARGET_ID })
+    const result = await sendPasswordReset(INITIAL_STATE, fd)
+
+    expect(result.success).toBe(true)
+    expect(result.message).toBe('Password reset email sent successfully')
+    expect(mockResetPasswordForEmail).toHaveBeenCalledWith('member@example.com', {
+      redirectTo: 'https://stbasilsboston.org/api/auth/callback?type=recovery',
+    })
   })
 })
 

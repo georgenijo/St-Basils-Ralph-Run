@@ -441,7 +441,10 @@ export async function sendPasswordReset(
 
   // 4. Send password reset email via Supabase auth mailer
   const adminClient = createAdminClient()
-  const { error: resetError } = await adminClient.auth.resetPasswordForEmail(profile.email)
+  const redirectTo = `${getSiteUrl()}/api/auth/callback?type=recovery`
+  const { error: resetError } = await adminClient.auth.resetPasswordForEmail(profile.email, {
+    redirectTo,
+  })
 
   if (resetError) {
     return { success: false, message: 'Failed to send password reset email' }
