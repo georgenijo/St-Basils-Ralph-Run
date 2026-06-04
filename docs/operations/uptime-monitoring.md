@@ -49,7 +49,8 @@ Notes:
 
 - **Monitor 2** is the most informative one. Enable the keyword/response-body check for `"ok":true`,
   not just the status code — a `503` from `/api/health` means a dependency (DB or CMS) is down even if
-  the homepage still serves. The endpoint is `Cache-Control: no-store`, so BetterStack always sees the
+  the homepage still serves. Failure responses (`503`) are sent `Cache-Control: no-store`, and the
+  3-minute probe interval is well past the 30s healthy-response cache, so BetterStack always sees the
   live state.
 - **Monitor 4** must **not** be pinned to exactly `302`. The app redirects unauthenticated `/admin`
   requests to `/login` (see `middleware.ts`); treat **any 3xx with a `Location` containing `/login`**
@@ -143,7 +144,10 @@ When an alert fires:
 | `latency_ms` | Total time to probe both dependencies.                             |
 
 - **HTTP status:** `200` when `ok`, **`503`** when any dependency is down.
-- **Caching:** `Cache-Control: no-store` on every response — never cached, so monitors always see the
-  live state.
+- **Caching (asymmetric):** healthy `200` responses are `public, s-maxage=30, stale-while-revalidate=30`
+  — cached at the CDN edge for 30s to shed load from repeated/public requests. Failure `503` responses
+  are `no-store` — never cached, so an outage surfaces immediately and recovery is never delayed by a
+  stale `503`. The 3-minute monitor interval is far longer than the 30s TTL, so probes always see a
+  fresh check.
 - **No PII:** the endpoint never returns content rows, user data, or error stack traces — only the
   booleans above.

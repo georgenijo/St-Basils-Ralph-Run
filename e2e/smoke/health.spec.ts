@@ -13,9 +13,6 @@ test.describe('Health endpoint @smoke', () => {
   test('returns structured status with a consistent code', async ({ request }) => {
     const response = await request.get('/api/health')
 
-    // Never served from cache.
-    expect(response.headers()['cache-control']).toContain('no-store')
-
     const body = await response.json()
     expect(typeof body.ok).toBe('boolean')
     expect(typeof body.db).toBe('boolean')
@@ -26,5 +23,14 @@ test.describe('Health endpoint @smoke', () => {
     expect(body.ok).toBe(body.db && body.cms)
     // ...and drives the HTTP status: 200 when ok, 503 otherwise.
     expect(response.status()).toBe(body.ok ? 200 : 503)
+
+    // Caching is asymmetric: healthy responses may be cached 30s; a failure
+    // must never be cached (so an outage surfaces and recovery isn't delayed).
+    const cacheControl = response.headers()['cache-control'] ?? ''
+    if (body.ok) {
+      expect(cacheControl).toContain('s-maxage=30')
+    } else {
+      expect(cacheControl).toContain('no-store')
+    }
   })
 })

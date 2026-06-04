@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 
 import { checkDependencies } from '@/lib/health'
 
-// Live reachability probe — never statically prerendered or cached.
+// Live reachability probe — never statically prerendered.
 export const dynamic = 'force-dynamic'
 
 /**
@@ -10,8 +10,13 @@ export const dynamic = 'force-dynamic'
  *
  * Returns `{ ok, db, cms, latency_ms }`:
  * - 200 when every dependency is reachable, 503 otherwise.
- * - `Cache-Control: no-store` on every response so a real outage is never
- *   masked by a cached 200. Accuracy is worth more than saving probe load.
+ * - Caching is asymmetric on purpose:
+ *   - Healthy (200): `s-maxage=30` so the public endpoint serves a cached
+ *     response for 30s (cuts Supabase/Sanity load from repeated/public hits;
+ *     honors the issue's "cacheable for 30s"). BetterStack probes every 180s,
+ *     well past the TTL, so the monitor always sees a fresh check.
+ *   - Failure (503): `no-store` so a real outage is never masked by a cached
+ *     200 and recovery is never delayed by a cached 503.
  * - No PII; dependency errors are swallowed into booleans.
  */
 export async function GET() {
@@ -23,7 +28,11 @@ export async function GET() {
     { ok, db, cms, latency_ms },
     {
       status: ok ? 200 : 503,
-      headers: { 'Cache-Control': 'no-store' },
+      headers: {
+        'Cache-Control': ok
+          ? 'public, max-age=0, s-maxage=30, stale-while-revalidate=30'
+          : 'no-store',
+      },
     }
   )
 }
