@@ -4,8 +4,9 @@ External reachability monitoring for **stbasilsboston.org** using [BetterStack](
 (Uptime, free tier) plus a public status page at `status.stbasilsboston.org`.
 
 This document is the admin runbook: the one-time external setup, and how to operate it during an
-incident. The code side (the `/api/health` endpoint and the footer link) ships in the app repo; the
-account/monitor/status-page/DNS setup below is done in the BetterStack and DNS dashboards.
+incident. The code side (the `/api/health` endpoint, `/system-status` UI, and the footer link) ships
+in the app repo; the account/monitor/status-page/DNS setup below is done in the BetterStack and DNS
+dashboards.
 
 > **Status:** the in-repo pieces are live (`/api/health`, env-gated footer link). The BetterStack
 > account, monitors, status page, DNS, and alert channel still need to be provisioned by an admin
@@ -77,8 +78,8 @@ Notes:
      `https://status.stbasilsboston.org`.
 5. **Surface the footer link:** once the status page is live, set the Vercel env var
    `NEXT_PUBLIC_STATUS_PAGE_URL=https://status.stbasilsboston.org` (Production + Preview) and redeploy.
-   The footer "System Status" link only renders when this is set, so it is never a dead link before
-   the page exists.
+   Before this is set, the footer "System Status" link points to the in-app `/system-status` health
+   view so admins can still inspect the live `/api/health` result.
 
 ---
 
@@ -108,7 +109,8 @@ Members can subscribe to the status page for incident updates.
 When an alert fires:
 
 1. **Confirm scope.** Open `https://stbasilsboston.org/api/health` and read the JSON
-   `{ ok, db, cms, latency_ms }`.
+   `{ ok, db, cms, latency_ms }`, or open `https://stbasilsboston.org/system-status` for the same
+   signal in a scan-friendly UI.
 2. **Triage by signal:**
    - `db: false` → Supabase is unreachable. On the free tier the project **auto-pauses after
      inactivity** — open the Supabase dashboard and resume it. Otherwise check Supabase status / the
