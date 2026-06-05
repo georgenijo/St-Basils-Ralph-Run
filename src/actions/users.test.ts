@@ -41,6 +41,11 @@ vi.mock('@/lib/invite-email', () => ({
   sendInviteEmail: (...args: unknown[]) => mockSendInviteEmail(...args),
 }))
 
+const mockSendPasswordResetEmail = vi.fn()
+vi.mock('@/lib/password-reset-email', () => ({
+  sendPasswordResetEmail: (...args: unknown[]) => mockSendPasswordResetEmail(...args),
+}))
+
 vi.mock('next/cache', () => ({
   revalidatePath: vi.fn(),
 }))
@@ -348,10 +353,12 @@ describe('resendInvite', () => {
 describe('sendPasswordReset', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockResetPasswordForEmail.mockResolvedValue({ error: null })
+    mockSendPasswordResetEmail.mockResolvedValue({ data: {}, error: null })
   })
 
-  it('sends reset email with the recovery callback redirect URL', async () => {
+  // Sets up: authenticated user, target profile fetch (email + full_name),
+  // audit-log insert, and a successful recovery generateLink.
+  function mockResetHappyPath() {
     mockGetUser.mockResolvedValue({ data: { user: { id: ADMIN_ID } } })
     mockFrom.mockImplementation((table: string) => {
       if (table === 'profiles') {
@@ -360,7 +367,7 @@ describe('sendPasswordReset', () => {
             eq: () => ({
               single: () =>
                 Promise.resolve({
-                  data: { email: 'member@example.com' },
+                  data: { email: 'member@example.com', full_name: 'Member Name' },
                   error: null,
                 }),
             }),
@@ -373,15 +380,58 @@ describe('sendPasswordReset', () => {
       return {}
     })
     mockInsert.mockResolvedValue({ error: null })
+    mockGenerateLink.mockResolvedValue(LINK_SUCCESS)
+  }
+
+  it('generates a recovery link and sends the branded email (no Supabase mailer)', async () => {
+    mockResetHappyPath()
 
     const fd = makeFormData({ user_id: TARGET_ID })
     const result = await sendPasswordReset(INITIAL_STATE, fd)
 
     expect(result.success).toBe(true)
     expect(result.message).toBe('Password reset email sent successfully')
-    expect(mockResetPasswordForEmail).toHaveBeenCalledWith('member@example.com', {
-      redirectTo: 'https://stbasilsboston.org/api/auth/callback?type=recovery',
-    })
+    // Recovery link generated with redirectTo derived from getSiteUrl() (no #245 regression)
+    expect(mockGenerateLink).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'recovery',
+        email: 'member@example.com',
+        options: { redirectTo: 'https://stbasilsboston.org/api/auth/callback?type=recovery' },
+      })
+    )
+    // Branded email sent via Resend with a server-verified church-domain callback link
+    expect(mockSendPasswordResetEmail).toHaveBeenCalledWith(
+      expect.objectContaining({
+        email: 'member@example.com',
+        recipientName: 'Member Name',
+        actionUrl: expect.stringContaining('/api/auth/callback?token_hash=hash123&type=recovery'),
+      })
+    )
+    // Must NOT use Supabase's default mailer — single send path, no duplicate email
+    expect(mockResetPasswordForEmail).not.toHaveBeenCalled()
+  })
+
+  it('returns failure when generateLink fails', async () => {
+    mockResetHappyPath()
+    mockGenerateLink.mockResolvedValue({ data: { properties: null }, error: { message: 'boom' } })
+
+    const fd = makeFormData({ user_id: TARGET_ID })
+    const result = await sendPasswordReset(INITIAL_STATE, fd)
+
+    expect(result.success).toBe(false)
+    expect(result.message).toBe('Failed to send password reset email')
+    expect(mockSendPasswordResetEmail).not.toHaveBeenCalled()
+  })
+
+  it('returns failure when the branded email fails to send', async () => {
+    mockResetHappyPath()
+    mockSendPasswordResetEmail.mockResolvedValue({ data: null, error: { message: 'Resend down' } })
+
+    const fd = makeFormData({ user_id: TARGET_ID })
+    const result = await sendPasswordReset(INITIAL_STATE, fd)
+
+    expect(result.success).toBe(false)
+    expect(result.message).toBe('Failed to send password reset email')
   })
 })
 
