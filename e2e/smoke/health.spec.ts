@@ -18,6 +18,9 @@ test.describe('Health endpoint @smoke', () => {
     expect(typeof body.db).toBe('boolean')
     expect(typeof body.cms).toBe('boolean')
     expect(typeof body.latency_ms).toBe('number')
+    // Per-dependency latency feeds the in-app admin /admin/health card.
+    expect(typeof body.db_latency_ms).toBe('number')
+    expect(typeof body.cms_latency_ms).toBe('number')
 
     // ok is the conjunction of the dependency flags...
     expect(body.ok).toBe(body.db && body.cms)

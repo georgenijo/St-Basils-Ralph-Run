@@ -9,6 +9,10 @@ export interface DependencyHealth {
   db: boolean
   /** Sanity CMS reachable. */
   cms: boolean
+  /** Time in ms to probe Supabase (capped near PROBE_TIMEOUT_MS on a hang). */
+  db_latency_ms: number
+  /** Time in ms to probe Sanity (capped near PROBE_TIMEOUT_MS on a hang). */
+  cms_latency_ms: number
 }
 
 /** Per-dependency probe budget. Keeps a single hung dependency from stalling the probe. */
@@ -72,11 +76,25 @@ function checkCms(): Promise<boolean> {
   return withTimeout(probe, PROBE_TIMEOUT_MS)
 }
 
+/** Run a boolean probe and measure how long it took to settle. */
+async function timed(probe: () => Promise<boolean>): Promise<{ ok: boolean; latency_ms: number }> {
+  const start = Date.now()
+  const ok = await probe()
+  return { ok, latency_ms: Date.now() - start }
+}
+
 /**
  * Probe all external dependencies in parallel. Never throws — any failure or
  * timeout surfaces as `false` on the relevant flag. `ok` is the conjunction.
+ * Per-dependency latency is measured for the in-app admin /admin/health card.
  */
 export async function checkDependencies(): Promise<DependencyHealth> {
-  const [db, cms] = await Promise.all([checkDb(), checkCms()])
-  return { ok: db && cms, db, cms }
+  const [db, cms] = await Promise.all([timed(checkDb), timed(checkCms)])
+  return {
+    ok: db.ok && cms.ok,
+    db: db.ok,
+    cms: cms.ok,
+    db_latency_ms: db.latency_ms,
+    cms_latency_ms: cms.latency_ms,
+  }
 }

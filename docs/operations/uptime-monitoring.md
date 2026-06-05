@@ -108,7 +108,8 @@ Members can subscribe to the status page for incident updates.
 When an alert fires:
 
 1. **Confirm scope.** Open `https://stbasilsboston.org/api/health` and read the JSON
-   `{ ok, db, cms, latency_ms }`.
+   `{ ok, db, cms, latency_ms }` — or, if signed in as an admin, glance at the in-app
+   card at `/admin/health` (renders the same endpoint with per-dependency status + latency).
 2. **Triage by signal:**
    - `db: false` → Supabase is unreachable. On the free tier the project **auto-pauses after
      inactivity** — open the Supabase dashboard and resume it. Otherwise check Supabase status / the
@@ -133,15 +134,24 @@ When an alert fires:
 (logic in `src/lib/health.ts`).
 
 ```json
-{ "ok": true, "db": true, "cms": true, "latency_ms": 142 }
+{
+  "ok": true,
+  "db": true,
+  "cms": true,
+  "latency_ms": 142,
+  "db_latency_ms": 126,
+  "cms_latency_ms": 88
+}
 ```
 
-| Field        | Meaning                                                            |
-| ------------ | ------------------------------------------------------------------ |
-| `ok`         | `db && cms`. Drives the HTTP status.                               |
-| `db`         | Supabase Postgres reachable (a tiny `select … limit 1` within 2s). |
-| `cms`        | Sanity reachable (a GROQ literal `1` ping within 2s).              |
-| `latency_ms` | Total time to probe both dependencies.                             |
+| Field            | Meaning                                                                          |
+| ---------------- | -------------------------------------------------------------------------------- |
+| `ok`             | `db && cms`. Drives the HTTP status.                                             |
+| `db`             | Supabase Postgres reachable (a tiny `select … limit 1` within 2s).               |
+| `cms`            | Sanity reachable (a GROQ literal `1` ping within 2s).                            |
+| `latency_ms`     | Total time to probe both dependencies (BetterStack's signal).                    |
+| `db_latency_ms`  | Per-dependency Supabase probe time; feeds the in-app admin `/admin/health` card. |
+| `cms_latency_ms` | Per-dependency Sanity probe time; feeds the in-app admin `/admin/health` card.   |
 
 - **HTTP status:** `200` when `ok`, **`503`** when any dependency is down.
 - **Caching (asymmetric):** healthy `200` responses are `public, max-age=0, s-maxage=30` — cached at

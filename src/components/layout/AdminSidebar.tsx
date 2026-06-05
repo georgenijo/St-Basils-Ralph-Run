@@ -57,6 +57,11 @@ const navigation: NavItem[] = [
     href: '/admin/settings',
     icon: <SettingsIcon />,
   },
+  {
+    label: 'System Status',
+    href: '/admin/health',
+    icon: <ActivityIcon />,
+  },
 ]
 
 // ─── Component ───────────────────────────────────────────────────────
@@ -350,6 +355,24 @@ function ArrowLeftIcon() {
       aria-hidden="true"
     >
       <path d="M19 12H5M12 19l-7-7 7-7" />
+    </svg>
+  )
+}
+
+function ActivityIcon() {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
     </svg>
   )
 }

@@ -19,7 +19,13 @@ test.describe('Admin login @smoke', () => {
 })
 
 test.describe('Admin auth guard @smoke', () => {
-  const PROTECTED_ROUTES = ['/admin', '/admin/dashboard', '/admin/events', '/admin/announcements']
+  const PROTECTED_ROUTES = [
+    '/admin',
+    '/admin/dashboard',
+    '/admin/events',
+    '/admin/announcements',
+    '/admin/health',
+  ]
 
   for (const route of PROTECTED_ROUTES) {
     test(`${route} redirects unauthenticated users`, async ({ page }) => {
