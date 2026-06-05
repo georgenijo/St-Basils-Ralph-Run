@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 
 import { sendInviteEmail } from '@/lib/invite-email'
+import { sendPasswordResetEmail } from '@/lib/password-reset-email'
 import { getSiteUrl } from '@/lib/site-url'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
@@ -422,10 +423,10 @@ export async function sendPasswordReset(
   } = await supabase.auth.getUser()
   if (!user) return { success: false, message: 'Unauthorized' }
 
-  // 3. Look up the target user's email from their profile
+  // 3. Look up the target user's email (and name for the branded greeting)
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
-    .select('email')
+    .select('email, full_name')
     .eq('id', parsed.data.user_id)
     .single()
 
@@ -439,14 +440,42 @@ export async function sendPasswordReset(
     return { success: false, message: 'Could not find email for this user' }
   }
 
-  // 4. Send password reset email via Supabase auth mailer
+  // 4. Generate a recovery link WITHOUT sending Supabase's default mailer, then
+  //    send our own branded email via Resend — mirrors inviteUser / resendInvite.
+  //    We build the link from hashed_token (verified server-side via verifyOtp in
+  //    the auth callback) rather than the Supabase action_link, so the link in the
+  //    email points at our church-domain callback. redirectTo is unchanged from
+  //    #245 and still derived from getSiteUrl() (preview vs production).
   const adminClient = createAdminClient()
   const redirectTo = `${getSiteUrl()}/api/auth/callback?type=recovery`
-  const { error: resetError } = await adminClient.auth.resetPasswordForEmail(profile.email, {
-    redirectTo,
+  const { data: linkData, error: linkError } = await adminClient.auth.admin.generateLink({
+    type: 'recovery',
+    email: profile.email,
+    options: { redirectTo },
   })
 
-  if (resetError) {
+  if (linkError || !linkData.properties?.hashed_token) {
+    return { success: false, message: 'Failed to send password reset email' }
+  }
+
+  const actionUrl = inviteActionUrl(linkData.properties.hashed_token, 'recovery')
+
+  // Send the branded password reset email. This is the only send path (we did not
+  // call resetPasswordForEmail), so there is no duplicate Supabase email.
+  let resetEmailError: unknown = null
+  try {
+    const { error } = await sendPasswordResetEmail({
+      email: profile.email,
+      recipientName: profile.full_name ?? undefined,
+      actionUrl,
+    })
+    resetEmailError = error
+  } catch (error) {
+    resetEmailError = error
+  }
+
+  if (resetEmailError) {
+    console.error('Password reset email failed to send:', resetEmailError)
     return { success: false, message: 'Failed to send password reset email' }
   }
 
