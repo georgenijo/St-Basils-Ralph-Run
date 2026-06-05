@@ -16,22 +16,6 @@ export function urlFor(source: SanityImageSource) {
   return builder.image(source)
 }
 
-function sanityLoader({
-  src,
-  width,
-  quality,
-}: {
-  src: string
-  width: number
-  quality?: number
-}): string {
-  const url = new URL(src)
-  url.searchParams.set('w', width.toString())
-  url.searchParams.set('q', (quality || 75).toString())
-  url.searchParams.set('auto', 'format')
-  return url.toString()
-}
-
 function getHotspotPosition(image: SanityImageSource): string | undefined {
   if (typeof image === 'object' && 'hotspot' in image && image.hotspot) {
     const { x, y } = image.hotspot
@@ -52,7 +36,6 @@ export function SanityImage({ image, alt, lqip, className, style, ...props }: Sa
   return (
     <Image
       src={imageUrl}
-      loader={sanityLoader}
       alt={alt}
       className={cn('object-cover', className)}
       style={{
