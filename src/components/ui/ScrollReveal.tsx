@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext } from 'react'
+import { createContext, useContext, useState, useEffect } from 'react'
 import { useReducedMotion, motion } from 'framer-motion'
 import type { Variant } from 'framer-motion'
 
@@ -74,13 +74,15 @@ export function ScrollReveal({
 }: ScrollRevealProps) {
   const reducedMotion = useReducedMotion() ?? false
   const variants = getVariants(direction, reducedMotion)
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => { setMounted(true) }, [])
 
   const MotionComponent = motion[as] as typeof motion.div
 
   return (
     <ScrollRevealContext.Provider value={{ direction, reducedMotion }}>
       <MotionComponent
-        initial="hidden"
+        initial={mounted ? 'hidden' : false}
         whileInView="visible"
         viewport={{ once, margin: '-50px' }}
         variants={variants}
