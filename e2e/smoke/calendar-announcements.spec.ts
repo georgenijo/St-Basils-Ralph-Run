@@ -29,7 +29,7 @@ test.describe('Events calendar @smoke', () => {
   })
 
   test('renders FullCalendar container', async ({ page }) => {
-    await page.goto('/events', { waitUntil: 'networkidle' })
+    await page.goto('/events', { waitUntil: 'domcontentloaded' })
 
     // FullCalendar renders inside the rounded container
     // The dynamically imported CalendarView creates the fc container

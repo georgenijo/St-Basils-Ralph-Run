@@ -47,12 +47,14 @@ const fallbackPage: PageContent = {
 }
 
 async function getPage() {
-  return sanityFetch<PageContent>({
+  const page = await sanityFetch<PageContent | null>({
     query: pageContentBySlugQuery,
     params: { slug: 'terms-of-use' },
     tags: ['pageContent'],
-    fallback: fallbackPage,
+    fallback: null,
   })
+
+  return page ?? fallbackPage
 }
 
 export async function generateMetadata(): Promise<Metadata> {

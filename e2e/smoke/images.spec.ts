@@ -26,7 +26,20 @@ test.describe('Image loading @smoke', () => {
         }
       })
 
-      await page.goto(path, { waitUntil: 'networkidle' })
+      await page.goto(path, { waitUntil: 'domcontentloaded' })
+
+      // Analytics and third-party widgets may keep connections open forever,
+      // so wait for actual eager image completion instead of networkidle.
+      await expect
+        .poll(() =>
+          page.locator('img').evaluateAll((images) =>
+            images.every((image) => {
+              const img = image as HTMLImageElement
+              return img.loading === 'lazy' || img.complete
+            })
+          )
+        )
+        .toBe(true)
 
       // Check for broken images in the DOM
       const brokenImages = await page.evaluate(() => {
