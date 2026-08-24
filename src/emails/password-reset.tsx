@@ -40,8 +40,8 @@ export function PasswordReset({
         one.
       </Text>
       <Text style={smallText}>
-        If you didn&apos;t request a password reset, you can safely ignore this email — your password
-        will not change.
+        If you didn&apos;t request a password reset, you can safely ignore this email — your
+        password will not change.
       </Text>
       <Text style={smallText}>
         Questions? Contact us at{' '}
