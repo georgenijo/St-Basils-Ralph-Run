@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 
-import { createClient } from '@/lib/supabase/server'
+import { getAuthWithProfile } from '@/lib/supabase/auth'
 import { Card } from '@/components/ui'
 
 export const metadata: Metadata = {
@@ -41,21 +41,11 @@ const placeholderCards = [
 // ─── Page ───────────────────────────────────────────────────────────
 
 export default async function DashboardPage() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { user, profile } = await getAuthWithProfile()
 
   if (!user) {
     redirect('/login')
   }
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('full_name, role')
-    .eq('id', user.id)
-    .single()
 
   const displayName = profile?.full_name || user.email
 
