@@ -6,8 +6,10 @@ const log = logger.child({ scope: 'health' })
 
 /** Result of probing external dependencies for the /api/health endpoint. */
 export interface DependencyHealth {
-  /** True only when every dependency is reachable. */
+  /** True only when every dependency is reachable and production config is safe. */
   ok: boolean
+  /** Production runtime configuration is safe for public traffic. */
+  config: 'ok' | 'unsafe'
   /** Supabase Postgres reachable. */
   db: boolean
   /** Sanity CMS reachable. */
@@ -20,6 +22,43 @@ export interface DependencyHealth {
 
 /** Per-dependency probe budget. Keeps a single hung dependency from stalling the probe. */
 const PROBE_TIMEOUT_MS = 2000
+
+export interface RuntimeHealthConfig {
+  VERCEL_ENV?: string
+  TEST_SUPPORT_ENABLED?: string
+  E2E_MODE?: string
+  EMAIL_TRANSPORT?: string
+  ALLOW_TURNSTILE_TEST_BYPASS?: string
+}
+
+const UNSAFE_PRODUCTION_FLAGS = [
+  'TEST_SUPPORT_ENABLED',
+  'E2E_MODE',
+  'ALLOW_TURNSTILE_TEST_BYPASS',
+] as const
+
+function currentRuntimeConfig(): RuntimeHealthConfig {
+  return {
+    VERCEL_ENV: process.env.VERCEL_ENV,
+    TEST_SUPPORT_ENABLED: process.env.TEST_SUPPORT_ENABLED,
+    E2E_MODE: process.env.E2E_MODE,
+    EMAIL_TRANSPORT: process.env.EMAIL_TRANSPORT,
+    ALLOW_TURNSTILE_TEST_BYPASS: process.env.ALLOW_TURNSTILE_TEST_BYPASS,
+  }
+}
+
+function unsafeProductionConfigNames(config: RuntimeHealthConfig): string[] {
+  if (config.VERCEL_ENV !== 'production') return []
+
+  const unsafeNames: string[] = UNSAFE_PRODUCTION_FLAGS.filter((name) => config[name] !== undefined)
+  if (config.EMAIL_TRANSPORT === 'mock') unsafeNames.push('EMAIL_TRANSPORT')
+  return unsafeNames
+}
+
+/** Classify runtime flags without revealing which flag made production unsafe. */
+export function checkRuntimeConfig(config: RuntimeHealthConfig): 'ok' | 'unsafe' {
+  return unsafeProductionConfigNames(config).length > 0 ? 'unsafe' : 'ok'
+}
 
 /**
  * Resolve to `false` if `probe` rejects or does not settle within `ms`, otherwise
@@ -100,13 +139,23 @@ async function timed(probe: () => Promise<boolean>): Promise<{ ok: boolean; late
 
 /**
  * Probe all external dependencies in parallel. Never throws — any failure or
- * timeout surfaces as `false` on the relevant flag. `ok` is the conjunction.
- * Per-dependency latency is measured for the in-app admin /admin/health card.
+ * timeout surfaces as `false` on the relevant flag. `ok` requires reachable
+ * dependencies and production-safe configuration. Per-dependency latency is
+ * measured for the in-app admin /admin/health card.
  */
-export async function checkDependencies(): Promise<DependencyHealth> {
+export async function checkDependencies(
+  runtimeConfig: RuntimeHealthConfig = currentRuntimeConfig()
+): Promise<DependencyHealth> {
+  const unsafeConfigNames = unsafeProductionConfigNames(runtimeConfig)
+  const config = unsafeConfigNames.length > 0 ? 'unsafe' : 'ok'
+  if (config === 'unsafe') {
+    log.error('health.unsafe_production_config', { unsafeConfigNames })
+  }
+
   const [db, cms] = await Promise.all([timed(checkDb), timed(checkCms)])
   return {
-    ok: db.ok && cms.ok,
+    ok: db.ok && cms.ok && config === 'ok',
+    config,
     db: db.ok,
     cms: cms.ok,
     db_latency_ms: db.latency_ms,

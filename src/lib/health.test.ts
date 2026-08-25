@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 // Hoisted so the vi.mock factories below can close over them.
-const { mockSanityFetch, sanityState } = vi.hoisted(() => ({
+const { mockSanityFetch, sanityState, mockHealthLogError } = vi.hoisted(() => ({
   mockSanityFetch: vi.fn(),
   sanityState: { hasConfig: true },
+  mockHealthLogError: vi.fn(),
 }))
 
 vi.mock('@/lib/supabase/admin', () => ({
@@ -18,8 +19,12 @@ vi.mock('@/lib/sanity/client', () => ({
   getSanityClient: () => ({ withConfig: () => ({ fetch: mockSanityFetch }) }),
 }))
 
+vi.mock('@/lib/logger', () => ({
+  logger: { child: () => ({ error: mockHealthLogError }) },
+}))
+
 import { createAdminClient } from '@/lib/supabase/admin'
-import { checkDependencies } from '@/lib/health'
+import { checkDependencies, checkRuntimeConfig } from '@/lib/health'
 
 const mockedCreateAdminClient = vi.mocked(createAdminClient)
 
@@ -49,8 +54,14 @@ beforeEach(() => {
 describe('checkDependencies', () => {
   // Per-dependency latency is non-deterministic; assert the booleans exactly and
   // that each latency field is a number.
-  const withLatency = (flags: { ok: boolean; db: boolean; cms: boolean }) => ({
+  const withLatency = (flags: {
+    ok: boolean
+    config?: 'ok' | 'unsafe'
+    db: boolean
+    cms: boolean
+  }) => ({
     ...flags,
+    config: flags.config ?? 'ok',
     db_latency_ms: expect.any(Number),
     cms_latency_ms: expect.any(Number),
   })
@@ -92,5 +103,47 @@ describe('checkDependencies', () => {
     )
     // Unconfigured Sanity must not even attempt a network ping.
     expect(mockSanityFetch).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    ['TEST_SUPPORT_ENABLED', { TEST_SUPPORT_ENABLED: '1' }],
+    ['E2E_MODE', { E2E_MODE: 'true' }],
+    ['EMAIL_TRANSPORT', { EMAIL_TRANSPORT: 'mock' }],
+    ['ALLOW_TURNSTILE_TEST_BYPASS', { ALLOW_TURNSTILE_TEST_BYPASS: '1' }],
+  ])('reports config unsafe in production when %s is enabled', async (_name, flag) => {
+    await expect(checkDependencies({ VERCEL_ENV: 'production', ...flag })).resolves.toEqual(
+      withLatency({ ok: false, config: 'unsafe', db: true, cms: true })
+    )
+    expect(mockHealthLogError).toHaveBeenCalledWith('health.unsafe_production_config', {
+      unsafeConfigNames: [_name],
+    })
+  })
+})
+
+describe('checkRuntimeConfig', () => {
+  it('allows test support flags outside Vercel production', () => {
+    expect(
+      checkRuntimeConfig({
+        VERCEL_ENV: 'preview',
+        TEST_SUPPORT_ENABLED: '1',
+        E2E_MODE: '1',
+        EMAIL_TRANSPORT: 'mock',
+        ALLOW_TURNSTILE_TEST_BYPASS: '1',
+      })
+    ).toBe('ok')
+  })
+
+  it('allows a real email transport in production', () => {
+    expect(checkRuntimeConfig({ VERCEL_ENV: 'production', EMAIL_TRANSPORT: 'resend' })).toBe('ok')
+  })
+
+  it('treats any non-empty test flag value as set in production', () => {
+    expect(checkRuntimeConfig({ VERCEL_ENV: 'production', TEST_SUPPORT_ENABLED: 'false' })).toBe(
+      'unsafe'
+    )
+  })
+
+  it('treats an empty test flag as set when it exists in production', () => {
+    expect(checkRuntimeConfig({ VERCEL_ENV: 'production', E2E_MODE: '' })).toBe('unsafe')
   })
 })

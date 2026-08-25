@@ -11,8 +11,9 @@ const log = logger.child({ scope: 'health' })
 /**
  * Public health endpoint for external uptime monitoring (BetterStack).
  *
- * Returns `{ ok, db, cms, latency_ms, db_latency_ms, cms_latency_ms }`:
- * - 200 when every dependency is reachable, 503 otherwise.
+ * Returns `{ ok, config, db, cms, latency_ms, db_latency_ms, cms_latency_ms }`:
+ * - 200 when every dependency is reachable and production config is safe,
+ *   503 otherwise.
  * - `latency_ms` is the total probe time (BetterStack's signal); `db_latency_ms`
  *   and `cms_latency_ms` are per-dependency probe times feeding the in-app admin
  *   `/admin/health` card. Additive fields — the BetterStack contract is unchanged.
@@ -30,13 +31,15 @@ const log = logger.child({ scope: 'health' })
 async function getImpl(_request: Request) {
   void _request
   const start = Date.now()
-  const { ok, db, cms, db_latency_ms, cms_latency_ms } = await checkDependencies()
+  const { ok, config, db, cms, db_latency_ms, cms_latency_ms } = await checkDependencies()
   const latency_ms = Date.now() - start
 
-  if (!ok) log.warn('health.dependencies_unavailable', { db, cms, latencyMs: latency_ms })
+  if (!db || !cms) {
+    log.warn('health.dependencies_unavailable', { db, cms, latencyMs: latency_ms })
+  }
 
   return NextResponse.json(
-    { ok, db, cms, latency_ms, db_latency_ms, cms_latency_ms },
+    { ok, config, db, cms, latency_ms, db_latency_ms, cms_latency_ms },
     {
       status: ok ? 200 : 503,
       headers: {
