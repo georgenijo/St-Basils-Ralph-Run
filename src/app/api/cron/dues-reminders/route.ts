@@ -3,11 +3,14 @@ import type { ReactElement } from 'react'
 
 import { createAdminClient } from '@/lib/supabase/admin'
 import { sendEmail } from '@/lib/email'
+import { logger } from '@/lib/logger'
+import { withRequestLogging } from '@/lib/logger.server'
 import { FROM_ADDRESS } from '@/lib/notifications'
 import { DuesReminder } from '@/emails/dues-reminder'
 import { MembershipExpired } from '@/emails/membership-expired'
 
 export const dynamic = 'force-dynamic'
+const log = logger.child({ scope: 'dues-reminders' })
 
 function utcDateOffset(days: number): string {
   const d = new Date()
@@ -47,7 +50,10 @@ async function getOptedInEmails(
     .eq('family_id', familyId)
     .not('email', 'is', null)
 
-  if (error || !data) return []
+  if (error || !data) {
+    if (error) log.error('dues_reminders.recipients_query_failed', { error, familyId })
+    return []
+  }
 
   return (data as ProfileRow[])
     .filter((row) => {
@@ -75,18 +81,18 @@ async function sendBatch(
     try {
       const { error } = await sendEmail({ from: FROM_ADDRESS, to: emails, subject, react })
       if (error) {
-        console.error('[dues-reminders] send failed for family', family.id, error)
+        log.error('dues_reminders.send_failed', { error, familyId: family.id })
       } else {
         sent += 1
       }
     } catch (err) {
-      console.error('[dues-reminders] send threw for family', family.id, err)
+      log.error('dues_reminders.send_failed', { error: err, familyId: family.id })
     }
   }
   return sent
 }
 
-export async function GET(request: NextRequest) {
+async function getImpl(request: NextRequest) {
   const secret = process.env.CRON_SECRET
   const auth = request.headers.get('authorization')
   if (!secret || auth !== `Bearer ${secret}`) {
@@ -108,7 +114,7 @@ export async function GET(request: NextRequest) {
         .eq('membership_expires_at', date)
 
       if (error) {
-        console.error('[dues-reminders] query failed for', date, error.message)
+        log.error('dues_reminders.families_query_failed', { error, date })
         return []
       }
       return (data ?? []) as FamilyRow[]
@@ -147,10 +153,12 @@ export async function GET(request: NextRequest) {
     }))
 
     const result = { today, reminders14, reminders3, expired }
-    console.log('[dues-reminders] complete', result)
+    log.info('dues_reminders.completed', result)
     return NextResponse.json(result)
   } catch (err) {
-    console.error('[dues-reminders] uncaught error:', err)
+    log.error('dues_reminders.failed', { error: err })
     return NextResponse.json({ error: 'internal_error' }, { status: 500 })
   }
 }
+
+export const GET = withRequestLogging('/api/cron/dues-reminders', getImpl)

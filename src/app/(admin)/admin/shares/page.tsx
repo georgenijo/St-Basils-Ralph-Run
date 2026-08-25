@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 
+import { getRequestLogger } from '@/lib/logger.server'
 import { createClient } from '@/lib/supabase/server'
 import { SharesPageClient } from './SharesPageClient'
 
@@ -16,7 +17,8 @@ export default async function SharesPage() {
     .order('created_at', { ascending: false })
 
   if (error) {
-    console.error('Failed to fetch shares:', error)
+    const log = await getRequestLogger('admin-shares-page')
+    log.error('shares.fetch_failed', { error })
     return (
       <main className="px-4 py-8 sm:px-6 lg:px-8">
         <h1 className="font-heading text-3xl font-semibold text-wood-900">Shares</h1>

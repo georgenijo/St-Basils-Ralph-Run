@@ -3,6 +3,8 @@
 import { revalidatePath } from 'next/cache'
 
 import { sendInviteEmail } from '@/lib/invite-email'
+import { logger } from '@/lib/logger'
+import { withLogging } from '@/lib/logger.server'
 import { sendPasswordResetEmail } from '@/lib/password-reset-email'
 import { getSiteUrl } from '@/lib/site-url'
 import { createAdminClient } from '@/lib/supabase/admin'
@@ -15,13 +17,15 @@ type ActionState = {
   errors?: Record<string, string[]>
 }
 
+const log = logger.child({ scope: 'users' })
+
 function inviteActionUrl(hashedToken: string, type: 'invite' | 'recovery'): string {
   const base = getSiteUrl()
   const params = new URLSearchParams({ token_hash: hashedToken, type })
   return `${base}/api/auth/callback?${params.toString()}`
 }
 
-export async function inviteUser(prevState: ActionState, formData: FormData): Promise<ActionState> {
+async function inviteUserImpl(prevState: ActionState, formData: FormData): Promise<ActionState> {
   // 1. Validate with Zod
   const parsed = inviteUserSchema.safeParse({
     email: formData.get('email'),
@@ -74,6 +78,7 @@ export async function inviteUser(prevState: ActionState, formData: FormData): Pr
   })
 
   if (linkError) {
+    log.error('user.invite_link_failed', { error: linkError })
     const msg = linkError.message?.toLowerCase() ?? ''
     if (msg.includes('already') || msg.includes('registered') || msg.includes('exists')) {
       return {
@@ -88,6 +93,7 @@ export async function inviteUser(prevState: ActionState, formData: FormData): Pr
   const newUserId = linkData.user?.id
   const hashedToken = linkData.properties?.hashed_token
   if (!newUserId || !hashedToken) {
+    log.error('user.invite_link_incomplete', { hasUserId: !!newUserId, hasToken: !!hashedToken })
     return { success: false, message: 'Failed to invite user' }
   }
   const actionUrl = inviteActionUrl(hashedToken, 'invite')
@@ -100,6 +106,7 @@ export async function inviteUser(prevState: ActionState, formData: FormData): Pr
       .eq('id', newUserId)
 
     if (roleError) {
+      log.error('user.invite_role_update_failed', { error: roleError, targetUserId: newUserId })
       return { success: false, message: 'User invited but failed to set admin role' }
     }
   }
@@ -107,7 +114,7 @@ export async function inviteUser(prevState: ActionState, formData: FormData): Pr
   // 6. Auto-subscribe to newsletter if opted in. ignoreDuplicates preserves
   //    any prior unsubscribe / confirmation state on an existing row.
   if (parsed.data.newsletter_opt_in) {
-    await adminClient.from('email_subscribers').upsert(
+    const { error: newsletterError } = await adminClient.from('email_subscribers').upsert(
       {
         email: parsed.data.email,
         confirmed: true,
@@ -115,6 +122,12 @@ export async function inviteUser(prevState: ActionState, formData: FormData): Pr
       },
       { onConflict: 'email', ignoreDuplicates: true }
     )
+    if (newsletterError) {
+      log.error('user.invite_newsletter_sync_failed', {
+        error: newsletterError,
+        targetUserId: newUserId,
+      })
+    }
   }
 
   // 7. Send the branded invite email via Resend. Non-fatal: the user already
@@ -135,7 +148,7 @@ export async function inviteUser(prevState: ActionState, formData: FormData): Pr
   }
 
   // 8. Write audit log (authenticated client — RLS enforces admin-only inserts)
-  await supabase.from('admin_audit_log').insert({
+  const { error: auditError } = await supabase.from('admin_audit_log').insert({
     actor_id: user.id,
     action: 'user.invite',
     target_user_id: newUserId,
@@ -146,13 +159,15 @@ export async function inviteUser(prevState: ActionState, formData: FormData): Pr
       newsletter_opt_in: parsed.data.newsletter_opt_in,
     },
   })
+  if (auditError)
+    log.error('audit.user_invite_failed', { error: auditError, targetUserId: newUserId })
 
   // 9. Revalidate and return
   revalidatePath('/admin/users')
   revalidatePath('/admin/subscribers')
 
   if (inviteEmailError) {
-    console.error('Invite created but email failed to send:', inviteEmailError)
+    log.error('user.invite_email_failed', { error: inviteEmailError, targetUserId: newUserId })
     return {
       success: false,
       message:
@@ -163,7 +178,7 @@ export async function inviteUser(prevState: ActionState, formData: FormData): Pr
   return { success: true, message: 'Invitation sent successfully' }
 }
 
-export async function updateUserRole(
+async function updateUserRoleImpl(
   prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
@@ -212,6 +227,7 @@ export async function updateUserRole(
     .single()
 
   if (fetchError || !targetProfile) {
+    if (fetchError) log.error('user.role_target_lookup_failed', { error: fetchError })
     return { success: false, message: 'User not found' }
   }
 
@@ -227,11 +243,12 @@ export async function updateUserRole(
     .eq('id', parsed.data.user_id)
 
   if (updateError) {
+    log.error('user.role_update_failed', { error: updateError, targetUserId: parsed.data.user_id })
     return { success: false, message: 'Failed to update role' }
   }
 
   // 7. Write audit log (authenticated client — RLS enforces admin-only inserts)
-  await supabase.from('admin_audit_log').insert({
+  const { error: auditError } = await supabase.from('admin_audit_log').insert({
     actor_id: user.id,
     action: 'user.role_change',
     target_user_id: parsed.data.user_id,
@@ -240,13 +257,19 @@ export async function updateUserRole(
       new_role: parsed.data.role,
     },
   })
+  if (auditError) {
+    log.error('audit.user_role_change_failed', {
+      error: auditError,
+      targetUserId: parsed.data.user_id,
+    })
+  }
 
   // 8. Revalidate and return
   revalidatePath('/admin/users')
   return { success: true, message: 'Role updated successfully' }
 }
 
-export async function deactivateUser(
+async function deactivateUserImpl(
   prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
@@ -295,6 +318,10 @@ export async function deactivateUser(
     .eq('id', parsed.data.user_id)
 
   if (profileError) {
+    log.error('user.deactivate_profile_failed', {
+      error: profileError,
+      targetUserId: parsed.data.user_id,
+    })
     return { success: false, message: 'Failed to deactivate user profile' }
   }
 
@@ -304,6 +331,7 @@ export async function deactivateUser(
   })
 
   if (banError) {
+    log.error('user.deactivate_auth_failed', { error: banError, targetUserId: parsed.data.user_id })
     // Rollback profile change
     await adminClient.from('profiles').update({ is_active: true }).eq('id', parsed.data.user_id)
     return { success: false, message: 'Failed to ban user in auth' }
@@ -317,7 +345,10 @@ export async function deactivateUser(
   })
 
   if (auditError) {
-    console.error('Failed to write audit log for user.deactivate:', auditError)
+    log.error('audit.user_deactivate_failed', {
+      error: auditError,
+      targetUserId: parsed.data.user_id,
+    })
   }
 
   // 8. Revalidate and return
@@ -325,7 +356,7 @@ export async function deactivateUser(
   return { success: true, message: 'User deactivated successfully' }
 }
 
-export async function reactivateUser(
+async function reactivateUserImpl(
   prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
@@ -369,6 +400,10 @@ export async function reactivateUser(
     .eq('id', parsed.data.user_id)
 
   if (profileError) {
+    log.error('user.reactivate_profile_failed', {
+      error: profileError,
+      targetUserId: parsed.data.user_id,
+    })
     return { success: false, message: 'Failed to reactivate user profile' }
   }
 
@@ -378,6 +413,10 @@ export async function reactivateUser(
   })
 
   if (unbanError) {
+    log.error('user.reactivate_auth_failed', {
+      error: unbanError,
+      targetUserId: parsed.data.user_id,
+    })
     // Rollback profile change
     await adminClient.from('profiles').update({ is_active: false }).eq('id', parsed.data.user_id)
     return { success: false, message: 'Failed to unban user in auth' }
@@ -391,7 +430,10 @@ export async function reactivateUser(
   })
 
   if (auditError) {
-    console.error('Failed to write audit log for user.reactivate:', auditError)
+    log.error('audit.user_reactivate_failed', {
+      error: auditError,
+      targetUserId: parsed.data.user_id,
+    })
   }
 
   // 7. Revalidate and return
@@ -399,7 +441,7 @@ export async function reactivateUser(
   return { success: true, message: 'User reactivated successfully' }
 }
 
-export async function sendPasswordReset(
+async function sendPasswordResetImpl(
   prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
@@ -431,11 +473,11 @@ export async function sendPasswordReset(
     .single()
 
   if (profileError || !profile?.email) {
-    console.error('sendPasswordReset profile lookup failed:', {
-      profileError,
+    log.error('user.password_reset_profile_lookup_failed', {
+      error: profileError,
       hasProfile: !!profile,
       hasEmail: !!profile?.email,
-      user_id: parsed.data.user_id,
+      targetUserId: parsed.data.user_id,
     })
     return { success: false, message: 'Could not find email for this user' }
   }
@@ -455,6 +497,10 @@ export async function sendPasswordReset(
   })
 
   if (linkError || !linkData.properties?.hashed_token) {
+    log.error('user.password_reset_link_failed', {
+      error: linkError,
+      targetUserId: parsed.data.user_id,
+    })
     return { success: false, message: 'Failed to send password reset email' }
   }
 
@@ -475,7 +521,10 @@ export async function sendPasswordReset(
   }
 
   if (resetEmailError) {
-    console.error('Password reset email failed to send:', resetEmailError)
+    log.error('user.password_reset_email_failed', {
+      error: resetEmailError,
+      targetUserId: parsed.data.user_id,
+    })
     return { success: false, message: 'Failed to send password reset email' }
   }
 
@@ -488,7 +537,10 @@ export async function sendPasswordReset(
   })
 
   if (auditError) {
-    console.error('Failed to write audit log for user.password_reset:', auditError)
+    log.error('audit.user_password_reset_failed', {
+      error: auditError,
+      targetUserId: parsed.data.user_id,
+    })
   }
 
   // 6. Revalidate and return
@@ -496,10 +548,7 @@ export async function sendPasswordReset(
   return { success: true, message: 'Password reset email sent successfully' }
 }
 
-export async function resendInvite(
-  prevState: ActionState,
-  formData: FormData
-): Promise<ActionState> {
+async function resendInviteImpl(prevState: ActionState, formData: FormData): Promise<ActionState> {
   // 1. Validate with Zod
   const parsed = userActionSchema.safeParse({
     user_id: formData.get('user_id'),
@@ -539,6 +588,7 @@ export async function resendInvite(
     .single()
 
   if (targetError || !target?.email) {
+    if (targetError) log.error('user.invite_target_lookup_failed', { error: targetError })
     return { success: false, message: 'Could not find email for this user' }
   }
 
@@ -550,6 +600,7 @@ export async function resendInvite(
     parsed.data.user_id
   )
   if (authUserError || !authUser?.user) {
+    if (authUserError) log.error('user.invite_auth_lookup_failed', { error: authUserError })
     return { success: false, message: 'Could not load user account' }
   }
   if (authUser.user.last_sign_in_at) {
@@ -566,6 +617,10 @@ export async function resendInvite(
   })
 
   if (linkError || !linkData.properties?.hashed_token) {
+    log.error('user.invite_regenerate_link_failed', {
+      error: linkError,
+      targetUserId: parsed.data.user_id,
+    })
     return { success: false, message: 'Failed to generate invite link' }
   }
 
@@ -594,14 +649,20 @@ export async function resendInvite(
   })
 
   if (auditError) {
-    console.error('Failed to write audit log for user.invite.resend:', auditError)
+    log.error('audit.user_invite_resend_failed', {
+      error: auditError,
+      targetUserId: parsed.data.user_id,
+    })
   }
 
   // 9. Revalidate and return
   revalidatePath('/admin/users')
 
   if (inviteEmailError) {
-    console.error('Resend invite email failed:', inviteEmailError)
+    log.error('user.invite_resend_email_failed', {
+      error: inviteEmailError,
+      targetUserId: parsed.data.user_id,
+    })
     return { success: false, message: 'Failed to send invitation email' }
   }
 
@@ -618,7 +679,7 @@ export type AuditLogEntry = {
   created_at: string
 }
 
-export async function fetchUserAuditLog(userId: string): Promise<AuditLogEntry[]> {
+async function fetchUserAuditLogImpl(userId: string): Promise<AuditLogEntry[]> {
   const supabase = await createClient()
 
   // Auth check
@@ -636,7 +697,7 @@ export async function fetchUserAuditLog(userId: string): Promise<AuditLogEntry[]
 
   if (error || !entries) {
     if (error) {
-      console.error('Failed to fetch admin_audit_log:', { error, userId })
+      log.error('audit.user_history_fetch_failed', { error, targetUserId: userId })
     }
     return []
   }
@@ -658,3 +719,11 @@ export async function fetchUserAuditLog(userId: string): Promise<AuditLogEntry[]
     created_at: e.created_at,
   }))
 }
+
+export const inviteUser = withLogging('inviteUser', inviteUserImpl)
+export const updateUserRole = withLogging('updateUserRole', updateUserRoleImpl)
+export const deactivateUser = withLogging('deactivateUser', deactivateUserImpl)
+export const reactivateUser = withLogging('reactivateUser', reactivateUserImpl)
+export const sendPasswordReset = withLogging('sendPasswordReset', sendPasswordResetImpl)
+export const resendInvite = withLogging('resendInvite', resendInviteImpl)
+export const fetchUserAuditLog = withLogging('fetchUserAuditLog', fetchUserAuditLogImpl)

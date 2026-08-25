@@ -2,6 +2,8 @@
 
 import { revalidatePath } from 'next/cache'
 
+import { logger } from '@/lib/logger'
+import { withLogging } from '@/lib/logger.server'
 import { createClient } from '@/lib/supabase/server'
 import { updateNotificationPreferencesSchema } from '@/lib/validators/member'
 
@@ -16,7 +18,9 @@ function checkboxValue(formData: FormData, key: string): boolean {
   return v === 'on' || v === 'true'
 }
 
-export async function updateNotificationPreferences(
+const log = logger.child({ scope: 'notifications' })
+
+async function updateNotificationPreferencesImpl(
   prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
@@ -48,7 +52,7 @@ export async function updateNotificationPreferences(
     .eq('id', user.id)
 
   if (error) {
-    console.error('[updateNotificationPreferences] DB error:', error.message)
+    log.error('notification_preferences.update_failed', { error })
     return { success: false, message: 'Failed to update preferences' }
   }
 
@@ -56,3 +60,8 @@ export async function updateNotificationPreferences(
   revalidatePath('/member')
   return { success: true, message: 'Preferences updated' }
 }
+
+export const updateNotificationPreferences = withLogging(
+  'updateNotificationPreferences',
+  updateNotificationPreferencesImpl
+)

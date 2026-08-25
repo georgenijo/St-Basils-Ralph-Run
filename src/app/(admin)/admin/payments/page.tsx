@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 
+import { getRequestLogger } from '@/lib/logger.server'
 import { getDataClient } from '@/lib/supabase/auth'
 import { PaymentsPageClient } from './PaymentsPageClient'
 import type { Payment } from '@/components/features/PaymentsTable'
@@ -41,7 +42,8 @@ export default async function PaymentsPage() {
   ])
 
   if (paymentsResult.error) {
-    console.error('Failed to fetch payments:', paymentsResult.error)
+    const log = await getRequestLogger('admin-payments-page')
+    log.error('payments.fetch_failed', { error: paymentsResult.error })
     return (
       <main className="px-4 py-8 sm:px-6 lg:px-8">
         <h1 className="font-heading text-3xl font-semibold text-wood-900">Payments</h1>

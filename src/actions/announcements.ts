@@ -3,6 +3,8 @@
 import { revalidatePath } from 'next/cache'
 
 import { parseDatetimeLocalInTimeZone, CHURCH_TIME_ZONE } from '@/lib/event-time'
+import { logger } from '@/lib/logger'
+import { withLogging } from '@/lib/logger.server'
 import { createClient } from '@/lib/supabase/server'
 import { announcementSchema } from '@/lib/validators/announcement'
 
@@ -12,7 +14,9 @@ type ActionState = {
   errors?: Record<string, string[]>
 }
 
-export async function createAnnouncement(
+const log = logger.child({ scope: 'announcements' })
+
+async function createAnnouncementImpl(
   prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
@@ -61,7 +65,8 @@ export async function createAnnouncement(
   if (parsed.data.body) {
     try {
       bodyJson = JSON.parse(parsed.data.body)
-    } catch {
+    } catch (error) {
+      log.debug('announcement.body_plain_text_fallback', { error })
       bodyJson = {
         type: 'doc',
         content: [{ type: 'paragraph', content: [{ type: 'text', text: parsed.data.body }] }],
@@ -83,6 +88,7 @@ export async function createAnnouncement(
   })
 
   if (error) {
+    log.error('announcement.create_failed', { error })
     if (error.code === '23505') {
       return {
         success: false,
@@ -98,7 +104,7 @@ export async function createAnnouncement(
   return { success: true, message: 'Announcement created successfully' }
 }
 
-export async function updateAnnouncement(
+async function updateAnnouncementImpl(
   prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
@@ -157,7 +163,8 @@ export async function updateAnnouncement(
   if (parsed.data.body) {
     try {
       bodyJson = JSON.parse(parsed.data.body)
-    } catch {
+    } catch (error) {
+      log.debug('announcement.body_plain_text_fallback', { error })
       bodyJson = {
         type: 'doc',
         content: [{ type: 'paragraph', content: [{ type: 'text', text: parsed.data.body }] }],
@@ -188,6 +195,7 @@ export async function updateAnnouncement(
     .eq('id', announcementId)
 
   if (error) {
+    log.error('announcement.update_failed', { error })
     if (error.code === '23505') {
       return {
         success: false,
@@ -203,7 +211,7 @@ export async function updateAnnouncement(
   return { success: true, message: 'Announcement updated successfully' }
 }
 
-export async function deleteAnnouncement(
+async function deleteAnnouncementImpl(
   prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
@@ -221,6 +229,7 @@ export async function deleteAnnouncement(
   const { error } = await supabase.from('announcements').delete().eq('id', announcementId)
 
   if (error) {
+    log.error('announcement.delete_failed', { error })
     return { success: false, message: 'Failed to delete announcement' }
   }
 
@@ -228,3 +237,7 @@ export async function deleteAnnouncement(
   revalidatePath('/admin/announcements')
   return { success: true, message: 'Announcement deleted successfully' }
 }
+
+export const createAnnouncement = withLogging('createAnnouncement', createAnnouncementImpl)
+export const updateAnnouncement = withLogging('updateAnnouncement', updateAnnouncementImpl)
+export const deleteAnnouncement = withLogging('deleteAnnouncement', deleteAnnouncementImpl)

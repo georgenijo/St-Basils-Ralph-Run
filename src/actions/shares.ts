@@ -2,6 +2,8 @@
 
 import { revalidatePath } from 'next/cache'
 
+import { logger } from '@/lib/logger'
+import { withLogging } from '@/lib/logger.server'
 import { createClient } from '@/lib/supabase/server'
 import { sendFamilyNotification } from '@/lib/notifications'
 import { SharesPurchased } from '@/emails/shares-purchased'
@@ -9,6 +11,7 @@ import { SharesPaid } from '@/emails/shares-paid'
 import { buySharesSchema, markSharesPaidSchema } from '@/lib/validators/member'
 
 const usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' })
+const log = logger.child({ scope: 'shares' })
 
 type ActionState = {
   success: boolean
@@ -26,7 +29,8 @@ function parseStringArray(formData: FormData, key: string): string[] {
     try {
       const parsed = JSON.parse(all[0])
       if (Array.isArray(parsed)) return parsed
-    } catch {
+    } catch (error) {
+      log.debug('share_ids.not_json_array', { error })
       // Not JSON — treat as a single-element array
     }
     return all
@@ -34,7 +38,7 @@ function parseStringArray(formData: FormData, key: string): string[] {
   return []
 }
 
-export async function buyShares(prevState: ActionState, formData: FormData): Promise<ActionState> {
+async function buySharesImpl(prevState: ActionState, formData: FormData): Promise<ActionState> {
   // 1. Validate with Zod
   const parsed = buySharesSchema.safeParse({
     names: parseStringArray(formData, 'names'),
@@ -82,7 +86,7 @@ export async function buyShares(prevState: ActionState, formData: FormData): Pro
   const { error } = await supabase.from('shares').insert(rows)
 
   if (error) {
-    console.error('[buyShares] DB error:', error.code, error.message)
+    log.error('shares.purchase_failed', { error })
     if (error.code === '23505') {
       return {
         success: false,
@@ -109,7 +113,7 @@ export async function buyShares(prevState: ActionState, formData: FormData): Pro
   }
 }
 
-export async function markSharesPaid(
+async function markSharesPaidImpl(
   prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
@@ -153,6 +157,7 @@ export async function markSharesPaid(
     .in('id', parsed.data.share_ids)
 
   if (fetchError || !shares?.length) {
+    if (fetchError) log.error('shares.lookup_failed', { error: fetchError })
     return { success: false, message: 'Failed to find the specified shares' }
   }
 
@@ -171,7 +176,7 @@ export async function markSharesPaid(
     .in('id', parsed.data.share_ids)
 
   if (updateError) {
-    console.error('[markSharesPaid] Update error:', updateError.code, updateError.message)
+    log.error('shares.mark_paid_failed', { error: updateError })
     return { success: false, message: 'Failed to mark shares as paid' }
   }
 
@@ -189,7 +194,7 @@ export async function markSharesPaid(
   const { error: paymentError } = await supabase.from('payments').insert(paymentRows)
 
   if (paymentError) {
-    console.error('[markSharesPaid] Payment insert error:', paymentError.code, paymentError.message)
+    log.error('shares.payment_record_failed', { error: paymentError })
     // Shares are already marked paid — log but don't fail the whole action
     return {
       success: true,
@@ -221,3 +226,6 @@ export async function markSharesPaid(
     message: `${shares.length} share(s) marked as paid`,
   }
 }
+
+export const buyShares = withLogging('buyShares', buySharesImpl)
+export const markSharesPaid = withLogging('markSharesPaid', markSharesPaidImpl)

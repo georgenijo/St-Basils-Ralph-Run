@@ -1,5 +1,8 @@
 import { createAdminClient } from '@/lib/supabase/admin'
+import { logger } from '@/lib/logger'
 import { getSanityClient, hasSanityConfig } from '@/lib/sanity/client'
+
+const log = logger.child({ scope: 'health' })
 
 /** Result of probing external dependencies for the /api/health endpoint. */
 export interface DependencyHealth {
@@ -24,11 +27,21 @@ const PROBE_TIMEOUT_MS = 2000
  * ignores its abort signal, so the result never depends on the installed client
  * version's timeout behavior.
  */
-function withTimeout(probe: Promise<boolean>, ms: number): Promise<boolean> {
+function withTimeout(
+  probe: Promise<boolean>,
+  ms: number,
+  dependency: 'db' | 'cms'
+): Promise<boolean> {
   const timeout = new Promise<boolean>((resolve) => {
     setTimeout(() => resolve(false), ms).unref?.()
   })
-  return Promise.race([probe.catch(() => false), timeout])
+  return Promise.race([
+    probe.catch((error) => {
+      log.error('health.probe_failed', { error, dependency })
+      return false
+    }),
+    timeout,
+  ])
 }
 
 /** `select 1`-equivalent reachability check against Supabase Postgres. */
@@ -46,11 +59,12 @@ function checkDb(): Promise<boolean> {
         .limit(1)
         .abortSignal(AbortSignal.timeout(PROBE_TIMEOUT_MS))
     ).then((res: { error: unknown }) => !res?.error)
-  } catch {
+  } catch (error) {
     // Missing Supabase env throws synchronously from createAdminClient().
+    log.error('health.probe_setup_failed', { error, dependency: 'db' })
     return Promise.resolve(false)
   }
-  return withTimeout(probe, PROBE_TIMEOUT_MS)
+  return withTimeout(probe, PROBE_TIMEOUT_MS, 'db')
 }
 
 /**
@@ -70,10 +84,11 @@ function checkCms(): Promise<boolean> {
       .withConfig({ useCdn: false })
       .fetch('1', {}, { signal: AbortSignal.timeout(PROBE_TIMEOUT_MS) })
       .then(() => true)
-  } catch {
+  } catch (error) {
+    log.error('health.probe_setup_failed', { error, dependency: 'cms' })
     return Promise.resolve(false)
   }
-  return withTimeout(probe, PROBE_TIMEOUT_MS)
+  return withTimeout(probe, PROBE_TIMEOUT_MS, 'cms')
 }
 
 /** Run a boolean probe and measure how long it took to settle. */

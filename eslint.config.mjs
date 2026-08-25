@@ -19,6 +19,18 @@ const eslintConfig = [
     'plugin:jsx-a11y/recommended',
     'prettier'
   ),
+  {
+    files: ['src/**/*.{js,jsx,ts,tsx}'],
+    rules: {
+      'no-console': 'error',
+    },
+  },
+  {
+    files: ['src/lib/logger.ts'],
+    rules: {
+      'no-console': 'off',
+    },
+  },
 ]
 
 export default eslintConfig

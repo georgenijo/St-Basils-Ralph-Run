@@ -2,6 +2,8 @@
 
 import { revalidatePath } from 'next/cache'
 
+import { logger } from '@/lib/logger'
+import { withLogging } from '@/lib/logger.server'
 import { createClient } from '@/lib/supabase/server'
 import {
   updateFamilySchema,
@@ -16,7 +18,9 @@ type ActionState = {
   errors?: Record<string, string[]>
 }
 
-export async function updateFamilyDetails(
+const log = logger.child({ scope: 'family' })
+
+async function updateFamilyDetailsImpl(
   prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
@@ -64,6 +68,7 @@ export async function updateFamilyDetails(
     .eq('id', profile.family_id)
 
   if (error) {
+    log.error('family.update_failed', { error })
     return { success: false, message: 'Failed to update family details' }
   }
 
@@ -72,7 +77,7 @@ export async function updateFamilyDetails(
   return { success: true, message: 'Family details updated successfully' }
 }
 
-export async function addFamilyMember(
+async function addFamilyMemberImpl(
   prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
@@ -116,6 +121,7 @@ export async function addFamilyMember(
   })
 
   if (error) {
+    log.error('family.member_add_failed', { error })
     return { success: false, message: 'Failed to add family member' }
   }
 
@@ -124,7 +130,7 @@ export async function addFamilyMember(
   return { success: true, message: 'Family member added successfully' }
 }
 
-export async function removeFamilyMember(
+async function removeFamilyMemberImpl(
   prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
@@ -189,6 +195,7 @@ export async function removeFamilyMember(
   const { error } = await supabase.from('family_members').delete().eq('id', parsed.data.member_id)
 
   if (error) {
+    log.error('family.member_remove_failed', { error })
     return { success: false, message: 'Failed to remove family member' }
   }
 
@@ -197,7 +204,7 @@ export async function removeFamilyMember(
   return { success: true, message: 'Family member removed successfully' }
 }
 
-export async function updateDirectoryVisibility(
+async function updateDirectoryVisibilityImpl(
   prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
@@ -244,6 +251,7 @@ export async function updateDirectoryVisibility(
     .eq('id', profile.family_id)
 
   if (error) {
+    log.error('family.directory_visibility_update_failed', { error })
     return { success: false, message: 'Failed to update directory visibility' }
   }
 
@@ -251,3 +259,11 @@ export async function updateDirectoryVisibility(
   revalidatePath('/member')
   return { success: true, message: 'Directory visibility updated successfully' }
 }
+
+export const updateFamilyDetails = withLogging('updateFamilyDetails', updateFamilyDetailsImpl)
+export const addFamilyMember = withLogging('addFamilyMember', addFamilyMemberImpl)
+export const removeFamilyMember = withLogging('removeFamilyMember', removeFamilyMemberImpl)
+export const updateDirectoryVisibility = withLogging(
+  'updateDirectoryVisibility',
+  updateDirectoryVisibilityImpl
+)

@@ -1,8 +1,37 @@
 import { updateSession } from '@/lib/supabase/middleware'
+import { logger } from '@/lib/logger'
 import type { NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
-  return await updateSession(request)
+  const startedAt = performance.now()
+  const incomingRequestId = request.headers.get('x-request-id')
+  const requestId =
+    incomingRequestId && /^[A-Za-z0-9._:-]{1,128}$/.test(incomingRequestId)
+      ? incomingRequestId
+      : crypto.randomUUID()
+  const requestHeaders = new Headers(request.headers)
+  requestHeaders.set('x-request-id', requestId)
+  requestHeaders.set('x-request-path', request.nextUrl.pathname)
+  requestHeaders.set('x-request-method', request.method)
+  // Never trust identity context supplied by the caller. updateSession only
+  // restores this header after Supabase validates the session.
+  requestHeaders.delete('x-auth-user-id')
+
+  const requestLogger = logger.child({
+    scope: 'middleware',
+    requestId,
+    route: request.nextUrl.pathname,
+    method: request.method,
+  })
+  requestLogger.debug('request.received')
+
+  const response = await updateSession(request, requestHeaders)
+  response.headers.set('x-request-id', requestId)
+  requestLogger.debug('middleware.completed', {
+    status: response.status,
+    durationMs: Math.round((performance.now() - startedAt) * 100) / 100,
+  })
+  return response
 }
 
 export const config = {

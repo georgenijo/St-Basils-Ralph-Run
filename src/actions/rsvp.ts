@@ -2,6 +2,8 @@
 
 import { revalidatePath } from 'next/cache'
 
+import { logger } from '@/lib/logger'
+import { withLogging } from '@/lib/logger.server'
 import { createClient } from '@/lib/supabase/server'
 import { verifyTurnstile } from '@/lib/turnstile'
 import { rsvpSchema } from '@/lib/validators/rsvp'
@@ -12,7 +14,9 @@ type ActionState = {
   errors?: Record<string, string[]>
 }
 
-export async function submitRsvp(prevState: ActionState, formData: FormData): Promise<ActionState> {
+const log = logger.child({ scope: 'rsvp' })
+
+async function submitRsvpImpl(prevState: ActionState, formData: FormData): Promise<ActionState> {
   const slug = formData.get('slug') as string
   if (!slug) {
     return { success: false, message: 'Event not found' }
@@ -96,7 +100,7 @@ export async function submitRsvp(prevState: ActionState, formData: FormData): Pr
   )
 
   if (error) {
-    console.error('[submitRsvp] DB upsert failed:', error.code, error.message)
+    log.error('rsvp.upsert_failed', { error })
     return { success: false, message: 'Failed to submit RSVP. Please try again.' }
   }
 
@@ -108,3 +112,5 @@ export async function submitRsvp(prevState: ActionState, formData: FormData): Pr
     message: `Thanks, ${parsed.data.name}! You're in for ${parsed.data.headcount} ${parsed.data.headcount === 1 ? 'person' : 'people'}.`,
   }
 }
+
+export const submitRsvp = withLogging('submitRsvp', submitRsvpImpl)

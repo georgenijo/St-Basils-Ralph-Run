@@ -1,9 +1,13 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
 
+import { logger } from '@/lib/logger'
+import { withRequestLogging } from '@/lib/logger.server'
 import { addContactToAudience } from '@/lib/resend'
 
-export async function GET(req: NextRequest) {
+const log = logger.child({ scope: 'newsletter-confirm' })
+
+async function getImpl(req: NextRequest) {
   const token = req.nextUrl.searchParams.get('token')
 
   if (!token) {
@@ -23,6 +27,7 @@ export async function GET(req: NextRequest) {
     .single()
 
   if (fetchError || !subscriber) {
+    if (fetchError) log.warn('newsletter.confirm_lookup_failed', { error: fetchError })
     return NextResponse.redirect(new URL('/?confirmed=invalid', req.url))
   }
 
@@ -41,7 +46,7 @@ export async function GET(req: NextRequest) {
     .eq('id', subscriber.id)
 
   if (updateError) {
-    console.error('Failed to confirm subscriber:', updateError)
+    log.error('newsletter.confirm_update_failed', { error: updateError })
     return NextResponse.redirect(new URL('/?confirmed=error', req.url))
   }
 
@@ -50,3 +55,5 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.redirect(new URL('/?confirmed=success', req.url))
 }
+
+export const GET = withRequestLogging('/api/newsletter/confirm', getImpl)

@@ -1,6 +1,8 @@
 import { revalidatePath } from 'next/cache'
 import { NextRequest, NextResponse } from 'next/server'
 
+import { withRequestLogging } from '@/lib/logger.server'
+
 // Maps Sanity document types to the Next.js routes they affect.
 // When a document is created/updated/deleted in Sanity, the webhook
 // fires and we revalidate the corresponding pages.
@@ -15,7 +17,7 @@ const TYPE_TO_PATHS: Record<string, string[]> = {
   acolytesChoirPage: ['/acolytes-choir'],
 }
 
-export async function POST(req: NextRequest) {
+async function postImpl(req: NextRequest) {
   const secret = req.headers.get('x-webhook-secret')
   if (secret !== process.env.SANITY_WEBHOOK_SECRET) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -28,3 +30,5 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({ revalidated: paths })
 }
+
+export const POST = withRequestLogging('/api/revalidate', postImpl)

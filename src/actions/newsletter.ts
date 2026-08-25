@@ -6,6 +6,8 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { verifyTurnstile } from '@/lib/turnstile'
 import { newsletterSchema } from '@/lib/validators/newsletter'
 import { NewsletterConfirmation } from '@/emails/newsletter-confirmation'
+import { logger } from '@/lib/logger'
+import { withLogging } from '@/lib/logger.server'
 
 type NewsletterState = {
   success: boolean
@@ -13,7 +15,9 @@ type NewsletterState = {
   errors?: Record<string, string[]>
 }
 
-export async function subscribeNewsletter(
+const log = logger.child({ scope: 'newsletter' })
+
+async function subscribeNewsletterImpl(
   prevState: NewsletterState,
   formData: FormData
 ): Promise<NewsletterState> {
@@ -59,7 +63,7 @@ export async function subscribeNewsletter(
     .maybeSingle()
 
   if (existingError) {
-    console.error('Failed to look up subscriber:', existingError)
+    log.error('newsletter.subscriber_lookup_failed', { error: existingError })
     return { success: false, message: 'Something went wrong. Please try again.' }
   }
 
@@ -83,6 +87,7 @@ export async function subscribeNewsletter(
     })
 
     if (emailError) {
+      log.error('newsletter.confirmation_send_failed', { error: emailError })
       return { success: false, message: 'Failed to send confirmation email. Please try again.' }
     }
 
@@ -108,7 +113,7 @@ export async function subscribeNewsletter(
         .maybeSingle()
 
       if (conflictError || !conflictedSubscriber) {
-        console.error('Failed to recover subscriber after conflict:', conflictError ?? dbError)
+        log.error('newsletter.conflict_recovery_failed', { error: conflictError ?? dbError })
         return { success: false, message: 'Something went wrong. Please try again.' }
       }
 
@@ -130,7 +135,7 @@ export async function subscribeNewsletter(
       })
 
       if (emailError) {
-        console.error('Failed to send confirmation email:', emailError)
+        log.error('newsletter.confirmation_send_failed', { error: emailError })
         return { success: false, message: 'Failed to send confirmation email. Please try again.' }
       }
 
@@ -140,7 +145,7 @@ export async function subscribeNewsletter(
       }
     }
 
-    console.error('Failed to create subscriber:', dbError)
+    log.error('newsletter.subscriber_create_failed', { error: dbError })
     return { success: false, message: 'Something went wrong. Please try again.' }
   }
 
@@ -159,9 +164,11 @@ export async function subscribeNewsletter(
   })
 
   if (emailError) {
-    console.error('Failed to send confirmation email:', emailError)
+    log.error('newsletter.confirmation_send_failed', { error: emailError })
     return { success: false, message: 'Failed to send confirmation email. Please try again.' }
   }
 
   return { success: true, message: 'A confirmation email has been sent. Please check your inbox.' }
 }
+
+export const subscribeNewsletter = withLogging('subscribeNewsletter', subscribeNewsletterImpl)

@@ -7,6 +7,8 @@ import {
   buildRecurrenceUntilIso,
   parseDatetimeLocalInTimeZone,
 } from '@/lib/event-time'
+import { logger } from '@/lib/logger'
+import { withLogging } from '@/lib/logger.server'
 import { createClient } from '@/lib/supabase/server'
 import { eventSchema, buildRRuleString } from '@/lib/validators/event'
 
@@ -15,6 +17,8 @@ type ActionState = {
   message: string
   errors?: Record<string, string[]>
 }
+
+const log = logger.child({ scope: 'events' })
 
 function invalidTimeError(field: 'start_at' | 'end_at' | 'rrule_until'): ActionState {
   const label =
@@ -33,11 +37,8 @@ function invalidTimeError(field: 'start_at' | 'end_at' | 'rrule_until'): ActionS
   }
 }
 
-export async function createEvent(
-  prevState: ActionState,
-  formData: FormData
-): Promise<ActionState> {
-  console.log('[createEvent] Called with formData keys:', [...formData.keys()])
+async function createEventImpl(prevState: ActionState, formData: FormData): Promise<ActionState> {
+  log.debug('event.create_started')
 
   // 1. Validate with Zod
   const parsed = eventSchema.safeParse({
@@ -57,10 +58,7 @@ export async function createEvent(
   })
 
   if (!parsed.success) {
-    console.error(
-      '[createEvent] Zod validation failed:',
-      JSON.stringify(parsed.error.flatten().fieldErrors)
-    )
+    log.debug('event.validation_failed', { errors: parsed.error.flatten().fieldErrors })
     return {
       success: false,
       message: 'Validation failed',
@@ -68,20 +66,13 @@ export async function createEvent(
     }
   }
 
-  console.log('[createEvent] Validation passed:', {
-    title: parsed.data.title,
-    slug: parsed.data.slug,
-    start_at: parsed.data.start_at,
-    category: parsed.data.category,
-  })
+  log.debug('event.validation_passed', { category: parsed.data.category })
 
   const startAt = parseDatetimeLocalInTimeZone(parsed.data.start_at)
   if (!startAt) {
-    console.error('[createEvent] Failed to parse start_at timezone:', parsed.data.start_at)
+    log.warn('event.start_time_invalid')
     return invalidTimeError('start_at')
   }
-  console.log('[createEvent] Timezone conversion:', parsed.data.start_at, '→', startAt)
-
   const endAt = parsed.data.end_at ? parseDatetimeLocalInTimeZone(parsed.data.end_at) : null
 
   if (parsed.data.end_at && !endAt) return invalidTimeError('end_at')
@@ -108,17 +99,17 @@ export async function createEvent(
     data: { user },
   } = await supabase.auth.getUser()
   if (!user) {
-    console.error('[createEvent] User not authenticated')
+    log.warn('event.unauthorized')
     return { success: false, message: 'Unauthorized' }
   }
-  console.log('[createEvent] Auth OK, user:', user.email)
 
   // 3. Parse description JSON
   let descriptionJson = null
   if (parsed.data.description) {
     try {
       descriptionJson = JSON.parse(parsed.data.description)
-    } catch {
+    } catch (error) {
+      log.debug('event.description_plain_text_fallback', { error })
       descriptionJson = {
         type: 'doc',
         content: [
@@ -133,13 +124,13 @@ export async function createEvent(
   if (parsed.data.rsvp_settings) {
     try {
       rsvpSettings = JSON.parse(parsed.data.rsvp_settings)
-    } catch {
+    } catch (error) {
+      log.warn('event.rsvp_settings_invalid_json', { error })
       // keep default
     }
   }
 
   // 5. Insert event
-  console.log('[createEvent] Inserting event...')
   const { data: event, error } = await supabase
     .from('events')
     .insert({
@@ -158,7 +149,7 @@ export async function createEvent(
     .single()
 
   if (error) {
-    console.error('[createEvent] DB insert failed:', error.code, error.message, error.details)
+    log.error('event.create_failed', { error })
     if (error.code === '23505') {
       return {
         success: false,
@@ -168,7 +159,7 @@ export async function createEvent(
     }
     return { success: false, message: 'Failed to create event' }
   }
-  console.log('[createEvent] Event created:', event.id)
+  log.info('event.created', { eventId: event.id })
 
   // 5. Insert recurrence rule if recurring
   if (parsed.data.is_recurring && parsed.data.rrule_frequency) {
@@ -188,7 +179,7 @@ export async function createEvent(
     })
 
     if (rruleError) {
-      console.error('Failed to create recurrence rule:', rruleError)
+      log.error('event.recurrence_create_failed', { error: rruleError, eventId: event.id })
     }
   }
 
@@ -198,10 +189,7 @@ export async function createEvent(
   return { success: true, message: 'Event created successfully' }
 }
 
-export async function updateEvent(
-  prevState: ActionState,
-  formData: FormData
-): Promise<ActionState> {
+async function updateEventImpl(prevState: ActionState, formData: FormData): Promise<ActionState> {
   const eventId = formData.get('event_id') as string
   if (!eventId) return { success: false, message: 'Event ID is required' }
 
@@ -265,7 +253,8 @@ export async function updateEvent(
   if (parsed.data.description) {
     try {
       descriptionJson = JSON.parse(parsed.data.description)
-    } catch {
+    } catch (error) {
+      log.debug('event.description_plain_text_fallback', { error })
       descriptionJson = {
         type: 'doc',
         content: [
@@ -280,7 +269,8 @@ export async function updateEvent(
   if (parsed.data.rsvp_settings) {
     try {
       rsvpSettings = JSON.parse(parsed.data.rsvp_settings)
-    } catch {
+    } catch (error) {
+      log.warn('event.rsvp_settings_invalid_json', { error })
       // keep default
     }
   }
@@ -302,6 +292,7 @@ export async function updateEvent(
     .eq('id', eventId)
 
   if (error) {
+    log.error('event.update_failed', { error, eventId })
     if (error.code === '23505') {
       return {
         success: false,
@@ -332,7 +323,7 @@ export async function updateEvent(
     })
 
     if (rruleError) {
-      console.error('Failed to update recurrence rule:', rruleError)
+      log.error('event.recurrence_update_failed', { error: rruleError, eventId })
     }
   } else {
     // Remove recurrence rules if event is no longer recurring
@@ -345,10 +336,7 @@ export async function updateEvent(
   return { success: true, message: 'Event updated successfully' }
 }
 
-export async function deleteEvent(
-  prevState: ActionState,
-  formData: FormData
-): Promise<ActionState> {
+async function deleteEventImpl(prevState: ActionState, formData: FormData): Promise<ActionState> {
   const eventId = formData.get('event_id') as string
   if (!eventId) return { success: false, message: 'Event ID is required' }
 
@@ -363,6 +351,7 @@ export async function deleteEvent(
   const { error } = await supabase.from('events').delete().eq('id', eventId)
 
   if (error) {
+    log.error('event.delete_failed', { error, eventId })
     return { success: false, message: 'Failed to delete event' }
   }
 
@@ -371,3 +360,7 @@ export async function deleteEvent(
   revalidatePath('/events')
   return { success: true, message: 'Event deleted successfully' }
 }
+
+export const createEvent = withLogging('createEvent', createEventImpl)
+export const updateEvent = withLogging('updateEvent', updateEventImpl)
+export const deleteEvent = withLogging('deleteEvent', deleteEventImpl)

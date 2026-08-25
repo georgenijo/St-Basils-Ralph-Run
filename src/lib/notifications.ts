@@ -4,10 +4,12 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { ReactElement } from 'react'
 
 import { sendEmail } from '@/lib/email'
+import { logger } from '@/lib/logger'
 
 export type NotificationCategory = 'payments' | 'membership' | 'shares' | 'events'
 
 export const FROM_ADDRESS = "St. Basil's Church <noreply@stbasilsboston.org>"
+const log = logger.child({ scope: 'notifications' })
 
 const DEFAULT_PREFS: Record<NotificationCategory, boolean> = {
   payments: true,
@@ -27,7 +29,10 @@ export async function shouldNotify(
     .eq('id', userId)
     .maybeSingle()
 
-  if (error || !data) return DEFAULT_PREFS[category]
+  if (error || !data) {
+    if (error) log.error('notification.preferences_lookup_failed', { error, userId })
+    return DEFAULT_PREFS[category]
+  }
 
   const prefs = (data.notification_preferences ?? {}) as Record<string, unknown>
   const value = prefs[category]
@@ -45,7 +50,10 @@ export async function getFamilyEmails(
     .eq('family_id', familyId)
     .not('email', 'is', null)
 
-  if (error || !data) return []
+  if (error || !data) {
+    if (error) log.error('notification.family_recipients_lookup_failed', { error, familyId })
+    return []
+  }
 
   return data
     .filter((p): p is { id: string; email: string } => Boolean(p.email))
@@ -82,7 +90,7 @@ export async function sendFamilyNotification(
       react: payload.react,
     })
   } catch (err) {
-    console.error('[sendFamilyNotification] email send failed:', err)
+    log.error('notification.family_send_failed', { error: err, familyId, category })
   }
 }
 
@@ -101,7 +109,10 @@ export async function sendUserNotification(
     .eq('id', userId)
     .maybeSingle()
 
-  if (error || !data?.email) return
+  if (error || !data?.email) {
+    if (error) log.error('notification.user_recipient_lookup_failed', { error, userId })
+    return
+  }
 
   try {
     await sendEmail({
@@ -111,6 +122,6 @@ export async function sendUserNotification(
       react: payload.react,
     })
   } catch (err) {
-    console.error('[sendUserNotification] email send failed:', err)
+    log.error('notification.user_send_failed', { error: err, userId, category })
   }
 }

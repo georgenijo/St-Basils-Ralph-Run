@@ -4,9 +4,13 @@ import { createClient } from '@supabase/supabase-js'
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 
+import { logger } from '@/lib/logger'
+import { withRequestLogging } from '@/lib/logger.server'
+
 const BURGUNDY = '#9B1B3D'
 const CREAM = '#FFFDF8'
 const GOLD = '#D4A017'
+const log = logger.child({ scope: 'open-graph' })
 
 const CATEGORY_LABELS: Record<string, string> = {
   liturgical: 'Liturgical',
@@ -45,10 +49,7 @@ function formatDate(dateString: string): string {
   })
 }
 
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: Promise<{ path: string[] }> }
-) {
+async function getImpl(_request: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
   const { path } = await params
   const [type, slug] = path
 
@@ -69,24 +70,26 @@ export async function GET(
     )
 
     if (type === 'events') {
-      const { data: event } = await supabase
+      const { data: event, error } = await supabase
         .from('events')
         .select('title, start_at, category')
         .eq('slug', slug)
         .single()
 
+      if (error) log.error('open_graph.event_lookup_failed', { error })
       if (event) {
         title = event.title
         subtitle = formatDate(event.start_at)
         badge = CATEGORY_LABELS[event.category] || null
       }
     } else {
-      const { data: announcement } = await supabase
+      const { data: announcement, error } = await supabase
         .from('announcements')
         .select('title, published_at')
         .eq('slug', slug)
         .single()
 
+      if (error) log.error('open_graph.announcement_lookup_failed', { error })
       if (announcement) {
         title = announcement.title
         subtitle = formatDate(announcement.published_at)
@@ -223,3 +226,5 @@ export async function GET(
     }
   )
 }
+
+export const GET = withRequestLogging('/api/og/[...path]', getImpl)

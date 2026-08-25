@@ -2,6 +2,8 @@
 
 import { revalidatePath } from 'next/cache'
 
+import { logger } from '@/lib/logger'
+import { withLogging } from '@/lib/logger.server'
 import { createClient } from '@/lib/supabase/server'
 import { submitPaymentSchema } from '@/lib/validators/member'
 
@@ -11,10 +13,9 @@ type ActionState = {
   errors?: Record<string, string[]>
 }
 
-export async function submitPayment(
-  prevState: ActionState,
-  formData: FormData
-): Promise<ActionState> {
+const log = logger.child({ scope: 'payments' })
+
+async function submitPaymentImpl(prevState: ActionState, formData: FormData): Promise<ActionState> {
   // 1. Validate with Zod
   const parsed = submitPaymentSchema.safeParse({
     type: formData.get('type'),
@@ -73,7 +74,7 @@ export async function submitPayment(
   })
 
   if (error) {
-    console.error('[submitPayment] DB insert failed:', error.code, error.message)
+    log.error('payment.submit_failed', { error })
     return { success: false, message: 'Failed to submit payment' }
   }
 
@@ -84,3 +85,5 @@ export async function submitPayment(
     message: 'Payment submitted — pending confirmation (usually 1-2 business days)',
   }
 }
+
+export const submitPayment = withLogging('submitPayment', submitPaymentImpl)
