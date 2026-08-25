@@ -29,9 +29,19 @@ test.describe('Health endpoint @smoke', () => {
 
     // Caching is asymmetric: healthy responses may be cached 30s; a failure
     // must never be cached (so an outage surfaces and recovery isn't delayed).
-    const cacheControl = response.headers()['cache-control'] ?? ''
+    const headers = response.headers()
+    const cacheControl = headers['cache-control'] ?? ''
     if (body.ok) {
-      expect(cacheControl).toContain('s-maxage=30')
+      if (headers.server?.toLowerCase() === 'vercel') {
+        // Vercel consumes s-maxage at the CDN, then strips it from the
+        // browser-facing header. x-vercel-cache proves the route still passed
+        // through that cache; public, max-age=0 keeps browsers from retaining it.
+        expect(cacheControl).toContain('public')
+        expect(cacheControl).toContain('max-age=0')
+        expect(headers['x-vercel-cache']).toBeTruthy()
+      } else {
+        expect(cacheControl).toContain('s-maxage=30')
+      }
     } else {
       expect(cacheControl).toContain('no-store')
     }
