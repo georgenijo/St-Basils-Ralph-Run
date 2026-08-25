@@ -338,6 +338,21 @@ describe('resendInvite', () => {
     )
   })
 
+  it('writes an audit row with the distinct invite-resend action', async () => {
+    mockResendHappyPath()
+
+    const fd = makeFormData({ user_id: TARGET_ID })
+    await resendInvite(INITIAL_STATE, fd)
+
+    expect(mockFrom).toHaveBeenCalledWith('admin_audit_log')
+    expect(mockInsert).toHaveBeenCalledWith({
+      actor_id: ADMIN_ID,
+      action: 'user.invite.resend',
+      target_user_id: TARGET_ID,
+      metadata: { email: 'pending@example.com', role: 'member' },
+    })
+  })
+
   it('reports failure when the resend email fails', async () => {
     mockResendHappyPath()
     mockSendInviteEmail.mockResolvedValue({ data: null, error: { message: 'Resend down' } })
