@@ -71,6 +71,7 @@ async function recordDonationImpl(
     amount: parsed.data.amount,
     note: composedNote,
     recorded_by: user.id,
+    status: 'pending',
   })
 
   if (error) {
