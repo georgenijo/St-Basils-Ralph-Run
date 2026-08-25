@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 
-import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { getAuthWithProfile, getDataClient } from '@/lib/supabase/auth'
 import { UsersPageClient } from './UsersPageClient'
 
 export const metadata: Metadata = {
@@ -10,15 +10,13 @@ export const metadata: Metadata = {
 }
 
 export default async function UsersPage() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  // Warm-pooled, RLS-enforced read client — see getDataClient() in lib/supabase/auth.
+  const supabase = await getDataClient()
 
   // perPage: 1000 — single-page fetch is fine for a parish-sized user base.
   // If the church ever exceeds 1000 users, paginate with the page param.
-  const [profilesResult, authUsersResult, subscribersResult] = await Promise.all([
+  const [{ user }, profilesResult, authUsersResult, subscribersResult] = await Promise.all([
+    getAuthWithProfile(),
     supabase
       .from('profiles')
       .select('id, email, full_name, role, is_active, created_at, updated_at')
