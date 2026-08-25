@@ -87,7 +87,7 @@ export function AnnouncementsTable({ announcements }: AnnouncementsTableProps) {
   }
 
   const filtered = useMemo(() => {
-    let result = announcements
+    let result = [...announcements]
     if (statusFilter !== 'all') {
       result = result.filter((a) => getStatus(a) === statusFilter)
     }

@@ -2,7 +2,12 @@ import { readFile } from 'node:fs/promises'
 
 import { expect, test } from '@playwright/test'
 
-import { fetchEventBySlug, loginAsSeedAdmin, slugify } from '../helpers/test-support'
+import {
+  fetchEventBySlug,
+  loginAsSeedAdmin,
+  slugify,
+  waitForReactHydration,
+} from '../helpers/test-support'
 
 test.describe('CI admin events', () => {
   test('admin can create an event and the ICS export keeps Eastern entry times intact', async ({
@@ -16,7 +21,9 @@ test.describe('CI admin events', () => {
     await page.waitForURL('**/admin/**')
 
     await page.goto('/admin/events/new', { waitUntil: 'domcontentloaded' })
+    await waitForReactHydration(page.locator('input#title'))
     await page.locator('input#title').fill(title)
+    await page.locator('input#slug').fill(slug)
     await page.locator('input#location').fill('73 Ellis Street, Newton, MA 02464')
     await page.locator('input#start_at').fill('2027-01-15T09:15')
     await page.locator('input#end_at').fill('2027-01-15T11:00')
@@ -30,13 +37,11 @@ test.describe('CI admin events', () => {
 
     await page.goto(`/events/${slug}`, { waitUntil: 'domcontentloaded' })
     await expect(page.getByRole('heading', { name: title })).toBeVisible()
-    await expect(page.getByText(/9:15 AM/i)).toBeVisible()
-    await expect(page.getByText(/11:00 AM EST/i)).toBeVisible()
+    await expect(page.getByText('9:15 AM – 11:00 AM EST')).toBeVisible()
 
-    const [download] = await Promise.all([
-      page.waitForEvent('download'),
-      page.getByRole('button', { name: 'Add to Calendar' }).click(),
-    ])
+    const addToCalendar = page.getByRole('button', { name: 'Add to Calendar' })
+    await waitForReactHydration(addToCalendar)
+    const [download] = await Promise.all([page.waitForEvent('download'), addToCalendar.click()])
 
     const downloadPath = await download.path()
     expect(downloadPath).toBeTruthy()

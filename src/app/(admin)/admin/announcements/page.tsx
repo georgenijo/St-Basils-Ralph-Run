@@ -1,20 +1,36 @@
 import type { Metadata } from 'next'
+import { redirect } from 'next/navigation'
 
 import { createClient } from '@/lib/supabase/server'
+import { paginationRange, parsePageParam, totalPageCount } from '@/lib/pagination'
 import { Button } from '@/components/ui'
+import { AdminPagination } from '@/components/features/AdminPagination'
 import { AnnouncementsTable } from '@/components/features/AnnouncementsTable'
 
 export const metadata: Metadata = {
   title: 'Announcements',
 }
 
-export default async function AnnouncementsPage() {
+export default async function AnnouncementsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string | string[] }>
+}) {
   const supabase = await createClient()
+  const page = parsePageParam((await searchParams).page)
+  const { from, to } = paginationRange(page)
 
-  const { data: announcements } = await supabase
+  const { data: announcements, count } = await supabase
     .from('announcements')
-    .select('id, title, slug, priority, is_pinned, published_at, expires_at, created_at')
+    .select('id, title, slug, priority, is_pinned, published_at, expires_at, created_at', {
+      count: 'exact',
+    })
     .order('created_at', { ascending: false })
+    .range(from, to)
+
+  const totalCount = count ?? 0
+  const totalPages = totalPageCount(totalCount)
+  if (page > totalPages) redirect(`/admin/announcements?page=${totalPages}`)
 
   return (
     <main className="admin-page">
@@ -51,6 +67,7 @@ export default async function AnnouncementsPage() {
       </div>
 
       <AnnouncementsTable announcements={announcements ?? []} />
+      <AdminPagination pathname="/admin/announcements" page={page} totalCount={totalCount} />
     </main>
   )
 }

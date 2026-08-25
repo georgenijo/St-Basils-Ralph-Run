@@ -3,7 +3,13 @@
 import { useActionState, useCallback, useEffect, useRef, useState } from 'react'
 import { buyShares } from '@/actions/shares'
 
-export function BuySharesPanel() {
+interface BuySharesPanelProps {
+  sharePrice: number
+}
+
+const usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' })
+
+export function BuySharesPanel({ sharePrice }: BuySharesPanelProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [names, setNames] = useState<string[]>([])
   const [inputValue, setInputValue] = useState('')
@@ -59,7 +65,7 @@ export function BuySharesPanel() {
     formAction(formData)
   }
 
-  const total = names.length * 50
+  const total = names.length * sharePrice
 
   return (
     <>
@@ -132,7 +138,7 @@ export function BuySharesPanel() {
         <div className="flex-1 overflow-y-auto px-5 py-5">
           <p className="mb-5 text-sm text-wood-800/60">
             Add names to be remembered in weekly services. Each share is{' '}
-            <strong className="text-wood-900">$50</strong>.
+            <strong className="text-wood-900">{usd.format(sharePrice)}</strong>.
           </p>
 
           {/* Name input */}
@@ -196,7 +202,7 @@ export function BuySharesPanel() {
                 {names.length} {names.length === 1 ? 'share' : 'shares'}
               </span>
               <span className="font-heading text-lg font-semibold text-wood-900">
-                ${total.toLocaleString('en-US')}
+                {usd.format(total)}
               </span>
             </div>
           )}

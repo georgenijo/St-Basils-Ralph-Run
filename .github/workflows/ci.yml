@@ -43,8 +43,8 @@ jobs:
 
       - run: npm test
 
-  smoke-tests:
-    name: Smoke Tests
+  flow-tests:
+    name: Browser Flow Tests
     needs: validate
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
@@ -64,26 +64,39 @@ jobs:
 
       - run: npm ci
 
-      - name: Wait for Vercel Preview
-        id: vercel
-        uses: patrickedqvist/wait-for-vercel-preview@v1.3.2
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          max_timeout: 300
-          check_interval: 10
+      - name: Start isolated Supabase test stack
+        run: |
+          npx supabase@2.115.0 start --exclude realtime,storage-api,imgproxy,postgres-meta,studio,mailpit,edge-runtime,logflare,vector,supavisor
+          npx supabase@2.115.0 db reset --local
+
+          npx supabase@2.115.0 status --output json > "${RUNNER_TEMP}/supabase-status.json"
+          jq -r '"NEXT_PUBLIC_SUPABASE_URL=" + .API_URL' "${RUNNER_TEMP}/supabase-status.json" >> "$GITHUB_ENV"
+          jq -r '"NEXT_PUBLIC_SUPABASE_ANON_KEY=" + .ANON_KEY' "${RUNNER_TEMP}/supabase-status.json" >> "$GITHUB_ENV"
+          jq -r '"SUPABASE_SERVICE_ROLE_KEY=" + .SERVICE_ROLE_KEY' "${RUNNER_TEMP}/supabase-status.json" >> "$GITHUB_ENV"
 
       - name: Install Playwright Chromium
         run: npx playwright install chromium --with-deps
 
-      - name: Run Smoke Tests
-        run: npm run test:smoke:prod
+      - name: Run browser flow and smoke suites
+        run: npm run test:e2e:ci -- --project=chromium
         env:
-          BASE_URL: ${{ steps.vercel.outputs.url }}?x-vercel-protection-bypass=${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+          # Test-support flags are scoped to this runner's local Next.js process;
+          # they are never applied to a Vercel preview or production deployment.
+          E2E_MODE: ci
+          TEST_SUPPORT_ENABLED: 'true'
+          TEST_SUPPORT_SECRET: ci-${{ github.run_id }}-${{ github.run_attempt }}
+          EMAIL_TRANSPORT: mock
+          EMAIL_SINK_DIR: .e2e/mailbox
+          ALLOW_TURNSTILE_TEST_BYPASS: 'true'
+          NEXT_PUBLIC_ALLOW_TURNSTILE_TEST_BYPASS: 'true'
+          TURNSTILE_TEST_BYPASS_TOKEN: ci-turnstile-pass
+          NEXT_PUBLIC_TURNSTILE_TEST_BYPASS_TOKEN: ci-turnstile-pass
+          NEXT_PUBLIC_SITE_URL: http://127.0.0.1:3000
 
       - name: Upload Report
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-smoke-report
+          name: playwright-flow-report
           path: archive/test-results/
           retention-days: 14

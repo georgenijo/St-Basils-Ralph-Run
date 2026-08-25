@@ -47,7 +47,9 @@ export function AddToCalendar({
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
-    URL.revokeObjectURL(url)
+    // Let the browser consume the object URL before revoking it. Immediate
+    // revocation can cancel blob downloads in headless Chromium.
+    setTimeout(() => URL.revokeObjectURL(url), 0)
   }, [title, description, location, startAt, endAt, rruleString])
 
   return (

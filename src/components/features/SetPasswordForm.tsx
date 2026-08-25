@@ -5,7 +5,7 @@ import { useActionState } from 'react'
 import { setPassword } from '@/actions/set-password'
 import { Button } from '@/components/ui'
 
-export function SetPasswordForm() {
+export function SetPasswordForm({ recovery = false }: { recovery?: boolean }) {
   const [state, formAction, pending] = useActionState(setPassword, {
     success: false,
     message: '',
@@ -13,7 +13,11 @@ export function SetPasswordForm() {
 
   return (
     <form action={formAction} className="space-y-5">
-      <p className="text-sm text-wood-800/70">Create a password to complete your account setup.</p>
+      <p className="text-sm text-wood-800/70">
+        {recovery
+          ? 'Choose a new password for your portal account.'
+          : 'Create a password to complete your account setup.'}
+      </p>
 
       {state.message && !state.errors && (
         <div
@@ -85,8 +89,10 @@ export function SetPasswordForm() {
                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
               />
             </svg>
-            Setting password...
+            {recovery ? 'Resetting password...' : 'Setting password...'}
           </span>
+        ) : recovery ? (
+          'Reset Password'
         ) : (
           'Set Password'
         )}

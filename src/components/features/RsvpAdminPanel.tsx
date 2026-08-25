@@ -23,6 +23,7 @@ interface RsvpAdminPanelProps {
   eventTitle: string
   eventStartAt: string
   eventLocation: string | null
+  siteUrl: string
   rsvps: Rsvp[]
 }
 
@@ -40,6 +41,7 @@ export function RsvpAdminPanel({
   eventTitle,
   eventStartAt,
   eventLocation,
+  siteUrl,
   rsvps,
 }: RsvpAdminPanelProps) {
   const [copied, setCopied] = useState(false)
@@ -48,8 +50,7 @@ export function RsvpAdminPanel({
   const totalHeadcount = rsvps.reduce((sum, r) => sum + r.headcount, 0)
   const totalChildren = rsvps.reduce((sum, r) => sum + (r.children_count ?? 0), 0)
 
-  const rsvpUrl = `stbasilsboston.org/rsvp/${eventSlug}`
-  const fullRsvpUrl = `https://${rsvpUrl}`
+  const fullRsvpUrl = `${siteUrl}/rsvp/${eventSlug}`
 
   const eventDate = formatInChurchTimeZone(eventStartAt, {
     weekday: 'short',
@@ -124,7 +125,7 @@ export function RsvpAdminPanel({
           <h3 className="admin-section-title">Share RSVP link</h3>
         </div>
         <div className="flex items-center gap-2">
-          <input className="flex-1 font-mono" value={rsvpUrl} readOnly aria-label="RSVP link" />
+          <input className="flex-1 font-mono" value={fullRsvpUrl} readOnly aria-label="RSVP link" />
           <button
             type="button"
             onClick={copyLink}

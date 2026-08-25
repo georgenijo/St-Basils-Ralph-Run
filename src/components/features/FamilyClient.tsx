@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState, useEffect, useRef, useState } from 'react'
+import { useActionState, useState } from 'react'
 
 import { cn } from '@/lib/utils'
 import { removeFamilyMember, updateDirectoryVisibility } from '@/actions/family'
@@ -196,19 +196,11 @@ function RemoveMemberButton({ memberId, memberName }: { memberId: string; member
     success: false,
     message: '',
   })
-  const hasNotified = useRef(false)
-
-  useEffect(() => {
-    if (state.message && !state.success && !hasNotified.current) {
-      hasNotified.current = true
-    }
-  }, [state])
-
   return (
-    <form action={formAction}>
+    <form action={formAction} className="flex max-w-xs items-center justify-end gap-2">
       <input type="hidden" name="member_id" value={memberId} />
       {state.message && !state.success && (
-        <span className="sr-only" role="alert">
+        <span className="text-right text-xs leading-tight text-red-600" role="alert">
           {state.message}
         </span>
       )}

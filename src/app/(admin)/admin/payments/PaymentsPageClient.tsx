@@ -13,7 +13,13 @@ interface PaymentsPageClientProps {
   pendingPayments: PendingPayment[]
   families: { id: string; family_name: string }[]
   events: { id: string; title: string }[]
-  unpaidShares: { id: string; family_id: string; person_name: string; year: number }[]
+  unpaidShares: {
+    id: string
+    family_id: string
+    person_name: string
+    year: number
+    amount: number | string
+  }[]
 }
 
 export function PaymentsPageClient({

@@ -36,7 +36,7 @@ export default async function PaymentsPage() {
     supabase.from('events').select('id, title').order('start_at', { ascending: false }),
     supabase
       .from('shares')
-      .select('id, family_id, person_name, year')
+      .select('id, family_id, person_name, year, amount')
       .eq('paid', false)
       .order('year', { ascending: false }),
   ])

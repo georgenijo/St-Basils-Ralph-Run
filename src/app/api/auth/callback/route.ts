@@ -13,8 +13,9 @@ async function getImpl(request: NextRequest) {
   // invite/recovery emails (generateLink → verifyOtp). code is the PKCE/OAuth path.
   const tokenHash = request.nextUrl.searchParams.get('token_hash')
   const type = request.nextUrl.searchParams.get('type')
+  const isTokenFlow = type === 'invite' || type === 'recovery'
 
-  if (!code && !tokenHash) {
+  if ((!code && !tokenHash) || (tokenHash && !isTokenFlow)) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     url.searchParams.delete('code')
@@ -28,7 +29,7 @@ async function getImpl(request: NextRequest) {
   redirectUrl.search = ''
 
   // Determine redirect destination based on auth flow type
-  if (type === 'invite' || type === 'recovery') {
+  if (isTokenFlow) {
     redirectUrl.pathname = '/set-password'
     redirectUrl.searchParams.set('flow', type)
   } else {
@@ -56,7 +57,7 @@ async function getImpl(request: NextRequest) {
 
   const { error } = tokenHash
     ? await supabase.auth.verifyOtp({
-        type: (type as EmailOtpType | null) ?? 'email',
+        type: type as EmailOtpType,
         token_hash: tokenHash,
       })
     : await supabase.auth.exchangeCodeForSession(code!)

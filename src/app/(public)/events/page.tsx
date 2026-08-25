@@ -171,8 +171,14 @@ export default async function EventsPage() {
           </ScrollReveal>
 
           <div className="mt-10 md:mt-14">
-            <div className="mb-4">
+            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <CalendarLegend variant="public" />
+              <a
+                href="/api/events/feed.ics"
+                className="inline-flex min-h-11 items-center justify-center self-start rounded-lg border border-burgundy-700 px-4 py-2 text-sm font-medium text-burgundy-700 transition-colors hover:bg-burgundy-700 hover:text-cream-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy-700 focus-visible:ring-offset-2 sm:self-auto"
+              >
+                Subscribe to calendar
+              </a>
             </div>
             <EventCalendar events={calendarEvents} />
           </div>

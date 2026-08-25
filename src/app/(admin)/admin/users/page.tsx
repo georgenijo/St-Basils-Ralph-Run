@@ -1,8 +1,9 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import type { SupabaseClient } from '@supabase/supabase-js'
 
 import { getRequestLogger } from '@/lib/logger.server'
-import { createAdminClient } from '@/lib/supabase/admin'
+import { listAllAuthUsers } from '@/lib/supabase/admin-users'
 import { getAuthWithProfile, getDataClient } from '@/lib/supabase/auth'
 import { UsersPageClient } from './UsersPageClient'
 
@@ -10,24 +11,58 @@ export const metadata: Metadata = {
   title: 'Users',
 }
 
+const DATA_PAGE_SIZE = 500
+
+async function fetchAllProfiles(supabase: SupabaseClient) {
+  const rows: {
+    id: string
+    email: string | null
+    full_name: string | null
+    role: string
+    is_active: boolean
+    created_at: string
+    updated_at: string
+  }[] = []
+
+  for (let from = 0; ; from += DATA_PAGE_SIZE) {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, email, full_name, role, is_active, created_at, updated_at')
+      .order('created_at', { ascending: false })
+      .range(from, from + DATA_PAGE_SIZE - 1)
+
+    if (error) return { data: null, error }
+    rows.push(...(data ?? []))
+    if ((data?.length ?? 0) < DATA_PAGE_SIZE) return { data: rows, error: null }
+  }
+}
+
+async function fetchAllActiveSubscriberEmails(supabase: SupabaseClient) {
+  const rows: { email: string | null }[] = []
+
+  for (let from = 0; ; from += DATA_PAGE_SIZE) {
+    const { data, error } = await supabase
+      .from('email_subscribers')
+      .select('email')
+      .eq('confirmed', true)
+      .is('unsubscribed_at', null)
+      .range(from, from + DATA_PAGE_SIZE - 1)
+
+    if (error) return { data: rows, error }
+    rows.push(...(data ?? []))
+    if ((data?.length ?? 0) < DATA_PAGE_SIZE) return { data: rows, error: null }
+  }
+}
+
 export default async function UsersPage() {
   // Warm-pooled, RLS-enforced read client — see getDataClient() in lib/supabase/auth.
   const supabase = await getDataClient()
 
-  // perPage: 1000 — single-page fetch is fine for a parish-sized user base.
-  // If the church ever exceeds 1000 users, paginate with the page param.
   const [{ user }, profilesResult, authUsersResult, subscribersResult] = await Promise.all([
     getAuthWithProfile(),
-    supabase
-      .from('profiles')
-      .select('id, email, full_name, role, is_active, created_at, updated_at')
-      .order('created_at', { ascending: false }),
-    createAdminClient().auth.admin.listUsers({ perPage: 1000 }),
-    supabase
-      .from('email_subscribers')
-      .select('email')
-      .eq('confirmed', true)
-      .is('unsubscribed_at', null),
+    fetchAllProfiles(supabase),
+    listAllAuthUsers(),
+    fetchAllActiveSubscriberEmails(supabase),
   ])
 
   const subscribedEmails = new Set(
@@ -56,8 +91,8 @@ export default async function UsersPage() {
   if (authUsersResult.error) {
     const log = await getRequestLogger('admin-users-page')
     log.error('users.auth_fetch_failed', { error: authUsersResult.error })
-  } else if (authUsersResult.data?.users) {
-    for (const authUser of authUsersResult.data.users) {
+  } else {
+    for (const authUser of authUsersResult.users) {
       confirmedMap.set(authUser.id, authUser.email_confirmed_at ?? null)
     }
   }

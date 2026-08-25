@@ -20,6 +20,25 @@ type ActionState = {
 
 const log = logger.child({ scope: 'events' })
 
+async function requireAdmin(supabase: Awaited<ReturnType<typeof createClient>>) {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { user: null, error: 'Unauthorized' as const }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  if (profile?.role !== 'admin') {
+    return { user: null, error: 'Forbidden: admin access required' as const }
+  }
+
+  return { user, error: null }
+}
+
 function invalidTimeError(field: 'start_at' | 'end_at' | 'rrule_until'): ActionState {
   const label =
     field === 'rrule_until'
@@ -38,8 +57,6 @@ function invalidTimeError(field: 'start_at' | 'end_at' | 'rrule_until'): ActionS
 }
 
 async function createEventImpl(prevState: ActionState, formData: FormData): Promise<ActionState> {
-  log.debug('event.create_started')
-
   // 1. Validate with Zod
   const parsed = eventSchema.safeParse({
     title: formData.get('title'),
@@ -58,15 +75,12 @@ async function createEventImpl(prevState: ActionState, formData: FormData): Prom
   })
 
   if (!parsed.success) {
-    log.debug('event.validation_failed', { errors: parsed.error.flatten().fieldErrors })
     return {
       success: false,
       message: 'Validation failed',
       errors: parsed.error.flatten().fieldErrors as Record<string, string[]>,
     }
   }
-
-  log.debug('event.validation_passed', { category: parsed.data.category })
 
   const startAt = parseDatetimeLocalInTimeZone(parsed.data.start_at)
   if (!startAt) {
@@ -95,13 +109,8 @@ async function createEventImpl(prevState: ActionState, formData: FormData): Prom
 
   // 2. Auth check
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) {
-    log.warn('event.unauthorized')
-    return { success: false, message: 'Unauthorized' }
-  }
+  const { user, error: authError } = await requireAdmin(supabase)
+  if (!user) return { success: false, message: authError }
 
   // 3. Parse description JSON
   let descriptionJson = null
@@ -159,8 +168,6 @@ async function createEventImpl(prevState: ActionState, formData: FormData): Prom
     }
     return { success: false, message: 'Failed to create event' }
   }
-  log.info('event.created', { eventId: event.id })
-
   // 5. Insert recurrence rule if recurring
   if (parsed.data.is_recurring && parsed.data.rrule_frequency) {
     const rruleString = buildRRuleString({
@@ -243,10 +250,8 @@ async function updateEventImpl(prevState: ActionState, formData: FormData): Prom
 
   // 2. Auth check
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return { success: false, message: 'Unauthorized' }
+  const { user, error: authError } = await requireAdmin(supabase)
+  if (!user) return { success: false, message: authError }
 
   // 3. Parse description JSON
   let descriptionJson = null
@@ -342,10 +347,8 @@ async function deleteEventImpl(prevState: ActionState, formData: FormData): Prom
 
   // 1. Auth check
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return { success: false, message: 'Unauthorized' }
+  const { user, error: authError } = await requireAdmin(supabase)
+  if (!user) return { success: false, message: authError }
 
   // 2. Delete event (cascade deletes recurrence_rules and event_instances)
   const { error } = await supabase.from('events').delete().eq('id', eventId)

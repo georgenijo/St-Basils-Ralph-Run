@@ -1,7 +1,8 @@
 # Supabase
 .branches
 .temp
-config.toml
+# Local service configuration is intentionally tracked so CI can run an
+# isolated Supabase stack with the same migrations and seed data.
 
 # dotenvx
 .env.keys

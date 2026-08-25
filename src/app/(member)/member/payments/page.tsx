@@ -108,7 +108,7 @@ export default async function PaymentsPage() {
         .eq('paid', false),
       supabase
         .from('shares')
-        .select('id, person_name, year')
+        .select('id, person_name, year, amount')
         .eq('family_id', familyId)
         .eq('paid', false)
         .order('year', { ascending: false }),
@@ -148,7 +148,7 @@ export default async function PaymentsPage() {
   const paidThisYear = currentYearPayments.reduce((sum, p) => sum + Number(p.amount), 0)
 
   const outstandingCharges = unpaidCharges.reduce((sum, c) => sum + Number(c.amount), 0)
-  const outstandingShares = unpaidShares.length * 50 // $50 per share
+  const outstandingShares = unpaidShares.reduce((sum, share) => sum + Number(share.amount), 0)
   const outstanding = outstandingCharges + outstandingShares
 
   const donationsTotal = currentYearPayments
@@ -169,7 +169,7 @@ export default async function PaymentsPage() {
       id: s.id,
       type: 'share' as const,
       description: `${s.person_name} (${s.year})`,
-      amount: 50,
+      amount: Number(s.amount),
       relatedShareId: s.id,
       sharePersonNames: [s.person_name],
     })),

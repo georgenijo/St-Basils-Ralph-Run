@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { Card } from '@/components/ui'
 import { NotificationSettingsForm } from './NotificationSettingsForm'
+import { ProfileSettingsForm } from './ProfileSettingsForm'
 
 export const metadata: Metadata = {
   title: 'Settings',
@@ -37,7 +38,7 @@ export default async function SettingsPage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('notification_preferences')
+    .select('full_name, phone, avatar_url, notification_preferences')
     .eq('id', user.id)
     .maybeSingle()
 
@@ -46,14 +47,36 @@ export default async function SettingsPage() {
   return (
     <main className="p-6 lg:p-8">
       <div className="mb-6">
-        <h1 className="font-heading text-2xl font-semibold text-wood-900">Notification Settings</h1>
+        <h1 className="font-heading text-2xl font-semibold text-wood-900">Settings</h1>
         <p className="mt-1 text-sm text-wood-800/70">
-          Choose which transactional emails you&apos;d like to receive.
+          Manage your profile and transactional email preferences.
         </p>
       </div>
-      <Card variant="outlined" className="p-6">
-        <NotificationSettingsForm initial={initial} />
-      </Card>
+      <div className="grid gap-6 xl:grid-cols-2">
+        <Card variant="outlined" className="p-6">
+          <h2 className="font-heading text-lg font-semibold text-wood-900">Your profile</h2>
+          <p className="mb-5 mt-1 text-sm text-wood-800/70">
+            Keep your contact details up to date.
+          </p>
+          <ProfileSettingsForm
+            email={user.email ?? ''}
+            initial={{
+              full_name: profile?.full_name ?? '',
+              phone: profile?.phone ?? '',
+              avatar_url: profile?.avatar_url ?? '',
+            }}
+          />
+        </Card>
+        <Card variant="outlined" className="p-6">
+          <h2 className="font-heading text-lg font-semibold text-wood-900">
+            Notification preferences
+          </h2>
+          <p className="mb-5 mt-1 text-sm text-wood-800/70">
+            Choose which transactional emails you&apos;d like to receive.
+          </p>
+          <NotificationSettingsForm initial={initial} />
+        </Card>
+      </div>
     </main>
   )
 }

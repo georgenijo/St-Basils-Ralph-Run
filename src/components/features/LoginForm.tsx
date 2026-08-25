@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useActionState } from 'react'
 
 import { login } from '@/actions/login'
@@ -45,9 +46,17 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
       </div>
 
       <div className="space-y-1.5">
-        <label htmlFor="password" className="block text-sm font-medium text-wood-800">
-          Password
-        </label>
+        <div className="flex items-center justify-between gap-4">
+          <label htmlFor="password" className="block text-sm font-medium text-wood-800">
+            Password
+          </label>
+          <Link
+            href="/forgot-password"
+            className="text-sm font-medium text-burgundy-700 hover:underline"
+          >
+            Forgot password?
+          </Link>
+        </div>
         <input
           id="password"
           name="password"
