@@ -4,8 +4,7 @@ import { logger } from '@/lib/logger'
 
 export async function register() {
   if (process.env.NEXT_RUNTIME === 'nodejs') {
-    // Installs AsyncLocalStorage context and the optional post-response Axiom
-    // transport. Edge keeps the dependency-free stdout logger.
+    // Installs AsyncLocalStorage request context. Edge keeps the dependency-free stdout logger.
     await import('@/lib/logger.server')
   }
 }

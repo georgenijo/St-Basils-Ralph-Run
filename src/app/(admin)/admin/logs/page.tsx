@@ -2,12 +2,12 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 
 import {
-  getAxiomLogViewerConfiguration,
+  getVercelLogViewerConfiguration,
   parseLogViewerFilters,
-  queryAxiomLogs,
+  queryVercelLogs,
   type AdminLogEntry,
   type LogViewerFilters,
-} from '@/lib/axiom-logs.server'
+} from '@/lib/vercel-logs.server'
 import { logger } from '@/lib/logger'
 
 const log = logger.child({ scope: 'admin-logs' })
@@ -31,7 +31,7 @@ interface LogsPageProps {
 function logsHref(filters: LogViewerFilters, before?: string): string {
   const parameters = new URLSearchParams()
   if (filters.level !== 'all') parameters.set('level', filters.level)
-  if (filters.range !== '24h') parameters.set('range', filters.range)
+  if (filters.range !== '1h') parameters.set('range', filters.range)
   if (filters.search) parameters.set('q', filters.search)
   if (before) parameters.set('before', before)
   const query = parameters.toString()
@@ -109,18 +109,16 @@ function ConfigurationState({ missing }: { missing: string[] }) {
   return (
     <section className="admin-log-setup" aria-labelledby="log-setup-title">
       <span className="admin-log-setup-kicker">Setup required</span>
-      <h2 id="log-setup-title">Connect the durable log store</h2>
+      <h2 id="log-setup-title">Authorize the Vercel log reader</h2>
       <p>
-        The website is emitting structured logs, but this deployment is not yet sending them to a
-        persistent dataset that the admin console can query.
+        The logs already exist in Vercel. The admin console needs a server-only Vercel access token
+        before it can read them on your behalf.
       </p>
       <ol>
-        <li>
-          Create the <code>st-basils-logs</code> dataset in Axiom.
-        </li>
-        <li>Create a basic token with ingest access to that dataset.</li>
-        <li>Create an advanced token with only Query → Read access to that dataset.</li>
-        <li>Add the server-only variables below to Vercel Production and Preview.</li>
+        <li>Create an access token in the Vercel account that owns this project.</li>
+        <li>Scope the token to the project&apos;s team and give it a descriptive name.</li>
+        <li>Add the token and team ID below to Vercel Production and Preview.</li>
+        <li>Redeploy once so the new server-only configuration is available.</li>
       </ol>
       <div className="admin-log-env" aria-label="Missing environment variables">
         {missing.map((name) => (
@@ -128,12 +126,12 @@ function ConfigurationState({ missing }: { missing: string[] }) {
         ))}
       </div>
       <a
-        href="https://axiom.co/docs/reference/tokens"
+        href="https://vercel.com/docs/rest-api#authentication"
         target="_blank"
         rel="noreferrer"
         className="admin-button admin-button-quiet"
       >
-        Open Axiom token guide
+        Open Vercel token guide
       </a>
     </section>
   )
@@ -142,13 +140,13 @@ function ConfigurationState({ missing }: { missing: string[] }) {
 // Access is enforced by the (admin) layout guard (profiles.role === 'admin').
 export default async function LogsPage({ searchParams }: LogsPageProps) {
   const filters = parseLogViewerFilters(await searchParams)
-  const configuration = getAxiomLogViewerConfiguration()
+  const configuration = getVercelLogViewerConfiguration()
 
-  let result: Awaited<ReturnType<typeof queryAxiomLogs>> | undefined
+  let result: Awaited<ReturnType<typeof queryVercelLogs>> | undefined
   let queryFailed = false
   if (configuration.ready) {
     try {
-      result = await queryAxiomLogs(filters)
+      result = await queryVercelLogs(filters)
     } catch (error) {
       log.warn('admin_logs.query_failed', { error })
       queryFailed = true
@@ -161,7 +159,8 @@ export default async function LogsPage({ searchParams }: LogsPageProps) {
         <div>
           <h1>Application logs</h1>
           <p className="admin-page-subtitle">
-            Search redacted server and client events. Times are shown in Eastern Time.
+            Search Vercel runtime requests and redacted application output. Times are shown in
+            Eastern Time.
           </p>
         </div>
         {configuration.ready && (
@@ -191,7 +190,6 @@ export default async function LogsPage({ searchParams }: LogsPageProps) {
               <label htmlFor="log-level">Level</label>
               <select id="log-level" name="level" defaultValue={filters.level}>
                 <option value="all">All levels</option>
-                <option value="debug">Debug</option>
                 <option value="info">Info</option>
                 <option value="warn">Warning</option>
                 <option value="error">Error</option>
@@ -203,7 +201,6 @@ export default async function LogsPage({ searchParams }: LogsPageProps) {
                 <option value="1h">Last hour</option>
                 <option value="6h">Last 6 hours</option>
                 <option value="24h">Last 24 hours</option>
-                <option value="7d">Last 7 days</option>
               </select>
             </div>
             <button type="submit" className="admin-button admin-button-primary">
@@ -218,8 +215,8 @@ export default async function LogsPage({ searchParams }: LogsPageProps) {
             <section className="admin-log-query-error" role="alert">
               <h2>Logs could not be loaded</h2>
               <p>
-                Axiom did not accept the query. Verify the dataset and read-token permissions, then
-                try again.
+                Vercel did not accept the query. Verify the access token and team scope, then try
+                again.
               </p>
               <Link href={logsHref(filters)} className="admin-button admin-button-quiet">
                 Try again
@@ -230,17 +227,10 @@ export default async function LogsPage({ searchParams }: LogsPageProps) {
               <div className="admin-section-head">
                 <h2 id="log-results-title">Recent events</h2>
                 <span className="admin-meta">
-                  {result?.rowsMatched.toLocaleString() ?? 0} matched
-                  {result?.partial ? ' · partial result' : ''}
+                  {result?.entries.length.toLocaleString() ?? 0} events ·{' '}
+                  {result?.requestCount.toLocaleString() ?? 0} requests
                 </span>
               </div>
-
-              {result?.partial && (
-                <p className="admin-notice">
-                  Axiom returned a partial result. Narrow the time range or filters for a complete
-                  result.
-                </p>
-              )}
 
               {result?.entries.length ? (
                 <div className="admin-table-wrap">

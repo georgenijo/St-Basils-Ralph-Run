@@ -9,7 +9,6 @@ export interface LogRecord extends LogContext {
 }
 
 type ContextProvider = () => LogContext | undefined
-type LogTransport = (record: LogRecord) => void
 
 const LEVEL_PRIORITY: Record<LogLevel, number> = {
   debug: 10,
@@ -32,11 +31,9 @@ const MAX_DEPTH = 8
 const MAX_STRING_LENGTH = 20_000
 
 const CONTEXT_PROVIDER = Symbol.for('st-basils.logger.context-provider')
-const LOG_TRANSPORT = Symbol.for('st-basils.logger.transport')
 
 type LoggerGlobals = typeof globalThis & {
   [CONTEXT_PROVIDER]?: ContextProvider
-  [LOG_TRANSPORT]?: LogTransport
 }
 
 const SENSITIVE_KEY =
@@ -176,12 +173,6 @@ function emit(level: LogLevel, message: string, bound: LogContext, fields?: LogC
   }
 
   writeToStdout(record)
-
-  try {
-    ;(globalThis as LoggerGlobals)[LOG_TRANSPORT]?.(record)
-  } catch {
-    // Logging must never make an application request fail.
-  }
 }
 
 export interface Logger {
@@ -215,10 +206,6 @@ export function createLogger(bound: LogContext = {}): Logger {
 
 export function registerLogContextProvider(provider: ContextProvider): void {
   ;(globalThis as LoggerGlobals)[CONTEXT_PROVIDER] = provider
-}
-
-export function registerLogTransport(transport: LogTransport | undefined): void {
-  ;(globalThis as LoggerGlobals)[LOG_TRANSPORT] = transport
 }
 
 export const logger = createLogger()

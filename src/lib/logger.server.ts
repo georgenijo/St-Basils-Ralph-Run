@@ -3,15 +3,8 @@ import 'server-only'
 import { AsyncLocalStorage } from 'node:async_hooks'
 
 import { headers } from 'next/headers'
-import { after } from 'next/server'
 
-import {
-  logger,
-  registerLogContextProvider,
-  registerLogTransport,
-  type LogContext,
-  type LogRecord,
-} from '@/lib/logger'
+import { logger, registerLogContextProvider, type LogContext } from '@/lib/logger'
 
 const REQUEST_CONTEXT = Symbol.for('st-basils.logger.async-context')
 
@@ -24,43 +17,6 @@ const requestContext = globals[REQUEST_CONTEXT] ?? new AsyncLocalStorage<LogCont
 globals[REQUEST_CONTEXT] = requestContext
 
 registerLogContextProvider(() => requestContext.getStore())
-
-function environment(name: string): string | undefined {
-  return process.env[name]
-}
-
-async function sendToAxiom(record: LogRecord): Promise<void> {
-  const token = environment('AXIOM_TOKEN')
-  const dataset = environment('AXIOM_DATASET')
-  if (!token || !dataset || environment('LOG_DRAIN') !== 'axiom') return
-
-  await fetch(`https://api.axiom.co/v1/datasets/${encodeURIComponent(dataset)}/ingest`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify([record]),
-  })
-}
-
-registerLogTransport((record) => {
-  if (
-    environment('LOG_DRAIN') !== 'axiom' ||
-    !environment('AXIOM_TOKEN') ||
-    !environment('AXIOM_DATASET')
-  ) {
-    return
-  }
-
-  try {
-    after(() => sendToAxiom(record))
-  } catch {
-    // Instrumentation hooks can run outside a Next request context. The
-    // fallback is deliberately unawaited so logging never adds hot-path time.
-    void sendToAxiom(record).catch(() => undefined)
-  }
-})
 
 export function runWithLogContext<T>(context: LogContext, callback: () => T): T {
   return requestContext.run(context, callback)
