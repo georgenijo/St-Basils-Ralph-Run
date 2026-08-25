@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 
 import { createClient } from '@/lib/supabase/server'
+import { formatChurchPhone, getChurchPhoneTelHref } from '@/lib/site-config'
 import { Button, Card, GoldDivider, ScrollReveal, SectionHeader } from '@/components/ui'
 import { PinnedAnnouncementsBanner } from '@/components/features/PinnedAnnouncementsBanner'
 import { HomeHero } from '@/components/features/HomeHero'
@@ -28,6 +29,9 @@ interface AnnouncementRow {
   is_pinned: boolean
   published_at: string
 }
+
+const formattedChurchPhone = formatChurchPhone()
+const churchPhoneTelHref = getChurchPhoneTelHref()
 
 export default async function HomePage() {
   const supabase = await createClient()
@@ -61,7 +65,9 @@ export default async function HomePage() {
 
       {/* ── Service Times Bar ────────────────────────────────── */}
       <section className="bg-burgundy-700 py-6 text-cream-50">
-        <dl className="mx-auto grid max-w-[1200px] grid-cols-1 gap-6 px-4 text-center sm:grid-cols-3 sm:px-6 lg:px-8">
+        <dl
+          className={`mx-auto grid max-w-[1200px] grid-cols-1 gap-6 px-4 text-center sm:grid-cols-2 sm:px-6 lg:px-8 ${formattedChurchPhone ? 'lg:grid-cols-3' : ''}`}
+        >
           <div>
             <dt className="font-heading text-lg font-semibold text-cream-50">Location</dt>
             <dd className="mt-1 text-sm text-cream-50/80">73 Ellis Street, Newton, MA 02464</dd>
@@ -72,17 +78,19 @@ export default async function HomePage() {
               Morning Prayer 8:30 AM &middot; Holy Qurbono 9:15 AM
             </dd>
           </div>
-          <div>
-            <dt className="font-heading text-lg font-semibold text-cream-50">Contact</dt>
-            <dd className="mt-1 text-sm text-cream-50/80">
-              <a
-                href="tel:+16175270527"
-                className="inline-flex min-h-[44px] items-center transition-colors hover:text-cream-50"
-              >
-                (617) 527-0527
-              </a>
-            </dd>
-          </div>
+          {formattedChurchPhone && churchPhoneTelHref && (
+            <div>
+              <dt className="font-heading text-lg font-semibold text-cream-50">Contact</dt>
+              <dd className="mt-1 text-sm text-cream-50/80">
+                <a
+                  href={churchPhoneTelHref}
+                  className="inline-flex min-h-[44px] items-center transition-colors hover:text-cream-50"
+                >
+                  {formattedChurchPhone}
+                </a>
+              </dd>
+            </div>
+          )}
         </dl>
       </section>
 

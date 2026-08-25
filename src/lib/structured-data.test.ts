@@ -21,6 +21,10 @@ describe('churchSchema', () => {
       postalCode: '02464',
     })
   })
+
+  it('omits an unverified phone number', () => {
+    expect(schema).not.toHaveProperty('telephone')
+  })
 })
 
 describe('eventSchema', () => {

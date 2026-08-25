@@ -1,5 +1,7 @@
 import type { WithContext, Church, Event, Article, BreadcrumbList } from 'schema-dts'
 
+import { CHURCH_PHONE } from '@/lib/site-config'
+
 const SITE_URL = 'https://stbasilsboston.org'
 const ORG_NAME = "St. Basil's Syriac Orthodox Church"
 
@@ -9,7 +11,7 @@ export const churchSchema: WithContext<Church> = {
   name: ORG_NAME,
   description: `${ORG_NAME} in Boston, Massachusetts. Serving the Jacobite Malayalee community in the New England region.`,
   url: SITE_URL,
-  telephone: '+1-617-527-0527',
+  ...(CHURCH_PHONE && { telephone: CHURCH_PHONE }),
   logo: `${SITE_URL}/logo.png`,
   image: `${SITE_URL}/logo.png`,
   address: {
