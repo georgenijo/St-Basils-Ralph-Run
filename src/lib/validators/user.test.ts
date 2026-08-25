@@ -105,6 +105,31 @@ describe('inviteUserSchema', () => {
     expect(result.success).toBe(true)
     if (result.success) expect(result.data.newsletter_opt_in).toBe(false)
   })
+
+  it('accepts an optional family assignment', () => {
+    const result = inviteUserSchema.safeParse({
+      email: 'john@example.com',
+      full_name: 'John Doe',
+      role: 'member',
+      family_id: '550e8400-e29b-41d4-a716-446655440010',
+    })
+
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data.family_id).toBe('550e8400-e29b-41d4-a716-446655440010')
+    }
+  })
+
+  it('rejects an invalid family assignment', () => {
+    const result = inviteUserSchema.safeParse({
+      email: 'john@example.com',
+      full_name: 'John Doe',
+      role: 'member',
+      family_id: 'not-a-family-id',
+    })
+
+    expect(result.success).toBe(false)
+  })
 })
 
 describe('updateRoleSchema', () => {

@@ -28,6 +28,7 @@ const navigation: { label: string; items: NavItem[] }[] = [
     label: 'Community',
     items: [
       { label: 'Subscribers', href: '/admin/subscribers', icon: <UsersIcon /> },
+      { label: 'Families', href: '/admin/families', icon: <HomeIcon /> },
       { label: 'Users', href: '/admin/users', icon: <ShieldUserIcon /> },
       { label: 'Shares', href: '/admin/shares', icon: <HeartIcon /> },
       { label: 'Payments', href: '/admin/payments', icon: <PaymentsIcon /> },
@@ -200,6 +201,26 @@ function ShieldUserIcon() {
       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
       <circle cx="12" cy="10" r="3" />
       <path d="M7 20.662V18a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v.662" />
+    </svg>
+  )
+}
+
+function HomeIcon() {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="m3 11 9-8 9 8" />
+      <path d="M5 10v10h14V10" />
+      <path d="M9 20v-6h6v6" />
     </svg>
   )
 }
