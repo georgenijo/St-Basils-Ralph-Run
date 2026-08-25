@@ -6,6 +6,7 @@ import { logger } from '@/lib/logger'
 import { withLogging } from '@/lib/logger.server'
 import { createClient } from '@/lib/supabase/server'
 import { sendFamilyNotification } from '@/lib/notifications'
+import { getFinancialSettings } from '@/lib/financial-settings'
 import { SharesPurchased } from '@/emails/shares-purchased'
 import { SharesPaid } from '@/emails/shares-paid'
 import { buySharesSchema, markSharesPaidSchema } from '@/lib/validators/member'
@@ -74,12 +75,13 @@ async function buySharesImpl(prevState: ActionState, formData: FormData): Promis
     }
   }
 
-  // 4. Insert one share row per name
+  // 4. Insert one share row per name at the centrally configured current price
+  const { sharePrice } = await getFinancialSettings(supabase)
   const rows = parsed.data.names.map((name) => ({
     family_id: profile.family_id,
     person_name: name,
     year: parsed.data.year,
-    amount: 50,
+    amount: sharePrice,
     paid: false,
   }))
 
@@ -99,7 +101,7 @@ async function buySharesImpl(prevState: ActionState, formData: FormData): Promis
 
   // 5. Send notification
   const count = parsed.data.names.length
-  const totalAmount = usd.format(count * 50)
+  const totalAmount = usd.format(count * sharePrice)
   await sendFamilyNotification(supabase, profile.family_id, 'shares', {
     subject: `${count} share${count === 1 ? '' : 's'} purchased — pending payment`,
     react: SharesPurchased({ count, totalAmount }),

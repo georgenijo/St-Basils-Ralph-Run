@@ -11,9 +11,39 @@ import {
   submitPaymentSchema,
   confirmPaymentSchema,
   rejectPaymentSchema,
+  updateProfileSchema,
 } from '@/lib/validators/member'
 
 const validUuid = '550e8400-e29b-41d4-a716-446655440000'
+
+describe('updateProfileSchema', () => {
+  it('accepts editable profile fields and trims them', () => {
+    const result = updateProfileSchema.parse({
+      full_name: '  George Thomas  ',
+      phone: ' 617-555-1234 ',
+      avatar_url: ' https://example.com/avatar.jpg ',
+    })
+    expect(result).toEqual({
+      full_name: 'George Thomas',
+      phone: '617-555-1234',
+      avatar_url: 'https://example.com/avatar.jpg',
+    })
+  })
+
+  it('allows optional contact fields to be cleared', () => {
+    expect(
+      updateProfileSchema.safeParse({ full_name: 'George Thomas', phone: '', avatar_url: '' })
+        .success
+    ).toBe(true)
+  })
+
+  it('rejects an empty name and unsafe avatar protocols', () => {
+    expect(
+      updateProfileSchema.safeParse({ full_name: '', phone: '', avatar_url: 'javascript:alert(1)' })
+        .success
+    ).toBe(false)
+  })
+})
 
 describe('updateFamilySchema', () => {
   it('passes with all fields provided', () => {

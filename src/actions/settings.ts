@@ -86,6 +86,16 @@ async function updateThemeSettingsImpl(
   } = await supabase.auth.getUser()
   if (!user) return { success: false, message: 'Unauthorized' }
 
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  if (profile?.role !== 'admin') {
+    return { success: false, message: 'Forbidden: admin access required' }
+  }
+
   // 4. Upsert the singleton row
   const { data: existing } = await supabase.from('site_settings').select('id').limit(1).single()
 

@@ -1,5 +1,5 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
-import type { APIRequestContext, Page } from '@playwright/test'
+import { expect, type APIRequestContext, type Locator, type Page } from '@playwright/test'
 
 interface MockEmailRecord {
   id: string
@@ -66,6 +66,17 @@ export function slugify(value: string): string {
 
 export function uniqueEmail(prefix: string): string {
   return `${prefix}-${Date.now()}-${Math.round(Math.random() * 1000)}@example.com`
+}
+
+/** Wait until React has attached event props to a server-rendered control. */
+export async function waitForReactHydration(locator: Locator): Promise<void> {
+  await expect
+    .poll(() =>
+      locator.evaluate((element) =>
+        Object.keys(element).some((key) => key.startsWith('__reactProps$'))
+      )
+    )
+    .toBe(true)
 }
 
 export function getAdminClient(): SupabaseClient {

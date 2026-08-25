@@ -110,6 +110,12 @@ describe('checkDependencies', () => {
     ['E2E_MODE', { E2E_MODE: 'true' }],
     ['EMAIL_TRANSPORT', { EMAIL_TRANSPORT: 'mock' }],
     ['ALLOW_TURNSTILE_TEST_BYPASS', { ALLOW_TURNSTILE_TEST_BYPASS: '1' }],
+    ['NEXT_PUBLIC_ALLOW_TURNSTILE_TEST_BYPASS', { NEXT_PUBLIC_ALLOW_TURNSTILE_TEST_BYPASS: '1' }],
+    ['TURNSTILE_TEST_BYPASS_TOKEN', { TURNSTILE_TEST_BYPASS_TOKEN: 'secret' }],
+    [
+      'NEXT_PUBLIC_TURNSTILE_TEST_BYPASS_TOKEN',
+      { NEXT_PUBLIC_TURNSTILE_TEST_BYPASS_TOKEN: 'secret' },
+    ],
   ])('reports config unsafe in production when %s is enabled', async (_name, flag) => {
     await expect(checkDependencies({ VERCEL_ENV: 'production', ...flag })).resolves.toEqual(
       withLatency({ ok: false, config: 'unsafe', db: true, cms: true })
@@ -129,6 +135,9 @@ describe('checkRuntimeConfig', () => {
         E2E_MODE: '1',
         EMAIL_TRANSPORT: 'mock',
         ALLOW_TURNSTILE_TEST_BYPASS: '1',
+        NEXT_PUBLIC_ALLOW_TURNSTILE_TEST_BYPASS: '1',
+        TURNSTILE_TEST_BYPASS_TOKEN: 'secret',
+        NEXT_PUBLIC_TURNSTILE_TEST_BYPASS_TOKEN: 'secret',
       })
     ).toBe('ok')
   })

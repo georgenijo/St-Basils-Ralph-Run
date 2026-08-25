@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 
 import { createClient } from '@/lib/supabase/server'
 import { Card } from '@/components/ui'
+import { getFinancialSettings } from '@/lib/financial-settings'
 
 export const metadata: Metadata = {
   title: 'Member Portal',
@@ -22,6 +23,8 @@ const fullDate = new Intl.DateTimeFormat('en-US', {
   year: 'numeric',
   timeZone: 'America/New_York',
 })
+
+const usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' })
 
 // ─── Badge styles by payment type ──────────────────────────────────
 
@@ -81,26 +84,33 @@ export default async function MemberOverviewPage() {
   // ─── Fetch all data in parallel ───────────────────────────────
   const currentYear = new Date().getFullYear()
 
-  const [familyResult, membersResult, sharesResult, paymentsResult, unpaidChargesResult] =
-    await Promise.all([
-      supabase
-        .from('families')
-        .select('membership_status, membership_type, membership_expires_at')
-        .eq('id', familyId)
-        .single(),
-      supabase
-        .from('family_members')
-        .select('id', { count: 'exact', head: true })
-        .eq('family_id', familyId),
-      supabase.from('shares').select('id').eq('family_id', familyId).eq('year', currentYear),
-      supabase
-        .from('payments')
-        .select('id, type, amount, note, created_at, related_event_id')
-        .eq('family_id', familyId)
-        .order('created_at', { ascending: false })
-        .limit(5),
-      supabase.from('event_charges').select('amount').eq('family_id', familyId).eq('paid', false),
-    ])
+  const [
+    familyResult,
+    membersResult,
+    sharesResult,
+    paymentsResult,
+    unpaidChargesResult,
+    financialSettings,
+  ] = await Promise.all([
+    supabase
+      .from('families')
+      .select('membership_status, membership_type, membership_expires_at')
+      .eq('id', familyId)
+      .single(),
+    supabase
+      .from('family_members')
+      .select('id', { count: 'exact', head: true })
+      .eq('family_id', familyId),
+    supabase.from('shares').select('id').eq('family_id', familyId).eq('year', currentYear),
+    supabase
+      .from('payments')
+      .select('id, type, amount, note, created_at, related_event_id')
+      .eq('family_id', familyId)
+      .order('created_at', { ascending: false })
+      .limit(5),
+    supabase.from('event_charges').select('amount').eq('family_id', familyId).eq('paid', false),
+    getFinancialSettings(supabase),
+  ])
 
   const family = familyResult.data
   const memberCount = membersResult.count ?? 0
@@ -122,7 +132,11 @@ export default async function MemberOverviewPage() {
   } else if (family?.membership_status === 'active' && family.membership_expires_at) {
     const expiresDate = new Date(family.membership_expires_at + 'T00:00:00')
     nextDueValue = shortDate.format(expiresDate)
-    const amountLabel = family.membership_type === 'monthly' ? '$100' : '$1,200'
+    const amountLabel = usd.format(
+      family.membership_type === 'monthly'
+        ? financialSettings.membershipMonthlyDues
+        : financialSettings.membershipAnnualDues
+    )
     const typeLabel = family.membership_type === 'monthly' ? 'Monthly' : 'Annual'
     nextDueSub = `${amountLabel} · ${typeLabel}`
   }

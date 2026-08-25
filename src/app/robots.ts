@@ -5,7 +5,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: '*',
       allow: '/',
-      disallow: ['/studio', '/admin'],
+      disallow: ['/studio', '/admin', '/showcase'],
     },
     sitemap: 'https://stbasilsboston.org/sitemap.xml',
   }

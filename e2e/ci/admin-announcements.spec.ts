@@ -8,6 +8,7 @@ import {
   loginAsSeedAdmin,
   slugify,
   uniqueEmail,
+  waitForReactHydration,
   waitForMockEmail,
 } from '../helpers/test-support'
 
@@ -30,9 +31,23 @@ test.describe('CI admin announcements', () => {
     await page.waitForURL('**/admin/**')
 
     await page.goto('/admin/announcements/new', { waitUntil: 'domcontentloaded' })
+    const emailSwitch = page.getByRole('switch', { name: 'Send email notification' })
+    const publishSwitch = page.getByRole('switch', { name: 'Publish announcement' })
+    await waitForReactHydration(emailSwitch)
     await page.locator('input#title').fill(title)
-    await page.getByRole('switch', { name: 'Send email notification' }).click()
-    await page.getByRole('switch', { name: 'Publish announcement' }).click()
+    await page.locator('input#slug').fill(slug)
+    // The form is server-rendered before its client switches hydrate. Retry the
+    // interaction so a fast CI runner cannot lose the first click to hydration.
+    for (const toggle of [emailSwitch, publishSwitch]) {
+      await expect(async () => {
+        if ((await toggle.getAttribute('aria-checked')) !== 'true') {
+          await toggle.click()
+        }
+        expect(await toggle.getAttribute('aria-checked')).toBe('true')
+      }).toPass()
+    }
+    await expect(page.locator('input[name="send_email"]')).toHaveValue('true')
+    await expect(page.locator('input[name="published"]')).toHaveValue('true')
     await page.getByRole('button', { name: 'Create Announcement' }).click()
 
     await page.waitForURL('**/admin/announcements')

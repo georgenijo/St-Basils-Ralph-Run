@@ -2,7 +2,9 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 
 import { createClient } from '@/lib/supabase/server'
+import { formatInChurchTimeZone } from '@/lib/event-time'
 import { formatChurchPhone, getChurchPhoneTelHref } from '@/lib/site-config'
+import { getUpcomingEventOccurrences, type UpcomingEventSource } from '@/lib/upcoming-events'
 import { Button, Card, GoldDivider, ScrollReveal, SectionHeader } from '@/components/ui'
 import { PinnedAnnouncementsBanner } from '@/components/features/PinnedAnnouncementsBanner'
 import { HomeHero } from '@/components/features/HomeHero'
@@ -35,25 +37,45 @@ const churchPhoneTelHref = getChurchPhoneTelHref()
 
 export default async function HomePage() {
   const supabase = await createClient()
+  const now = new Date()
 
-  // Fetch recent announcements for the section (max 3)
-  const { data: recentAnnouncements } = await supabase
-    .from('announcements')
-    .select('id, title, slug, body, priority, is_pinned, published_at')
-    .order('priority', { ascending: false })
-    .order('published_at', { ascending: false })
-    .limit(3)
-
-  // Fetch pinned announcements for the banner
-  const { data: pinnedAnnouncements } = await supabase
-    .from('announcements')
-    .select('id, title, slug, priority')
-    .eq('is_pinned', true)
-    .order('priority', { ascending: false })
+  const [{ data: recentAnnouncements }, { data: pinnedAnnouncements }, { data: eventSources }] =
+    await Promise.all([
+      supabase
+        .from('announcements')
+        .select('id, title, slug, body, priority, is_pinned, published_at')
+        .order('priority', { ascending: false })
+        .order('published_at', { ascending: false })
+        .limit(3),
+      supabase
+        .from('announcements')
+        .select('id, title, slug, priority')
+        .eq('is_pinned', true)
+        .order('priority', { ascending: false }),
+      supabase
+        .from('events')
+        .select(
+          `
+          id, title, slug, location, start_at, end_at, is_recurring, category,
+          recurrence_rules(rrule_string, dtstart),
+          event_instances(
+            original_date, is_cancelled, title_override, location_override,
+            start_at_override, end_at_override
+          )
+        `
+        )
+        .or(`is_recurring.eq.true,start_at.gte.${now.toISOString()}`)
+        .order('start_at', { ascending: true }),
+    ])
 
   const recent = (recentAnnouncements as AnnouncementRow[]) || []
   const pinned =
     (pinnedAnnouncements as { id: string; title: string; slug: string; priority: number }[]) || []
+  const upcoming = getUpcomingEventOccurrences(
+    (eventSources as unknown as UpcomingEventSource[]) || [],
+    now,
+    3
+  )
 
   return (
     <>
@@ -173,21 +195,47 @@ export default async function HomePage() {
         </ScrollReveal>
       </section>
 
-      {/* ── Events CTA (static placeholder) ──────────────────── */}
+      {/* ── Upcoming Events ──────────────────────────────────── */}
       <section className="py-16 md:py-22 lg:py-28">
         <ScrollReveal className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-3xl text-center">
-            <SectionHeader
-              title="Upcoming Events"
-              subtitle="From feast days to fellowship gatherings, there is always something happening at St. Basil's."
-            />
-            <p className="mt-8 text-base leading-relaxed text-wood-800">
-              Check our events calendar for service schedules, special observances, and community
-              gatherings throughout the year.
-            </p>
-            <div className="mt-10">
-              <Button href="/events">View Events Calendar</Button>
+          <SectionHeader
+            title="Upcoming Events"
+            subtitle="From feast days to fellowship gatherings, there is always something happening at St. Basil's."
+          />
+          {upcoming.length > 0 ? (
+            <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-3">
+              {upcoming.map((event) => (
+                <Link key={event.id} href={`/events/${event.slug}`} className="group block h-full">
+                  <Card
+                    variant="outlined"
+                    className="h-full transition-shadow duration-200 group-hover:shadow-md"
+                  >
+                    <Card.Body>
+                      <time
+                        dateTime={event.startAt}
+                        className="text-sm font-medium text-burgundy-700"
+                      >
+                        {formatUpcomingEventDate(event.startAt)}
+                      </time>
+                      <h3 className="mt-2 font-heading text-xl font-semibold text-wood-900 transition-colors group-hover:text-burgundy-700">
+                        {event.title}
+                      </h3>
+                      <p className="mt-3 text-sm capitalize text-wood-800/70">
+                        {event.category}
+                        {event.location ? ` · ${event.location}` : ''}
+                      </p>
+                    </Card.Body>
+                  </Card>
+                </Link>
+              ))}
             </div>
+          ) : (
+            <p className="mt-12 text-center text-wood-800/60">
+              No upcoming events are scheduled. Check back soon.
+            </p>
+          )}
+          <div className="mt-10 text-center">
+            <Button href="/events">View Events Calendar</Button>
           </div>
         </ScrollReveal>
       </section>
@@ -224,6 +272,16 @@ function formatDate(dateString: string): string {
     month: 'long',
     day: 'numeric',
     year: 'numeric',
+  })
+}
+
+function formatUpcomingEventDate(dateString: string): string {
+  return formatInChurchTimeZone(dateString, {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
   })
 }
 

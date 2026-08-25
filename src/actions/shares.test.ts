@@ -22,6 +22,14 @@ vi.mock('@/lib/notifications', () => ({
   sendFamilyNotification: vi.fn().mockResolvedValue(undefined),
 }))
 
+vi.mock('@/lib/financial-settings', () => ({
+  getFinancialSettings: vi.fn().mockResolvedValue({
+    sharePrice: 75,
+    membershipMonthlyDues: 100,
+    membershipAnnualDues: 1200,
+  }),
+}))
+
 vi.mock('@/emails/shares-purchased', () => ({
   SharesPurchased: vi.fn(() => null),
 }))
@@ -125,6 +133,7 @@ describe('buyShares', () => {
         return {
           insert: (rows: unknown[]) => {
             expect(rows).toHaveLength(2)
+            expect(rows).toEqual(expect.arrayContaining([expect.objectContaining({ amount: 75 })]))
             return Promise.resolve({ error: null })
           },
         }

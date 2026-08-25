@@ -1,20 +1,36 @@
 import type { Metadata } from 'next'
+import { redirect } from 'next/navigation'
 
 import { createClient } from '@/lib/supabase/server'
+import { paginationRange, parsePageParam, totalPageCount } from '@/lib/pagination'
 import { Button } from '@/components/ui'
+import { AdminPagination } from '@/components/features/AdminPagination'
 import { EventsTable } from '@/components/features/EventsTable'
 
 export const metadata: Metadata = {
   title: 'Events',
 }
 
-export default async function EventsPage() {
+export default async function EventsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string | string[] }>
+}) {
   const supabase = await createClient()
+  const page = parsePageParam((await searchParams).page)
+  const { from, to } = paginationRange(page)
 
-  const { data: events } = await supabase
+  const { data: events, count } = await supabase
     .from('events')
-    .select('id, title, slug, start_at, end_at, category, is_recurring, created_at')
+    .select('id, title, slug, start_at, end_at, category, is_recurring, created_at', {
+      count: 'exact',
+    })
     .order('start_at', { ascending: false })
+    .range(from, to)
+
+  const totalCount = count ?? 0
+  const totalPages = totalPageCount(totalCount)
+  if (page > totalPages) redirect(`/admin/events?page=${totalPages}`)
 
   return (
     <main className="admin-page">
@@ -56,10 +72,11 @@ export default async function EventsPage() {
           Calendar view
         </Button>
         <span className="admin-toolbar-spacer" />
-        <span className="admin-meta">{events?.length ?? 0} events</span>
+        <span className="admin-meta">{totalCount} events</span>
       </div>
 
       <EventsTable events={events ?? []} />
+      <AdminPagination pathname="/admin/events" page={page} totalCount={totalCount} />
     </main>
   )
 }

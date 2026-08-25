@@ -26,17 +26,33 @@ async function loadGoogleFont(family: string, weight: number): Promise<ArrayBuff
       'User-Agent':
         'Mozilla/5.0 (BB10; Touch) AppleWebKit/537.10+ (KHTML, like Gecko) Version/10.0.9.2372 Mobile Safari/537.10+',
     },
-  }).then((res) => res.text())
+  }).then((res) => {
+    if (!res.ok) throw new Error(`Font stylesheet request failed with ${res.status}`)
+    return res.text()
+  })
 
   const match = css.match(/src: url\((.+?)\) format\('truetype'\)/)
   if (!match) throw new Error(`Could not load font: ${family}`)
 
-  return fetch(match[1]).then((res) => res.arrayBuffer())
+  return fetch(match[1]).then((res) => {
+    if (!res.ok) throw new Error(`Font file request failed with ${res.status}`)
+    return res.arrayBuffer()
+  })
 }
 
-// Cache font and logo loading at module level
-const cormorantSemiBold = loadGoogleFont('Cormorant Garamond', 600)
-const dmSansMedium = loadGoogleFont('DM Sans', 500)
+async function loadOptionalGoogleFont(family: string, weight: number): Promise<ArrayBuffer | null> {
+  try {
+    return await loadGoogleFont(family, weight)
+  } catch (error) {
+    log.warn('open_graph.font_load_failed', { error, family, weight })
+    return null
+  }
+}
+
+// Cache font and logo loading at module level. Font failures are intentionally
+// non-fatal: ImageResponse can render with its built-in fallback fonts.
+const cormorantSemiBold = loadOptionalGoogleFont('Cormorant Garamond', 600)
+const dmSansMedium = loadOptionalGoogleFont('DM Sans', 500)
 const logoBase64 = readFile(join(process.cwd(), 'public', 'logo.png')).then(
   (buf) => `data:image/png;base64,${buf.toString('base64')}`
 )
@@ -139,7 +155,7 @@ async function getImpl(_request: NextRequest, { params }: { params: Promise<{ pa
         >
           <span
             style={{
-              fontFamily: 'DM Sans',
+              fontFamily: dmSansData ? 'DM Sans' : 'sans-serif',
               fontSize: 18,
               fontWeight: 500,
               color: GOLD,
@@ -163,7 +179,7 @@ async function getImpl(_request: NextRequest, { params }: { params: Promise<{ pa
       >
         <h1
           style={{
-            fontFamily: 'Cormorant Garamond',
+            fontFamily: cormorantData ? 'Cormorant Garamond' : 'serif',
             fontSize,
             fontWeight: 600,
             color: CREAM,
@@ -179,7 +195,7 @@ async function getImpl(_request: NextRequest, { params }: { params: Promise<{ pa
       {/* Subtitle */}
       <p
         style={{
-          fontFamily: 'DM Sans',
+          fontFamily: dmSansData ? 'DM Sans' : 'sans-serif',
           fontSize: 22,
           fontWeight: 500,
           color: `${CREAM}99`,
@@ -192,7 +208,7 @@ async function getImpl(_request: NextRequest, { params }: { params: Promise<{ pa
       {/* Bottom URL */}
       <p
         style={{
-          fontFamily: 'DM Sans',
+          fontFamily: dmSansData ? 'DM Sans' : 'sans-serif',
           fontSize: 16,
           fontWeight: 500,
           color: `${CREAM}66`,
@@ -210,18 +226,26 @@ async function getImpl(_request: NextRequest, { params }: { params: Promise<{ pa
         'Cache-Control': 'public, max-age=86400, s-maxage=86400',
       },
       fonts: [
-        {
-          name: 'Cormorant Garamond',
-          data: cormorantData,
-          style: 'normal' as const,
-          weight: 600 as const,
-        },
-        {
-          name: 'DM Sans',
-          data: dmSansData,
-          style: 'normal' as const,
-          weight: 500 as const,
-        },
+        ...(cormorantData
+          ? [
+              {
+                name: 'Cormorant Garamond',
+                data: cormorantData,
+                style: 'normal' as const,
+                weight: 600 as const,
+              },
+            ]
+          : []),
+        ...(dmSansData
+          ? [
+              {
+                name: 'DM Sans',
+                data: dmSansData,
+                style: 'normal' as const,
+                weight: 500 as const,
+              },
+            ]
+          : []),
       ],
     }
   )

@@ -26,6 +26,15 @@ export const userActionSchema = z.object({
   user_id: z.string().uuid('Invalid user ID'),
 })
 
+export const forgotPasswordSchema = z.object({
+  email: z
+    .string()
+    .trim()
+    .min(1, 'Email is required')
+    .email('Please enter a valid email address')
+    .transform((email) => email.toLowerCase()),
+})
+
 export const setPasswordSchema = z
   .object({
     password: z
@@ -42,4 +51,5 @@ export const setPasswordSchema = z
 export type InviteUserData = z.infer<typeof inviteUserSchema>
 export type UpdateRoleData = z.infer<typeof updateRoleSchema>
 export type UserActionData = z.infer<typeof userActionSchema>
+export type ForgotPasswordData = z.infer<typeof forgotPasswordSchema>
 export type SetPasswordData = z.infer<typeof setPasswordSchema>

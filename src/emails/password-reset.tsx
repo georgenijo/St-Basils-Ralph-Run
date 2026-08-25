@@ -36,8 +36,8 @@ export function PasswordReset({
         </Link>
       </Section>
       <Text style={smallText}>
-        This link expires in {expiryLabel}. If it has expired, ask an administrator to send a new
-        one.
+        This link expires in {expiryLabel}. If it has expired, request another reset link from the
+        portal sign-in page.
       </Text>
       <Text style={smallText}>
         If you didn&apos;t request a password reset, you can safely ignore this email — your

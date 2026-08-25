@@ -33,6 +33,7 @@ export function HomeHero() {
         loop
         muted
         playsInline
+        poster="/video/intro-poster.webp"
         className="absolute inset-0 h-full w-full object-cover"
         aria-hidden="true"
       >

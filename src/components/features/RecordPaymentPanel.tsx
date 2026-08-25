@@ -14,7 +14,13 @@ interface RecordPaymentPanelProps {
   onClose: () => void
   families: { id: string; family_name: string }[]
   events: { id: string; title: string }[]
-  unpaidShares: { id: string; family_id: string; person_name: string; year: number }[]
+  unpaidShares: {
+    id: string
+    family_id: string
+    person_name: string
+    year: number
+    amount: number | string
+  }[]
 }
 
 type PaymentType = 'membership' | 'share' | 'event' | 'donation'
@@ -314,7 +320,11 @@ export function RecordPaymentPanel({
                         <option value="">Select a share...</option>
                         {familyShares.map((s) => (
                           <option key={s.id} value={s.id}>
-                            {s.person_name} ({s.year}) — $50.00
+                            {s.person_name} ({s.year}) —{' '}
+                            {Number(s.amount).toLocaleString('en-US', {
+                              style: 'currency',
+                              currency: 'USD',
+                            })}
                           </option>
                         ))}
                       </select>

@@ -1,4 +1,5 @@
 import { Metadata } from 'next'
+import { notFound } from 'next/navigation'
 
 import { Button, GoldDivider, SectionHeader } from '@/components/ui'
 
@@ -9,6 +10,8 @@ export const metadata: Metadata = {
 }
 
 export default function ShowcasePage() {
+  if (process.env.NODE_ENV !== 'development') notFound()
+
   return (
     <main className="min-h-screen bg-cream-50 px-4 py-16 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-[1200px] space-y-20">

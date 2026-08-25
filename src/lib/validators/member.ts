@@ -1,5 +1,27 @@
 import { z } from 'zod'
 
+export const updateProfileSchema = z.object({
+  full_name: z
+    .string()
+    .trim()
+    .min(1, 'Full name is required')
+    .max(200, 'Full name must be 200 characters or less'),
+  phone: z.string().trim().max(30, 'Phone must be 30 characters or less'),
+  avatar_url: z
+    .string()
+    .trim()
+    .max(2048, 'Avatar URL must be 2,048 characters or less')
+    .refine((value) => {
+      if (!value) return true
+      try {
+        const url = new URL(value)
+        return url.protocol === 'https:' || url.protocol === 'http:'
+      } catch {
+        return false
+      }
+    }, 'Avatar URL must be a valid HTTP or HTTPS URL'),
+})
+
 export const updateFamilySchema = z.object({
   family_name: z
     .string()
@@ -192,6 +214,7 @@ export const rejectPaymentSchema = z.object({
 })
 
 export type UpdateFamilyData = z.infer<typeof updateFamilySchema>
+export type UpdateProfileData = z.infer<typeof updateProfileSchema>
 export type AddFamilyMemberData = z.infer<typeof addFamilyMemberSchema>
 export type RemoveFamilyMemberData = z.infer<typeof removeFamilyMemberSchema>
 export type BuySharesData = z.infer<typeof buySharesSchema>

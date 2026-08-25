@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
 import { formatInChurchTimeZone, getChurchTimeZoneName } from '@/lib/event-time'
+import { getSiteUrl } from '@/lib/site-url'
 import { createClient } from '@/lib/supabase/server'
 import { Button } from '@/components/ui'
 import { RsvpAdminPanel } from '@/components/features/RsvpAdminPanel'
@@ -149,6 +150,7 @@ export default async function AdminEventDetailPage({ params }: PageProps) {
           eventTitle={event.title}
           eventStartAt={event.start_at}
           eventLocation={event.location}
+          siteUrl={getSiteUrl()}
           rsvps={rsvps}
         />
       ) : (

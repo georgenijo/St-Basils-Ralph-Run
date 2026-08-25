@@ -82,7 +82,7 @@ export function EventsTable({ events }: EventsTableProps) {
   }
 
   const filtered = useMemo(() => {
-    let result = events
+    let result = [...events]
     if (categoryFilter) {
       result = result.filter((e) => e.category === categoryFilter)
     }

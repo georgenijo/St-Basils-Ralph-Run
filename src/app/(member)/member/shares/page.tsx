@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 
 import { createClient } from '@/lib/supabase/server'
 import { Card } from '@/components/ui'
+import { getFinancialSettings } from '@/lib/financial-settings'
 import { BuySharesPanel } from './BuySharesPanel'
 
 export const metadata: Metadata = {
@@ -62,21 +63,26 @@ export default async function SharesPage() {
   const currentYear = new Date().getFullYear()
 
   // ─── Fetch all data in parallel ─────────────────────────────────
-  const [currentYearResult, allTimeResult, previousYearsResult] = await Promise.all([
-    supabase
-      .from('shares')
-      .select('id, person_name, amount, paid, created_at')
-      .eq('family_id', familyId)
-      .eq('year', currentYear)
-      .order('created_at', { ascending: false }),
-    supabase.from('shares').select('id', { count: 'exact', head: true }).eq('family_id', familyId),
-    supabase
-      .from('shares')
-      .select('year, amount')
-      .eq('family_id', familyId)
-      .neq('year', currentYear)
-      .order('year', { ascending: false }),
-  ])
+  const [currentYearResult, allTimeResult, previousYearsResult, financialSettings] =
+    await Promise.all([
+      supabase
+        .from('shares')
+        .select('id, person_name, amount, paid, created_at')
+        .eq('family_id', familyId)
+        .eq('year', currentYear)
+        .order('created_at', { ascending: false }),
+      supabase
+        .from('shares')
+        .select('id', { count: 'exact', head: true })
+        .eq('family_id', familyId),
+      supabase
+        .from('shares')
+        .select('year, amount')
+        .eq('family_id', familyId)
+        .neq('year', currentYear)
+        .order('year', { ascending: false }),
+      getFinancialSettings(supabase),
+    ])
 
   const currentYearShares = currentYearResult.data ?? []
   const allTimeCount = allTimeResult.count ?? 0
@@ -84,7 +90,10 @@ export default async function SharesPage() {
 
   // ─── Derived values ─────────────────────────────────────────────
   const sharesThisYear = currentYearShares.length
-  const totalSpentThisYear = sharesThisYear * 50
+  const totalSpentThisYear = currentYearShares.reduce(
+    (total, share) => total + Number(share.amount),
+    0
+  )
 
   // Group previous years: { year: number, count: number, total: number }
   const previousYears = Object.values(
@@ -142,7 +151,7 @@ export default async function SharesPage() {
           <div className="mt-1.5 font-heading text-[26px] font-semibold text-wood-900">
             ${totalSpentThisYear.toLocaleString('en-US')}
           </div>
-          <div className="mt-0.5 text-xs text-wood-800/45">{sharesThisYear} x $50</div>
+          <div className="mt-0.5 text-xs text-wood-800/45">Based on purchase amounts</div>
         </Card>
 
         {/* All-Time */}
@@ -163,7 +172,7 @@ export default async function SharesPage() {
       {/* ─── Current Year Header + Buy Button ───────────────────── */}
       <div className="mb-4 flex items-center justify-between">
         <h2 className="font-heading text-base font-semibold text-wood-900">{currentYear} Shares</h2>
-        <BuySharesPanel />
+        <BuySharesPanel sharePrice={financialSettings.sharePrice} />
       </div>
 
       {/* ─── Current Year Shares Table ──────────────────────────── */}
