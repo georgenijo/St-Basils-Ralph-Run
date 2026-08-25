@@ -48,56 +48,27 @@ Redirect/not-found exceptions remain normal Next.js control flow and are not rep
 The `x-request-id` response header is also returned from middleware and every route handler, so an
 incident report can include it without exposing authentication material.
 
-## Optional durable Axiom sink
+## Admin log viewer
 
-Stdout requires no configuration and is always retained by the hosting platform according to the
-Vercel plan. For longer, searchable retention, the optional Axiom transport sends the same redacted
-record after the response completes using Next.js `after()`; it adds no awaited network work to the
-request hot path.
+Administrators can open **Admin → Logs** at `/admin/logs`. The page reads the runtime logs Vercel
+already captures; it does not copy them to another database or logging vendor. The server queries
+production requests and application output, then the UI supports severity, time-range,
+text/request-ID filters, and time-boundary pagination.
 
 Set these server-only variables in Vercel Production and Preview:
 
 ```bash
-LOG_DRAIN=axiom
-AXIOM_DATASET=st-basils-logs
-AXIOM_TOKEN=<ingest-only token>
-AXIOM_QUERY_TOKEN=<query-read-only token>
+VERCEL_ACCESS_TOKEN=<team-scoped access token>
+VERCEL_TEAM_ID=<team ID>
 ```
 
-Create a dataset, a basic ingest token, and an advanced token whose only permission is Query → Read
-for that dataset. `AXIOM_TOKEN` is used only by the log transport; `AXIOM_QUERY_TOKEN` is used only by
-the admin viewer. If the ingest variables are missing, the app silently continues with structured
-stdout. Never prefix either token with `NEXT_PUBLIC_`.
+`VERCEL_PROJECT_ID` is a Vercel system variable in hosted deployments. Set it manually only for
+local viewer testing. The page projects an explicit allowlist of operational fields, strips URL query
+strings, re-runs redaction on returned values, and never exposes the access token to the browser.
 
-## Admin log viewer
-
-Administrators can open **Admin → Logs** at `/admin/logs`. The page queries Axiom only from the
-server and supports severity, time-range, text/request-ID filters, and stable timestamp pagination.
-It projects an explicit allowlist of operational fields, re-runs redaction on returned values, and
-never exposes either Axiom token to the browser.
-
-When the Axiom variables are not configured, the page shows setup instructions rather than an empty
-or misleading log table. After adding or rotating the variables in Vercel, redeploy the application
-and verify that a new event appears in the viewer.
-
-Axiom was selected over a second application database and a full APM SDK because it accepts the
-existing JSON records over HTTP, supports email notifiers/monitors, needs no Node stream/worker
-transport, and has ample parish-scale headroom. As checked on 2026-08-24, its $0 Personal allowance
-lists 500 GB/month loading, 25 GB storage, and 30-day retention; confirm current limits on the
-[Axiom pricing page](https://axiom.co/pricing) before enabling it.
-
-### Required error alert
-
-After the first production record arrives:
-
-1. In Axiom, create a monitor for the `st-basils-logs` dataset whose query matches `level == "error"`.
-2. Use a short aggregation window and trigger when the count is greater than zero.
-3. Attach an email notifier for the site administrator.
-4. Send a controlled `/api/log` test event and verify the email arrives, then resolve the test alert.
-
-Axiom documents monitors and email notifiers in its
-[alerting guide](https://axiom.co/docs/monitor-data/monitors). The alert is an external control and
-must be verified whenever the Axiom token, dataset, or administrator email changes.
+When the token or identifiers are not configured, the page shows setup instructions rather than an
+empty or misleading table. After adding or rotating either value, redeploy and verify the page with
+a controlled `/api/log` event. Log availability and retention follow the project's Vercel plan.
 
 ## Client crashes
 
