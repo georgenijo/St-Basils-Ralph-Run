@@ -3,6 +3,8 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
+import { logger } from '@/lib/logger'
+import { withLogging } from '@/lib/logger.server'
 import { createClient } from '@/lib/supabase/server'
 import { isValidRedirectUrl } from '@/lib/validators/redirect'
 
@@ -12,7 +14,9 @@ type LoginState = {
   errors?: Record<string, string[]>
 }
 
-export async function login(prevState: LoginState, formData: FormData): Promise<LoginState> {
+const log = logger.child({ scope: 'auth' })
+
+async function loginImpl(prevState: LoginState, formData: FormData): Promise<LoginState> {
   const email = formData.get('email') as string
   const password = formData.get('password') as string
   const redirectTo = formData.get('redirectTo') as string | null
@@ -41,6 +45,7 @@ export async function login(prevState: LoginState, formData: FormData): Promise<
   })
 
   if (error) {
+    log.warn('login.rejected', { error })
     return { success: false, message: 'Invalid email or password' }
   }
 
@@ -57,6 +62,7 @@ export async function login(prevState: LoginState, formData: FormData): Promise<
       .single()
 
     if (profileError || !profile) {
+      if (profileError) log.error('login.profile_lookup_failed', { error: profileError })
       destination = '/'
     } else {
       destination = profile.role === 'admin' ? '/admin/dashboard' : '/member'
@@ -65,3 +71,5 @@ export async function login(prevState: LoginState, formData: FormData): Promise<
 
   redirect(destination)
 }
+
+export const login = withLogging('login', loginImpl)

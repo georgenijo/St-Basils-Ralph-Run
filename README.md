@@ -67,6 +67,10 @@ Copy `.env.local.example` and set at minimum:
 
 Optional: set `NEXT_PUBLIC_STATUS_PAGE_URL` to the public BetterStack status page URL once it exists — it gates the footer "System Status" link, which stays hidden while unset (see `docs/operations/uptime-monitoring.md`).
 
+Structured JSON logging needs no configuration. `LOG_LEVEL` controls verbosity; setting
+`LOG_DRAIN=axiom`, `AXIOM_DATASET`, and server-only `AXIOM_TOKEN` enables optional durable shipping
+and error alerts. See [`docs/logging.md`](./docs/logging.md) for privacy rules and setup.
+
 For local development without Resend, use the mock email sink:
 
 ```bash
@@ -137,15 +141,16 @@ The pre-rebuild Bootstrap site lives under [`archive/legacy-static-site/`](./arc
 
 ## Documentation
 
-| Doc                                                                            | Contents                                            |
-| ------------------------------------------------------------------------------ | --------------------------------------------------- |
-| [CLAUDE.md](./CLAUDE.md)                                                       | Legacy static site reference and known issues       |
-| [.claude/docs/conventions.md](./.claude/docs/conventions.md)                   | Code style, naming, directory patterns              |
-| [.claude/docs/design-system.md](./.claude/docs/design-system.md)               | Colors, typography, components                      |
-| [.claude/docs/ticket-map.md](./.claude/docs/ticket-map.md)                     | Original phased ticket map                          |
-| [prompts/PROMPT.md](./prompts/PROMPT.md)                                       | Issue workflow for `work <issue>`                   |
-| [prompts/PROMPT_CHAT.md](./prompts/PROMPT_CHAT.md)                             | Architecture context for `chat` sessions            |
-| [docs/operations/uptime-monitoring.md](./docs/operations/uptime-monitoring.md) | BetterStack uptime monitoring + status page runbook |
+| Doc                                                                            | Contents                                                   |
+| ------------------------------------------------------------------------------ | ---------------------------------------------------------- |
+| [CLAUDE.md](./CLAUDE.md)                                                       | Legacy static site reference and known issues              |
+| [.claude/docs/conventions.md](./.claude/docs/conventions.md)                   | Code style, naming, directory patterns                     |
+| [.claude/docs/design-system.md](./.claude/docs/design-system.md)               | Colors, typography, components                             |
+| [.claude/docs/ticket-map.md](./.claude/docs/ticket-map.md)                     | Original phased ticket map                                 |
+| [prompts/PROMPT.md](./prompts/PROMPT.md)                                       | Issue workflow for `work <issue>`                          |
+| [prompts/PROMPT_CHAT.md](./prompts/PROMPT_CHAT.md)                             | Architecture context for `chat` sessions                   |
+| [docs/operations/uptime-monitoring.md](./docs/operations/uptime-monitoring.md) | BetterStack uptime monitoring + status page runbook        |
+| [docs/logging.md](./docs/logging.md)                                           | Structured logs, request correlation, Axiom drain + alerts |
 
 ## License
 

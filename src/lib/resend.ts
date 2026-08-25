@@ -1,6 +1,9 @@
 import { Resend } from 'resend'
 
+import { logger } from '@/lib/logger'
 import { isMockEmailTransportEnabled } from '@/lib/test-support'
+
+const log = logger.child({ scope: 'resend' })
 
 let _resend: Resend | null = null
 
@@ -23,7 +26,7 @@ export async function addContactToAudience(email: string): Promise<void> {
   try {
     await getResend().contacts.create({ email })
   } catch (error) {
-    console.error('Failed to add contact to Resend Contacts:', error)
+    log.error('resend.contact_add_failed', { error })
   }
 }
 
@@ -33,6 +36,6 @@ export async function removeContactFromAudience(email: string): Promise<void> {
   try {
     await getResend().contacts.remove({ email })
   } catch (error) {
-    console.error('Failed to remove contact from Resend Contacts:', error)
+    log.error('resend.contact_remove_failed', { error })
   }
 }

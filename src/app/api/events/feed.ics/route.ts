@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { createEvents } from 'ics'
 
 import { toUtcDateArray } from '@/lib/event-time'
+import { logger } from '@/lib/logger'
+import { withRequestLogging } from '@/lib/logger.server'
 import { createClient } from '@/lib/supabase/server'
 import { renderTiptapHTML } from '@/lib/tiptap'
 
@@ -34,8 +36,10 @@ interface EventRow {
 }
 
 export const revalidate = 3600
+const log = logger.child({ scope: 'events-feed' })
 
-export async function GET() {
+async function getImpl(_request: Request) {
+  void _request
   const supabase = await createClient()
 
   const { data: events, error } = await supabase
@@ -44,6 +48,7 @@ export async function GET() {
     .order('start_at', { ascending: true })
 
   if (error || !events) {
+    if (error) log.error('events_feed.fetch_failed', { error })
     return NextResponse.json({ error: 'Failed to fetch events' }, { status: 500 })
   }
 
@@ -120,6 +125,7 @@ export async function GET() {
   })
 
   if (icsError || !value) {
+    log.error('events_feed.generation_failed', { error: icsError })
     return NextResponse.json({ error: 'Failed to generate calendar' }, { status: 500 })
   }
 
@@ -131,3 +137,5 @@ export async function GET() {
     },
   })
 }
+
+export const GET = withRequestLogging('/api/events/feed.ics', getImpl)

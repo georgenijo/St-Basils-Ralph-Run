@@ -1,7 +1,12 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 
-export async function GET(request: NextRequest) {
+import { logger } from '@/lib/logger'
+import { withRequestLogging } from '@/lib/logger.server'
+
+const log = logger.child({ scope: 'auth-dev-bypass' })
+
+async function getImpl(request: NextRequest) {
   const isLocalDev = process.env.NODE_ENV === 'development' && !process.env.VERCEL
 
   // Blocked outside local dev even if DEV_ADMIN_BYPASS leaks into hosted envs.
@@ -43,8 +48,11 @@ export async function GET(request: NextRequest) {
   })
 
   if (error) {
+    log.warn('auth.dev_bypass_failed', { error })
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
   return response
 }
+
+export const GET = withRequestLogging('/api/auth/dev-bypass', getImpl)

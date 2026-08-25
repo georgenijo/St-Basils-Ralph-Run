@@ -5,6 +5,8 @@ import { rrulestr } from 'rrule'
 
 import { sendEmail } from '@/lib/email'
 import { formatInChurchTimeZone, parseDatetimeLocalInTimeZone } from '@/lib/event-time'
+import { logger } from '@/lib/logger'
+import { withLogging } from '@/lib/logger.server'
 import { getSiteUrl } from '@/lib/site-url'
 import { createClient } from '@/lib/supabase/server'
 import {
@@ -22,6 +24,7 @@ type ActionState = {
 
 const FROM_ADDRESS = "St. Basil's Church <noreply@stbasilsboston.org>"
 const SITE_URL = getSiteUrl()
+const log = logger.child({ scope: 'event-instances' })
 
 const dateFormat: Intl.DateTimeFormatOptions = {
   weekday: 'long',
@@ -113,7 +116,7 @@ async function sendOccurrenceNotification(
             nextOccurrence = formatInChurchTimeZone(next.toISOString(), dateTimeFormat)
           }
         } catch (e) {
-          console.error('[sendOccurrenceNotification] RRULE parse error:', e)
+          log.error('occurrence_notification.rrule_parse_failed', { error: e, eventId })
         }
       }
     }
@@ -154,11 +157,11 @@ async function sendOccurrenceNotification(
           },
         })
       } catch (e) {
-        console.error('[sendOccurrenceNotification] Email failed for', sub.email, e)
+        log.error('occurrence_notification.email_failed', { error: e, eventId })
       }
     }
   } catch (error) {
-    console.error('[sendOccurrenceNotification] Failed:', error)
+    log.error('occurrence_notification.failed', { error, eventId })
   }
 }
 
@@ -168,7 +171,7 @@ function revalidateEventPaths() {
   revalidatePath('/events')
 }
 
-export async function upsertEventInstance(
+async function upsertEventInstanceImpl(
   prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
@@ -236,7 +239,7 @@ export async function upsertEventInstance(
   )
 
   if (error) {
-    console.error('[upsertEventInstance] DB error:', error.message)
+    log.error('event_instance.upsert_failed', { error })
     return { success: false, message: 'Failed to update occurrence' }
   }
 
@@ -253,7 +256,7 @@ export async function upsertEventInstance(
   return { success: true, message: 'Occurrence updated successfully' }
 }
 
-export async function cancelEventInstance(
+async function cancelEventInstanceImpl(
   prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
@@ -293,7 +296,7 @@ export async function cancelEventInstance(
   )
 
   if (error) {
-    console.error('[cancelEventInstance] DB error:', error.message)
+    log.error('event_instance.cancel_failed', { error })
     return { success: false, message: 'Failed to cancel occurrence' }
   }
 
@@ -313,7 +316,7 @@ export async function cancelEventInstance(
   return { success: true, message: 'Occurrence cancelled' }
 }
 
-export async function restoreEventInstance(
+async function restoreEventInstanceImpl(
   prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
@@ -344,7 +347,7 @@ export async function restoreEventInstance(
     .eq('original_date', parsed.data.original_date)
 
   if (error) {
-    console.error('[restoreEventInstance] DB error:', error.message)
+    log.error('event_instance.restore_failed', { error })
     return { success: false, message: 'Failed to restore occurrence' }
   }
 
@@ -361,3 +364,7 @@ export async function restoreEventInstance(
   revalidateEventPaths()
   return { success: true, message: 'Occurrence restored to regular schedule' }
 }
+
+export const upsertEventInstance = withLogging('upsertEventInstance', upsertEventInstanceImpl)
+export const cancelEventInstance = withLogging('cancelEventInstance', cancelEventInstanceImpl)
+export const restoreEventInstance = withLogging('restoreEventInstance', restoreEventInstanceImpl)

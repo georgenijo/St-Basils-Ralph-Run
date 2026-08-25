@@ -6,6 +6,8 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { sendUserNotification } from '@/lib/notifications'
 import { WelcomeMember } from '@/emails/welcome-member'
+import { logger } from '@/lib/logger'
+import { withLogging } from '@/lib/logger.server'
 import { setPasswordSchema } from '@/lib/validators/user'
 
 type ActionState = {
@@ -14,10 +16,9 @@ type ActionState = {
   errors?: Record<string, string[]>
 }
 
-export async function setPassword(
-  prevState: ActionState,
-  formData: FormData
-): Promise<ActionState> {
+const log = logger.child({ scope: 'auth' })
+
+async function setPasswordImpl(prevState: ActionState, formData: FormData): Promise<ActionState> {
   const parsed = setPasswordSchema.safeParse({
     password: formData.get('password'),
     confirmPassword: formData.get('confirmPassword'),
@@ -47,6 +48,7 @@ export async function setPassword(
   const { error } = await supabase.auth.updateUser({ password: parsed.data.password })
 
   if (error) {
+    log.error('password.update_failed', { error })
     return { success: false, message: 'Failed to set password. Please try again.' }
   }
 
@@ -77,3 +79,5 @@ export async function setPassword(
   const destination = profile?.role === 'admin' ? '/admin/dashboard' : '/member'
   redirect(destination)
 }
+
+export const setPassword = withLogging('setPassword', setPasswordImpl)

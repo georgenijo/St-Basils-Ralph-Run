@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 
+import { getRequestLogger } from '@/lib/logger.server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getAuthWithProfile, getDataClient } from '@/lib/supabase/auth'
 import { UsersPageClient } from './UsersPageClient'
@@ -38,7 +39,8 @@ export default async function UsersPage() {
   const { data: profiles, error } = profilesResult
 
   if (error) {
-    console.error('Failed to fetch profiles:', error)
+    const log = await getRequestLogger('admin-users-page')
+    log.error('users.fetch_failed', { error })
     return (
       <main className="admin-page">
         <h1>Users</h1>
@@ -52,7 +54,8 @@ export default async function UsersPage() {
   // all users as "Pending" rather than breaking the page entirely.
   const confirmedMap = new Map<string, string | null>()
   if (authUsersResult.error) {
-    console.error('Failed to fetch auth users:', authUsersResult.error)
+    const log = await getRequestLogger('admin-users-page')
+    log.error('users.auth_fetch_failed', { error: authUsersResult.error })
   } else if (authUsersResult.data?.users) {
     for (const authUser of authUsersResult.data.users) {
       confirmedMap.set(authUser.id, authUser.email_confirmed_at ?? null)

@@ -2,6 +2,8 @@
 
 import { revalidatePath } from 'next/cache'
 
+import { logger } from '@/lib/logger'
+import { withLogging } from '@/lib/logger.server'
 import { createClient } from '@/lib/supabase/server'
 import { sendFamilyNotification } from '@/lib/notifications'
 import { PaymentRejected } from '@/emails/payment-rejected'
@@ -21,6 +23,8 @@ type ActionState = {
   errors?: Record<string, string[]>
 }
 
+const log = logger.child({ scope: 'admin-payments' })
+
 async function requireAdmin(supabase: Awaited<ReturnType<typeof createClient>>) {
   const {
     data: { user },
@@ -39,7 +43,7 @@ async function requireAdmin(supabase: Awaited<ReturnType<typeof createClient>>) 
   return { user, error: null }
 }
 
-export async function assignEventCosts(
+async function assignEventCostsImpl(
   prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
@@ -48,7 +52,8 @@ export async function assignEventCosts(
   let chargesParsed: unknown
   try {
     chargesParsed = typeof chargesRaw === 'string' ? JSON.parse(chargesRaw) : []
-  } catch {
+  } catch (error) {
+    log.warn('event_charges.invalid_json', { error })
     return {
       success: false,
       message: 'Validation failed',
@@ -85,13 +90,13 @@ export async function assignEventCosts(
   const { error } = await supabase.from('event_charges').insert(rows)
 
   if (error) {
+    log.error('event_charges.insert_failed', { error })
     if (error.code === '23505') {
       return {
         success: false,
         message: 'One or more families already have a charge for this event',
       }
     }
-    console.error('[assignEventCosts] DB error:', error.message)
     return { success: false, message: 'Failed to assign event costs' }
   }
 
@@ -119,7 +124,7 @@ export async function assignEventCosts(
   return { success: true, message: `Assigned costs to ${parsed.data.charges.length} families` }
 }
 
-export async function recordPaymentReceived(
+async function recordPaymentReceivedImpl(
   prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
@@ -160,7 +165,7 @@ export async function recordPaymentReceived(
   })
 
   if (paymentError) {
-    console.error('[recordPaymentReceived] DB error:', paymentError.message)
+    log.error('payment.record_failed', { error: paymentError })
     return { success: false, message: 'Failed to record payment' }
   }
 
@@ -220,7 +225,7 @@ async function applyPaymentSideEffects(
       .eq('family_id', payment.family_id)
 
     if (error) {
-      console.error('[applyPaymentSideEffects] Failed to mark charge as paid:', error.message)
+      log.error('payment.event_charge_update_failed', { error })
       warning = ' (but failed to mark event charge as paid — please check manually)'
     }
   }
@@ -232,7 +237,7 @@ async function applyPaymentSideEffects(
       .eq('id', payment.related_share_id)
 
     if (error) {
-      console.error('[applyPaymentSideEffects] Failed to mark share as paid:', error.message)
+      log.error('payment.share_update_failed', { error })
       warning = ' (but failed to mark share as paid — please check manually)'
     }
   }
@@ -267,10 +272,7 @@ async function applyPaymentSideEffects(
         .eq('id', payment.family_id)
 
       if (error) {
-        console.error(
-          '[applyPaymentSideEffects] Failed to update membership expiry:',
-          error.message
-        )
+        log.error('payment.membership_expiry_update_failed', { error })
         warning = ' (but failed to update membership expiry — please check manually)'
       }
     } else {
@@ -305,7 +307,7 @@ function formatDate(dateString: string): string {
   })
 }
 
-export async function confirmPayment(
+async function confirmPaymentImpl(
   prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
@@ -333,6 +335,7 @@ export async function confirmPayment(
     .single()
 
   if (fetchError || !payment) {
+    if (fetchError) log.error('payment.lookup_failed', { error: fetchError })
     return { success: false, message: 'Payment not found' }
   }
 
@@ -351,7 +354,7 @@ export async function confirmPayment(
     .eq('id', payment.id)
 
   if (updateError) {
-    console.error('[confirmPayment] DB error:', updateError.message)
+    log.error('payment.confirm_failed', { error: updateError })
     return { success: false, message: 'Failed to confirm payment' }
   }
 
@@ -377,10 +380,7 @@ export async function confirmPayment(
 
 // ─── Reject Payment ──────────────────────────────────────────────────
 
-export async function rejectPayment(
-  prevState: ActionState,
-  formData: FormData
-): Promise<ActionState> {
+async function rejectPaymentImpl(prevState: ActionState, formData: FormData): Promise<ActionState> {
   const parsed = rejectPaymentSchema.safeParse({
     payment_id: formData.get('payment_id'),
     reason: formData.get('reason'),
@@ -406,6 +406,7 @@ export async function rejectPayment(
     .single()
 
   if (fetchError || !payment) {
+    if (fetchError) log.error('payment.lookup_failed', { error: fetchError })
     return { success: false, message: 'Payment not found' }
   }
 
@@ -423,7 +424,7 @@ export async function rejectPayment(
     .eq('id', payment.id)
 
   if (updateError) {
-    console.error('[rejectPayment] DB error:', updateError.message)
+    log.error('payment.reject_failed', { error: updateError })
     return { success: false, message: 'Failed to reject payment' }
   }
 
@@ -442,3 +443,8 @@ export async function rejectPayment(
   revalidatePath('/admin')
   return { success: true, message: 'Payment rejected and member notified' }
 }
+
+export const assignEventCosts = withLogging('assignEventCosts', assignEventCostsImpl)
+export const recordPaymentReceived = withLogging('recordPaymentReceived', recordPaymentReceivedImpl)
+export const confirmPayment = withLogging('confirmPayment', confirmPaymentImpl)
+export const rejectPayment = withLogging('rejectPayment', rejectPaymentImpl)

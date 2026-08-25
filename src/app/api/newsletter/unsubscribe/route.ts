@@ -1,9 +1,13 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
 
+import { logger } from '@/lib/logger'
+import { withRequestLogging } from '@/lib/logger.server'
 import { removeContactFromAudience } from '@/lib/resend'
 
-export async function GET(req: NextRequest) {
+const log = logger.child({ scope: 'newsletter-unsubscribe' })
+
+async function getImpl(req: NextRequest) {
   const token = req.nextUrl.searchParams.get('token')
 
   if (!token) {
@@ -27,6 +31,7 @@ export async function GET(req: NextRequest) {
     .single()
 
   if (error || !subscriber) {
+    if (error) log.warn('newsletter.unsubscribe_failed', { error })
     return NextResponse.redirect(new URL('/?unsubscribed=invalid', req.url))
   }
 
@@ -35,3 +40,5 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.redirect(new URL('/?unsubscribed=success', req.url))
 }
+
+export const GET = withRequestLogging('/api/newsletter/unsubscribe', getImpl)

@@ -1,9 +1,12 @@
 import { NextResponse } from 'next/server'
 
 import { checkDependencies } from '@/lib/health'
+import { logger } from '@/lib/logger'
+import { withRequestLogging } from '@/lib/logger.server'
 
 // Live reachability probe — never statically prerendered.
 export const dynamic = 'force-dynamic'
+const log = logger.child({ scope: 'health' })
 
 /**
  * Public health endpoint for external uptime monitoring (BetterStack).
@@ -24,10 +27,13 @@ export const dynamic = 'force-dynamic'
  *     200 and recovery is never delayed by a cached 503.
  * - No PII; dependency errors are swallowed into booleans.
  */
-export async function GET() {
+async function getImpl(_request: Request) {
+  void _request
   const start = Date.now()
   const { ok, db, cms, db_latency_ms, cms_latency_ms } = await checkDependencies()
   const latency_ms = Date.now() - start
+
+  if (!ok) log.warn('health.dependencies_unavailable', { db, cms, latencyMs: latency_ms })
 
   return NextResponse.json(
     { ok, db, cms, latency_ms, db_latency_ms, cms_latency_ms },
@@ -39,3 +45,5 @@ export async function GET() {
     }
   )
 }
+
+export const GET = withRequestLogging('/api/health', getImpl)

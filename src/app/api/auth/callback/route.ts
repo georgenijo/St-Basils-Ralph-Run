@@ -2,7 +2,12 @@ import { createServerClient } from '@supabase/ssr'
 import type { EmailOtpType } from '@supabase/supabase-js'
 import { NextResponse, type NextRequest } from 'next/server'
 
-export async function GET(request: NextRequest) {
+import { logger } from '@/lib/logger'
+import { withRequestLogging } from '@/lib/logger.server'
+
+const log = logger.child({ scope: 'auth-callback' })
+
+async function getImpl(request: NextRequest) {
   const code = request.nextUrl.searchParams.get('code')
   // token_hash is the server-side verification path used by our branded
   // invite/recovery emails (generateLink → verifyOtp). code is the PKCE/OAuth path.
@@ -57,6 +62,7 @@ export async function GET(request: NextRequest) {
     : await supabase.auth.exchangeCodeForSession(code!)
 
   if (error) {
+    log.warn('auth.callback_failed', { error, flowType: type ?? 'code' })
     const errorUrl = request.nextUrl.clone()
     errorUrl.pathname = '/login'
     errorUrl.search = ''
@@ -66,3 +72,5 @@ export async function GET(request: NextRequest) {
 
   return response
 }
+
+export const GET = withRequestLogging('/api/auth/callback', getImpl)

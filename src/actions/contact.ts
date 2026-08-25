@@ -5,6 +5,8 @@ import { sendEmail } from '@/lib/email'
 import { verifyTurnstile } from '@/lib/turnstile'
 import { contactSchema } from '@/lib/validators/contact'
 import { ContactNotification } from '@/emails/contact-notification'
+import { logger } from '@/lib/logger'
+import { withLogging } from '@/lib/logger.server'
 
 type ContactState = {
   success: boolean
@@ -12,7 +14,9 @@ type ContactState = {
   errors?: Record<string, string[]>
 }
 
-export async function submitContact(
+const log = logger.child({ scope: 'contact' })
+
+async function submitContactImpl(
   prevState: ContactState,
   formData: FormData
 ): Promise<ContactState> {
@@ -64,6 +68,7 @@ export async function submitContact(
   })
 
   if (emailError) {
+    log.error('contact.email_failed', { error: emailError })
     return { success: false, message: 'Failed to send message. Please try again.' }
   }
 
@@ -79,8 +84,10 @@ export async function submitContact(
   if (dbError) {
     // Email was sent successfully, so still return success to the user
     // but log the DB error server-side
-    console.error('Failed to store contact submission:', dbError)
+    log.error('contact.storage_failed', { error: dbError })
   }
 
   return { success: true, message: 'Message sent successfully. We will get back to you soon.' }
 }
+
+export const submitContact = withLogging('submitContact', submitContactImpl)

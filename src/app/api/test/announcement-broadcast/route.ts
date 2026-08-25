@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { AnnouncementBroadcast } from '@/emails/announcement-broadcast'
 import { sendEmail } from '@/lib/email'
 import { getSiteUrl } from '@/lib/site-url'
+import { logger } from '@/lib/logger'
+import { withRequestLogging } from '@/lib/logger.server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { renderTiptapHTML } from '@/lib/tiptap'
 import {
@@ -12,12 +14,13 @@ import {
 } from '@/lib/test-support'
 
 export const dynamic = 'force-dynamic'
+const log = logger.child({ scope: 'test-announcement-broadcast' })
 
 function notFoundResponse() {
   return NextResponse.json({ error: 'Not found' }, { status: 404 })
 }
 
-export async function POST(request: NextRequest) {
+async function postImpl(request: NextRequest) {
   if (
     !isTestSupportEnabled() ||
     !isMockEmailTransportEnabled() ||
@@ -39,6 +42,8 @@ export async function POST(request: NextRequest) {
     .single()
 
   if (announcementError || !announcement) {
+    if (announcementError)
+      log.error('test_broadcast.announcement_lookup_failed', { error: announcementError })
     return NextResponse.json({ error: 'Announcement not found' }, { status: 404 })
   }
 
@@ -56,6 +61,7 @@ export async function POST(request: NextRequest) {
     .is('unsubscribed_at', null)
 
   if (subscribersError) {
+    log.error('test_broadcast.subscribers_lookup_failed', { error: subscribersError })
     return NextResponse.json({ error: 'Failed to fetch subscribers' }, { status: 500 })
   }
 
@@ -86,6 +92,7 @@ export async function POST(request: NextRequest) {
     })
 
     if (error) {
+      log.error('test_broadcast.send_failed', { error, announcementId: announcement.id })
       return NextResponse.json({ error: 'Failed to send broadcast email' }, { status: 500 })
     }
   }
@@ -100,3 +107,5 @@ export async function POST(request: NextRequest) {
     announcementId: announcement.id,
   })
 }
+
+export const POST = withRequestLogging('/api/test/announcement-broadcast', postImpl)

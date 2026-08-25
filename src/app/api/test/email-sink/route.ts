@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 import { clearMockEmails, listMockEmails, storeMockEmail } from '@/lib/email-sink'
+import { withRequestLogging } from '@/lib/logger.server'
 import {
   isAuthorizedTestSupportRequest,
   isMockEmailTransportEnabled,
@@ -19,7 +20,7 @@ function isAuthorized(request: NextRequest): boolean {
   )
 }
 
-export async function GET(request: NextRequest) {
+async function getImpl(request: NextRequest) {
   if (!isAuthorized(request) || !isMockEmailTransportEnabled()) {
     return notFoundResponse()
   }
@@ -32,7 +33,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({ emails })
 }
 
-export async function POST(request: NextRequest) {
+async function postImpl(request: NextRequest) {
   if (!isAuthorized(request) || !isMockEmailTransportEnabled()) {
     return notFoundResponse()
   }
@@ -58,7 +59,7 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({ email: record }, { status: 201 })
 }
 
-export async function DELETE(request: NextRequest) {
+async function deleteImpl(request: NextRequest) {
   if (!isAuthorized(request) || !isMockEmailTransportEnabled()) {
     return notFoundResponse()
   }
@@ -66,3 +67,7 @@ export async function DELETE(request: NextRequest) {
   await clearMockEmails()
   return NextResponse.json({ cleared: true })
 }
+
+export const GET = withRequestLogging('/api/test/email-sink', getImpl)
+export const POST = withRequestLogging('/api/test/email-sink', postImpl)
+export const DELETE = withRequestLogging('/api/test/email-sink', deleteImpl)

@@ -2,6 +2,8 @@
 
 import { revalidatePath } from 'next/cache'
 
+import { logger } from '@/lib/logger'
+import { withLogging } from '@/lib/logger.server'
 import { createClient } from '@/lib/supabase/server'
 import { recordDonationSchema } from '@/lib/validators/member'
 
@@ -11,7 +13,9 @@ type ActionState = {
   errors?: Record<string, string[]>
 }
 
-export async function recordDonation(
+const log = logger.child({ scope: 'donations' })
+
+async function recordDonationImpl(
   prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
@@ -70,7 +74,7 @@ export async function recordDonation(
   })
 
   if (error) {
-    console.error('[recordDonation] DB insert failed:', error.code, error.message)
+    log.error('donation.insert_failed', { error })
     return { success: false, message: 'Failed to record donation' }
   }
 
@@ -78,3 +82,5 @@ export async function recordDonation(
   revalidatePath('/member')
   return { success: true, message: 'Donation recorded successfully' }
 }
+
+export const recordDonation = withLogging('recordDonation', recordDonationImpl)

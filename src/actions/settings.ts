@@ -2,6 +2,8 @@
 
 import { revalidatePath } from 'next/cache'
 
+import { logger } from '@/lib/logger'
+import { withLogging } from '@/lib/logger.server'
 import { createClient } from '@/lib/supabase/server'
 import { themeSettingsSchema, type ThemeSettings } from '@/lib/validators/settings'
 
@@ -26,7 +28,9 @@ const DEFAULT_SECTION_ORDER = [
   'contact',
 ]
 
-export async function getThemeSettings(): Promise<ThemeSettings> {
+const log = logger.child({ scope: 'settings' })
+
+async function getThemeSettingsImpl(): Promise<ThemeSettings> {
   const supabase = await createClient()
 
   const { data } = await supabase
@@ -45,7 +49,7 @@ export async function getThemeSettings(): Promise<ThemeSettings> {
   }
 }
 
-export async function updateThemeSettings(
+async function updateThemeSettingsImpl(
   prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
@@ -56,7 +60,8 @@ export async function updateThemeSettings(
   try {
     rawFonts = JSON.parse(formData.get('fonts') as string)
     rawSectionOrder = JSON.parse(formData.get('section_order') as string)
-  } catch {
+  } catch (error) {
+    log.warn('theme_settings.invalid_json', { error })
     return { success: false, message: 'Invalid JSON in form data' }
   }
 
@@ -95,6 +100,7 @@ export async function updateThemeSettings(
       .eq('id', existing.id)
 
     if (error) {
+      log.error('theme_settings.update_failed', { error })
       return { success: false, message: 'Failed to update settings' }
     }
   } else {
@@ -105,6 +111,7 @@ export async function updateThemeSettings(
     })
 
     if (error) {
+      log.error('theme_settings.insert_failed', { error })
       return { success: false, message: 'Failed to save settings' }
     }
   }
@@ -113,3 +120,6 @@ export async function updateThemeSettings(
   revalidatePath('/', 'layout')
   return { success: true, message: 'Theme settings saved successfully' }
 }
+
+export const getThemeSettings = withLogging('getThemeSettings', getThemeSettingsImpl)
+export const updateThemeSettings = withLogging('updateThemeSettings', updateThemeSettingsImpl)
