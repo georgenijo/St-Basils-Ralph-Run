@@ -11,17 +11,20 @@ import {
   sendPasswordReset,
   fetchUserAuditLog,
 } from '@/actions/users'
+import { assignUserToFamily, removeUserFromFamily } from '@/actions/admin-families'
 import type { AuditLogEntry } from '@/actions/users'
 import { Button } from '@/components/ui'
 import { UserActionDialog } from './UserActionDialog'
 
 import type { User } from '@/types/user'
+import type { FamilyOption } from '@/types/admin-family'
 
 // ─── Types ───────────────────────────────────────────────────────────
 
 interface UserDetailPanelProps {
   user: User | null
   currentUserId: string
+  families: FamilyOption[]
   onClose: () => void
 }
 
@@ -69,6 +72,14 @@ function describeAction(entry: AuditLogEntry): string {
       return 'reactivated this account'
     case 'user.password_reset':
       return 'sent a password reset email'
+    case 'family.assign_member':
+      return `assigned this user to ${entry.metadata.family_name ?? 'a family'}`
+    case 'family.remove_member':
+      return `removed this user from ${entry.metadata.family_name ?? 'a family'}`
+    case 'family.create':
+      return `created ${entry.metadata.family_name ?? 'a family'}`
+    case 'family.update':
+      return `updated ${entry.metadata.family_name ?? 'a family'}`
     default:
       return entry.action
   }
@@ -76,7 +87,7 @@ function describeAction(entry: AuditLogEntry): string {
 
 // ─── Component ───────────────────────────────────────────────────────
 
-export function UserDetailPanel({ user, currentUserId, onClose }: UserDetailPanelProps) {
+export function UserDetailPanel({ user, currentUserId, families, onClose }: UserDetailPanelProps) {
   const router = useRouter()
   const [auditLog, setAuditLog] = useState<AuditLogEntry[]>([])
   const [auditLoading, setAuditLoading] = useState(false)
@@ -278,8 +289,19 @@ export function UserDetailPanel({ user, currentUserId, onClose }: UserDetailPane
               <DetailRow label="Joined" value={formatDate(user.created_at)} />
               <DetailRow label="Last Updated" value={formatDate(user.updated_at)} />
               <DetailRow label="Invited By" value={invitedBy} />
+              <DetailRow
+                label="Family"
+                value={families.find((family) => family.id === user.family_id)?.family_name ?? '—'}
+              />
             </div>
           </div>
+
+          <UserFamilyControl
+            key={`${user.id}:${user.family_id ?? ''}`}
+            user={user}
+            families={families}
+            onSuccess={handleActionSuccess}
+          />
 
           {/* Activity / Audit log */}
           <div className="mt-5">
@@ -375,6 +397,103 @@ function DetailRow({ label, value }: { label: string; value: React.ReactNode }) 
     <div className="admin-setting-row">
       <span className="font-body text-sm text-wood-800/60">{label}</span>
       <span className="font-body text-sm font-medium text-wood-900">{value}</span>
+    </div>
+  )
+}
+
+function UserFamilyControl({
+  user,
+  families,
+  onSuccess,
+}: {
+  user: User
+  families: FamilyOption[]
+  onSuccess: () => void
+}) {
+  const [selectedFamilyId, setSelectedFamilyId] = useState(user.family_id ?? '')
+  const [assignState, assignAction, assignPending] = useActionState(assignUserToFamily, {
+    success: false,
+    message: '',
+  })
+  const [removeState, removeAction, removePending] = useActionState(removeUserFromFamily, {
+    success: false,
+    message: '',
+  })
+  const handledAssign = useRef(false)
+  const handledRemove = useRef(false)
+
+  useEffect(() => {
+    if (assignState.success && !handledAssign.current) {
+      handledAssign.current = true
+      onSuccess()
+    }
+  }, [assignState.success, onSuccess])
+
+  useEffect(() => {
+    if (removeState.success && !handledRemove.current) {
+      handledRemove.current = true
+      setSelectedFamilyId('')
+      onSuccess()
+    }
+  }, [removeState.success, onSuccess])
+
+  const message = assignState.message || removeState.message
+  const success = assignState.success || removeState.success
+
+  return (
+    <div className="mt-5">
+      <h3 className="mb-3 font-body text-xs font-semibold uppercase tracking-wider text-wood-800/50">
+        Family assignment
+      </h3>
+      <div className="admin-list p-4">
+        {message && (
+          <div className={success ? 'admin-status admin-status-ok' : 'admin-error'} role="status">
+            {message}
+          </div>
+        )}
+        <form action={assignAction} className="mt-3 flex flex-wrap items-end gap-2">
+          <input type="hidden" name="user_id" value={user.id} />
+          <div className="admin-field min-w-0 flex-1">
+            <label htmlFor={`user-family-${user.id}`}>Family</label>
+            <select
+              id={`user-family-${user.id}`}
+              name="family_id"
+              required
+              value={selectedFamilyId}
+              onChange={(event) => setSelectedFamilyId(event.target.value)}
+            >
+              <option value="">Select a family...</option>
+              {families.map((family) => (
+                <option key={family.id} value={family.id}>
+                  {family.family_name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <button
+            type="submit"
+            disabled={
+              assignPending || !selectedFamilyId || selectedFamilyId === (user.family_id ?? '')
+            }
+            className="admin-button admin-button-primary"
+          >
+            {assignPending ? 'Saving...' : user.family_id ? 'Reassign' : 'Assign'}
+          </button>
+        </form>
+        {user.family_id && (
+          <form action={removeAction} className="mt-2">
+            <input type="hidden" name="user_id" value={user.id} />
+            <input type="hidden" name="family_id" value={user.family_id} />
+            <button
+              type="submit"
+              disabled={removePending}
+              className="admin-button admin-button-quiet"
+            >
+              {removePending ? 'Removing...' : 'Remove from family'}
+            </button>
+          </form>
+        )}
+      </div>
     </div>
   )
 }

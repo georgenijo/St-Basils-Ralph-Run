@@ -7,6 +7,10 @@ export const inviteUserSchema = z.object({
     .min(1, 'Full name is required')
     .max(200, 'Full name must be 200 characters or less'),
   role: z.enum(['admin', 'member'], { message: 'Role must be "admin" or "member"' }),
+  family_id: z
+    .union([z.string().uuid('Invalid family ID'), z.literal(''), z.null(), z.undefined()])
+    .optional()
+    .transform((value) => value || null),
   newsletter_opt_in: z
     .union([z.literal('on'), z.literal('true'), z.literal(''), z.null(), z.undefined()])
     .optional()

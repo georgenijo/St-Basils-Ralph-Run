@@ -5,14 +5,21 @@ import { useEffect, useState } from 'react'
 import { UsersTable } from '@/components/features/UsersTable'
 import { UserDetailPanel } from '@/components/features/UserDetailPanel'
 import type { User } from '@/types/user'
+import type { FamilyOption } from '@/types/admin-family'
 
 interface UsersPageClientProps {
   users: User[]
   currentUserId: string
   subscribedEmails?: Set<string>
+  families: FamilyOption[]
 }
 
-export function UsersPageClient({ users, currentUserId, subscribedEmails }: UsersPageClientProps) {
+export function UsersPageClient({
+  users,
+  currentUserId,
+  subscribedEmails,
+  families,
+}: UsersPageClientProps) {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
 
   // Derive selected user from the fresh server data so it stays in sync after actions
@@ -37,6 +44,7 @@ export function UsersPageClient({ users, currentUserId, subscribedEmails }: User
       <UserDetailPanel
         user={selectedUser}
         currentUserId={currentUserId}
+        families={families}
         onClose={() => setSelectedUserId(null)}
       />
     </>

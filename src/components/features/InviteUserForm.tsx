@@ -5,6 +5,7 @@ import { useActionState, useEffect } from 'react'
 import { inviteUser } from '@/actions/users'
 import { Button } from '@/components/ui'
 import { cn } from '@/lib/utils'
+import type { FamilyOption } from '@/types/admin-family'
 
 const ROLES = [
   { value: 'member', label: 'Member' },
@@ -29,7 +30,7 @@ function FieldError({ id, errors }: { id: string; errors?: string[] }) {
   )
 }
 
-export function InviteUserForm() {
+export function InviteUserForm({ families }: { families: FamilyOption[] }) {
   const [state, formAction, isPending] = useActionState(inviteUser, initialState)
 
   // Redirect on success
@@ -108,6 +109,35 @@ export function InviteUserForm() {
           ))}
         </select>
         <FieldError id="role-error" errors={state.errors?.role} />
+      </div>
+
+      {/* Optional family assignment */}
+      <div>
+        <label
+          htmlFor="family_id"
+          className="mb-1.5 block font-body text-sm font-medium text-wood-900"
+        >
+          Family
+        </label>
+        <select
+          id="family_id"
+          name="family_id"
+          defaultValue=""
+          aria-invalid={Boolean(state.errors?.family_id)}
+          aria-describedby={state.errors?.family_id ? 'family-error' : undefined}
+          className={cn(inputBase, state.errors?.family_id && 'border-red-400')}
+        >
+          <option value="">No family yet</option>
+          {families.map((family) => (
+            <option key={family.id} value={family.id}>
+              {family.family_name}
+            </option>
+          ))}
+        </select>
+        <FieldError id="family-error" errors={state.errors?.family_id} />
+        <p className="mt-1.5 font-body text-xs text-wood-800/60">
+          Optional. You can assign or change the family later.
+        </p>
       </div>
 
       {/* Newsletter opt-in */}

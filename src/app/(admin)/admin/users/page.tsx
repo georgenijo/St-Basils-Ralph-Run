@@ -20,6 +20,7 @@ async function fetchAllProfiles(supabase: SupabaseClient) {
     full_name: string | null
     role: string
     is_active: boolean
+    family_id: string | null
     created_at: string
     updated_at: string
   }[] = []
@@ -27,7 +28,7 @@ async function fetchAllProfiles(supabase: SupabaseClient) {
   for (let from = 0; ; from += DATA_PAGE_SIZE) {
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, email, full_name, role, is_active, created_at, updated_at')
+      .select('id, email, full_name, role, is_active, family_id, created_at, updated_at')
       .order('created_at', { ascending: false })
       .range(from, from + DATA_PAGE_SIZE - 1)
 
@@ -54,16 +55,34 @@ async function fetchAllActiveSubscriberEmails(supabase: SupabaseClient) {
   }
 }
 
+async function fetchAllFamilies(supabase: SupabaseClient) {
+  const rows: { id: string; family_name: string }[] = []
+
+  for (let from = 0; ; from += DATA_PAGE_SIZE) {
+    const { data, error } = await supabase
+      .from('families')
+      .select('id, family_name')
+      .order('family_name', { ascending: true })
+      .range(from, from + DATA_PAGE_SIZE - 1)
+
+    if (error) return { data: rows, error }
+    rows.push(...(data ?? []))
+    if ((data?.length ?? 0) < DATA_PAGE_SIZE) return { data: rows, error: null }
+  }
+}
+
 export default async function UsersPage() {
   // Warm-pooled, RLS-enforced read client — see getDataClient() in lib/supabase/auth.
   const supabase = await getDataClient()
 
-  const [{ user }, profilesResult, authUsersResult, subscribersResult] = await Promise.all([
-    getAuthWithProfile(),
-    fetchAllProfiles(supabase),
-    listAllAuthUsers(),
-    fetchAllActiveSubscriberEmails(supabase),
-  ])
+  const [{ user }, profilesResult, authUsersResult, subscribersResult, familiesResult] =
+    await Promise.all([
+      getAuthWithProfile(),
+      fetchAllProfiles(supabase),
+      listAllAuthUsers(),
+      fetchAllActiveSubscriberEmails(supabase),
+      fetchAllFamilies(supabase),
+    ])
 
   const subscribedEmails = new Set(
     (subscribersResult.data ?? [])
@@ -144,6 +163,7 @@ export default async function UsersPage() {
         users={all}
         currentUserId={user?.id ?? ''}
         subscribedEmails={subscribedEmails}
+        families={familiesResult.data ?? []}
       />
     </main>
   )
