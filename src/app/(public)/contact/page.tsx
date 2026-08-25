@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 
+import { formatChurchPhone, getChurchPhoneTelHref } from '@/lib/site-config'
 import { breadcrumbSchema } from '@/lib/structured-data'
 import { PageHero, SectionHeader, Card, JsonLd } from '@/components/ui'
 import { ScrollReveal } from '@/components/ui/ScrollReveal'
@@ -9,13 +10,16 @@ import { LazyMap } from '@/components/features/LazyMap'
 export const metadata: Metadata = {
   title: 'Contact Us',
   description:
-    "Get in touch with St. Basil's Syriac Orthodox Church in Boston. Reach us by phone, email, or visit us at 73 Ellis Street, Newton, MA 02464.",
+    "Get in touch with St. Basil's Syriac Orthodox Church in Boston. Email us or visit us at 73 Ellis Street, Newton, MA 02464.",
   openGraph: {
     title: "Contact Us | St. Basil's Syriac Orthodox Church",
     description:
-      "Get in touch with St. Basil's Syriac Orthodox Church in Boston. Reach us by phone, email, or visit us.",
+      "Get in touch with St. Basil's Syriac Orthodox Church in Boston. Email us or visit us in Newton, Massachusetts.",
   },
 }
+
+const formattedChurchPhone = formatChurchPhone()
+const churchPhoneTelHref = getChurchPhoneTelHref()
 
 const contactInfo = [
   {
@@ -39,26 +43,30 @@ const contactInfo = [
       </svg>
     ),
   },
-  {
-    title: 'Call Us',
-    detail: '(617) 244-0608',
-    href: 'tel:+16172440608',
-    linkLabel: 'Call Now',
-    icon: (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="h-7 w-7"
-      >
-        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-      </svg>
-    ),
-  },
+  ...(formattedChurchPhone && churchPhoneTelHref
+    ? [
+        {
+          title: 'Call Us',
+          detail: formattedChurchPhone,
+          href: churchPhoneTelHref,
+          linkLabel: 'Call Now',
+          icon: (
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="h-7 w-7"
+            >
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+            </svg>
+          ),
+        },
+      ]
+    : []),
   {
     title: 'Email Us',
     detail: 'info@stbasilsboston.org',
@@ -99,7 +107,9 @@ export default function ContactPage() {
               />
             </ScrollReveal>
 
-            <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div
+              className={`mt-12 grid gap-6 sm:grid-cols-2 ${formattedChurchPhone ? 'lg:grid-cols-3' : ''}`}
+            >
               {contactInfo.map((info, i) => (
                 <ScrollReveal key={info.title} delay={i * 0.12}>
                   <Card className="h-full text-center transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg">
