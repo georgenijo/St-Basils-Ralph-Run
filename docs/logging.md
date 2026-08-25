@@ -61,10 +61,24 @@ Set these server-only variables in Vercel Production and Preview:
 LOG_DRAIN=axiom
 AXIOM_DATASET=st-basils-logs
 AXIOM_TOKEN=<ingest-only token>
+AXIOM_QUERY_TOKEN=<query-read-only token>
 ```
 
-Create a dataset and an ingest-only token in Axiom first. If any variable is missing, the app silently
-continues with structured stdout. Never prefix the token with `NEXT_PUBLIC_`.
+Create a dataset, a basic ingest token, and an advanced token whose only permission is Query → Read
+for that dataset. `AXIOM_TOKEN` is used only by the log transport; `AXIOM_QUERY_TOKEN` is used only by
+the admin viewer. If the ingest variables are missing, the app silently continues with structured
+stdout. Never prefix either token with `NEXT_PUBLIC_`.
+
+## Admin log viewer
+
+Administrators can open **Admin → Logs** at `/admin/logs`. The page queries Axiom only from the
+server and supports severity, time-range, text/request-ID filters, and stable timestamp pagination.
+It projects an explicit allowlist of operational fields, re-runs redaction on returned values, and
+never exposes either Axiom token to the browser.
+
+When the Axiom variables are not configured, the page shows setup instructions rather than an empty
+or misleading log table. After adding or rotating the variables in Vercel, redeploy the application
+and verify that a new event appears in the viewer.
 
 Axiom was selected over a second application database and a full APM SDK because it accepts the
 existing JSON records over HTTP, supports email notifiers/monitors, needs no Node stream/worker
