@@ -25,6 +25,7 @@ test.describe('Admin auth guard @smoke', () => {
     '/admin/events',
     '/admin/announcements',
     '/admin/health',
+    '/admin/logs',
   ]
 
   for (const route of PROTECTED_ROUTES) {

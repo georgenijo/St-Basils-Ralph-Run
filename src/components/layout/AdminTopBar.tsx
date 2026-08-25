@@ -40,6 +40,7 @@ function getSectionName(pathname: string): string {
   if (pathname.startsWith('/admin/payments')) return 'Payments'
   if (pathname.startsWith('/admin/settings')) return 'Settings'
   if (pathname.startsWith('/admin/shares')) return 'Shares'
+  if (pathname.startsWith('/admin/logs')) return 'Application logs'
   if (pathname.startsWith('/admin/health')) return 'System status'
   if (pathname.startsWith('/admin/users')) return 'Users'
   if (pathname.startsWith('/admin/events')) return 'Events'
