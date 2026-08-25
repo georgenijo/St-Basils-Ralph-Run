@@ -21,6 +21,7 @@ vi.mock('@/lib/supabase/server', () => ({
 
 const mockAdminFrom = vi.fn()
 const mockGenerateLink = vi.fn()
+const mockDeleteUser = vi.fn()
 const mockGetUserById = vi.fn()
 const mockResetPasswordForEmail = vi.fn()
 const mockAdminUpdate = vi.fn()
@@ -29,7 +30,11 @@ const mockAdminEq = vi.fn()
 vi.mock('@/lib/supabase/admin', () => ({
   createAdminClient: vi.fn(() => ({
     auth: {
-      admin: { generateLink: mockGenerateLink, getUserById: mockGetUserById },
+      admin: {
+        generateLink: mockGenerateLink,
+        deleteUser: mockDeleteUser,
+        getUserById: mockGetUserById,
+      },
       resetPasswordForEmail: mockResetPasswordForEmail,
     },
     from: mockAdminFrom,
@@ -105,12 +110,19 @@ function mockAuthenticatedAdmin() {
   })
 }
 
+function mockFamilyLookup(data: { id: string } | null, error: unknown = null) {
+  mockSingle.mockResolvedValue({ data, error })
+  mockEq.mockReturnValue({ single: mockSingle })
+  mockSelect.mockReturnValue({ eq: mockEq })
+}
+
 // --- Tests ---
 
 describe('inviteUser', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockSendInviteEmail.mockResolvedValue({ data: {}, error: null })
+    mockDeleteUser.mockResolvedValue({ data: {}, error: null })
   })
 
   it('returns validation errors for invalid input', async () => {
@@ -245,6 +257,7 @@ describe('inviteUser', () => {
   it('assigns an invited member to the selected family', async () => {
     const familyId = '550e8400-e29b-41d4-a716-446655440010'
     mockAuthenticatedAdmin()
+    mockFamilyLookup({ id: familyId })
     mockGenerateLink.mockResolvedValue(LINK_SUCCESS)
     mockAdminEq.mockResolvedValue({ error: null })
     mockAdminUpdate.mockReturnValue({ eq: mockAdminEq })
@@ -264,9 +277,33 @@ describe('inviteUser', () => {
     expect(mockAdminEq).toHaveBeenCalledWith('id', TARGET_ID)
   })
 
-  it('reports when an invited member could not be assigned to a family', async () => {
+  it('rejects a nonexistent family before creating the auth user', async () => {
     const familyId = '550e8400-e29b-41d4-a716-446655440010'
     mockAuthenticatedAdmin()
+    mockFamilyLookup(null, { message: 'not found' })
+
+    const fd = makeFormData({
+      email: 'member@example.com',
+      full_name: 'Family Member',
+      role: 'member',
+      family_id: familyId,
+    })
+    const result = await inviteUser(INITIAL_STATE, fd)
+
+    expect(result).toEqual({
+      success: false,
+      message: 'Selected family was not found',
+      errors: { family_id: ['Choose an existing family'] },
+    })
+    expect(mockGenerateLink).not.toHaveBeenCalled()
+    expect(mockAdminFrom).not.toHaveBeenCalled()
+    expect(mockDeleteUser).not.toHaveBeenCalled()
+  })
+
+  it('deletes the new auth user when family assignment loses a validation race', async () => {
+    const familyId = '550e8400-e29b-41d4-a716-446655440010'
+    mockAuthenticatedAdmin()
+    mockFamilyLookup({ id: familyId })
     mockGenerateLink.mockResolvedValue(LINK_SUCCESS)
     mockAdminEq.mockResolvedValue({ error: { message: 'foreign key violation' } })
     mockAdminUpdate.mockReturnValue({ eq: mockAdminEq })
@@ -280,10 +317,41 @@ describe('inviteUser', () => {
     })
     const result = await inviteUser(INITIAL_STATE, fd)
 
+    expect(mockGenerateLink).toHaveBeenCalled()
+    expect(mockDeleteUser).toHaveBeenCalledWith(TARGET_ID)
     expect(result).toEqual({
       success: false,
-      message: 'User invited but failed to assign family',
+      message:
+        'Invitation could not be completed while applying the selected family. Please check the Users list before retrying.',
     })
+  })
+
+  it('does not expose rollback failure details after a profile update race', async () => {
+    const familyId = '550e8400-e29b-41d4-a716-446655440010'
+    mockAuthenticatedAdmin()
+    mockFamilyLookup({ id: familyId })
+    mockGenerateLink.mockResolvedValue(LINK_SUCCESS)
+    mockAdminEq.mockResolvedValue({ error: { message: 'foreign key violation' } })
+    mockAdminUpdate.mockReturnValue({ eq: mockAdminEq })
+    mockAdminFrom.mockReturnValue({ update: mockAdminUpdate })
+    mockDeleteUser.mockResolvedValue({
+      data: null,
+      error: { message: 'sensitive cleanup failure detail' },
+    })
+
+    const result = await inviteUser(
+      INITIAL_STATE,
+      makeFormData({
+        email: 'member@example.com',
+        full_name: 'Family Member',
+        role: 'member',
+        family_id: familyId,
+      })
+    )
+
+    expect(mockDeleteUser).toHaveBeenCalledWith(TARGET_ID)
+    expect(result.success).toBe(false)
+    expect(result.message).not.toContain('sensitive cleanup failure detail')
   })
 
   it('returns error when admin role update fails', async () => {
@@ -297,7 +365,10 @@ describe('inviteUser', () => {
     const result = await inviteUser(INITIAL_STATE, fd)
 
     expect(result.success).toBe(false)
-    expect(result.message).toBe('User invited but failed to set admin role')
+    expect(mockDeleteUser).toHaveBeenCalledWith(TARGET_ID)
+    expect(result.message).toBe(
+      'Invitation could not be completed while applying the admin role. Please check the Users list before retrying.'
+    )
   })
 })
 

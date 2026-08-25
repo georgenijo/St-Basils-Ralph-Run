@@ -25,6 +25,20 @@ function inviteActionUrl(hashedToken: string, type: 'invite' | 'recovery'): stri
   return `${base}/api/auth/callback?${params.toString()}`
 }
 
+async function rollbackInvitedUser(
+  adminClient: ReturnType<typeof createAdminClient>,
+  userId: string
+): Promise<void> {
+  try {
+    const { error } = await adminClient.auth.admin.deleteUser(userId)
+    if (error) {
+      log.error('user.invite_rollback_failed', { error, targetUserId: userId })
+    }
+  } catch (error) {
+    log.error('user.invite_rollback_failed', { error, targetUserId: userId })
+  }
+}
+
 async function inviteUserImpl(prevState: ActionState, formData: FormData): Promise<ActionState> {
   // 1. Validate with Zod
   const parsed = inviteUserSchema.safeParse({
@@ -63,7 +77,32 @@ async function inviteUserImpl(prevState: ActionState, formData: FormData): Promi
 
   const inviterName = profile?.full_name || user.email || "St. Basil's Boston"
 
-  // 4. Create the user + generate the invite token WITHOUT sending Supabase's
+  // 4. Prove the optional family is visible to this authenticated admin before
+  //    creating an auth user. This prevents a forged/stale family UUID from
+  //    leaving behind an unusable pending account.
+  if (parsed.data.family_id) {
+    const { data: family, error: familyError } = await supabase
+      .from('families')
+      .select('id')
+      .eq('id', parsed.data.family_id)
+      .single()
+
+    if (familyError || !family) {
+      if (familyError) {
+        log.error('user.invite_family_lookup_failed', {
+          error: familyError,
+          familyId: parsed.data.family_id,
+        })
+      }
+      return {
+        success: false,
+        message: 'Selected family was not found',
+        errors: { family_id: ['Choose an existing family'] },
+      }
+    }
+  }
+
+  // 5. Create the user + generate the invite token WITHOUT sending Supabase's
   //    default mailer, then send our own branded email via Resend. We build the
   //    link from the hashed_token (verified server-side via verifyOtp in the auth
   //    callback) rather than properties.action_link — action_link points at
@@ -95,35 +134,44 @@ async function inviteUserImpl(prevState: ActionState, formData: FormData): Promi
   const hashedToken = linkData.properties?.hashed_token
   if (!newUserId || !hashedToken) {
     log.error('user.invite_link_incomplete', { hasUserId: !!newUserId, hasToken: !!hashedToken })
+    if (newUserId) await rollbackInvitedUser(adminClient, newUserId)
     return { success: false, message: 'Failed to invite user' }
   }
   const actionUrl = inviteActionUrl(hashedToken, 'invite')
 
-  // 5. Apply non-default profile fields. handle_new_user defaults the role to
+  // 6. Apply non-default profile fields. handle_new_user defaults the role to
   //    member; the admin client is already required here for invited-user setup.
   const profileUpdates: { role?: 'admin'; family_id?: string } = {}
   if (parsed.data.role === 'admin') profileUpdates.role = 'admin'
   if (parsed.data.family_id) profileUpdates.family_id = parsed.data.family_id
 
   if (Object.keys(profileUpdates).length > 0) {
-    const { error: roleError } = await adminClient
+    const { error: profileError } = await adminClient
       .from('profiles')
       .update(profileUpdates)
       .eq('id', newUserId)
 
-    if (roleError) {
-      log.error('user.invite_profile_update_failed', { error: roleError, targetUserId: newUserId })
+    if (profileError) {
+      log.error('user.invite_profile_update_failed', {
+        error: profileError,
+        targetUserId: newUserId,
+      })
+      await rollbackInvitedUser(adminClient, newUserId)
+
+      const failedSetting =
+        parsed.data.role === 'admin' && parsed.data.family_id
+          ? 'the selected role and family'
+          : parsed.data.role === 'admin'
+            ? 'the admin role'
+            : 'the selected family'
       return {
         success: false,
-        message:
-          parsed.data.role === 'admin'
-            ? 'User invited but failed to set admin role'
-            : 'User invited but failed to assign family',
+        message: `Invitation could not be completed while applying ${failedSetting}. Please check the Users list before retrying.`,
       }
     }
   }
 
-  // 6. Auto-subscribe to newsletter if opted in. ignoreDuplicates preserves
+  // 7. Auto-subscribe to newsletter if opted in. ignoreDuplicates preserves
   //    any prior unsubscribe / confirmation state on an existing row.
   if (parsed.data.newsletter_opt_in) {
     const { error: newsletterError } = await adminClient.from('email_subscribers').upsert(
@@ -142,7 +190,7 @@ async function inviteUserImpl(prevState: ActionState, formData: FormData): Promi
     }
   }
 
-  // 7. Send the branded invite email via Resend. Non-fatal: the user already
+  // 8. Send the branded invite email via Resend. Non-fatal: the user already
   //    exists, so on failure report it and let the admin resend rather than
   //    leaving the account in a half-created state.
   let inviteEmailError: unknown = null
@@ -159,7 +207,7 @@ async function inviteUserImpl(prevState: ActionState, formData: FormData): Promi
     inviteEmailError = error
   }
 
-  // 8. Write audit log (authenticated client — RLS enforces admin-only inserts)
+  // 9. Write audit log (authenticated client — RLS enforces admin-only inserts)
   const { error: auditError } = await supabase.from('admin_audit_log').insert({
     actor_id: user.id,
     action: 'user.invite',
@@ -175,7 +223,7 @@ async function inviteUserImpl(prevState: ActionState, formData: FormData): Promi
   if (auditError)
     log.error('audit.user_invite_failed', { error: auditError, targetUserId: newUserId })
 
-  // 9. Revalidate and return
+  // 10. Revalidate and return
   revalidatePath('/admin/users')
   revalidatePath('/admin/families')
   revalidatePath('/admin/subscribers')

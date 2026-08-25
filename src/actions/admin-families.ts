@@ -263,7 +263,7 @@ async function assignUserToFamilyImpl(
           siteUrl: getSiteUrl(),
         }),
         metadata: {
-          kind: 'family-linked',
+          template: 'family-linked',
           user_id: parsed.data.user_id,
           family_id: parsed.data.family_id,
         },

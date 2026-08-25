@@ -316,6 +316,11 @@ describe('assignUserToFamily', () => {
       expect.objectContaining({
         to: 'member@example.com',
         subject: 'Your account was linked to the Thomas Family family',
+        metadata: {
+          template: 'family-linked',
+          user_id: USER_ID,
+          family_id: FAMILY_ID,
+        },
       })
     )
   })
