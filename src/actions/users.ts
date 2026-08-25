@@ -134,7 +134,14 @@ async function inviteUserImpl(prevState: ActionState, formData: FormData): Promi
   const hashedToken = linkData.properties?.hashed_token
   if (!newUserId || !hashedToken) {
     log.error('user.invite_link_incomplete', { hasUserId: !!newUserId, hasToken: !!hashedToken })
-    if (newUserId) await rollbackInvitedUser(adminClient, newUserId)
+    if (newUserId) {
+      await rollbackInvitedUser(adminClient, newUserId)
+      return {
+        success: false,
+        message:
+          'Invitation link was unavailable after account creation. Please check the Users list before retrying.',
+      }
+    }
     return { success: false, message: 'Failed to invite user' }
   }
   const actionUrl = inviteActionUrl(hashedToken, 'invite')

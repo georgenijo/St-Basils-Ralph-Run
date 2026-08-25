@@ -190,6 +190,33 @@ describe('inviteUser', () => {
     expect(result.message).toBe('Failed to invite user')
   })
 
+  it('compensates and gives redacted recovery guidance when invite link data is missing', async () => {
+    mockAuthenticatedAdmin()
+    mockGenerateLink.mockResolvedValue({
+      data: { user: { id: TARGET_ID }, properties: null },
+      error: null,
+    })
+    mockDeleteUser.mockResolvedValue({
+      data: null,
+      error: { message: 'sensitive cleanup failure detail' },
+    })
+
+    const result = await inviteUser(
+      INITIAL_STATE,
+      makeFormData({ email: 'new@example.com', full_name: 'New User', role: 'member' })
+    )
+
+    expect(mockDeleteUser).toHaveBeenCalledWith(TARGET_ID)
+    expect(mockSendInviteEmail).not.toHaveBeenCalled()
+    expect(mockInsert).not.toHaveBeenCalled()
+    expect(result).toEqual({
+      success: false,
+      message:
+        'Invitation link was unavailable after account creation. Please check the Users list before retrying.',
+    })
+    expect(result.message).not.toContain('sensitive cleanup failure detail')
+  })
+
   it('invites a member successfully and sends the branded email', async () => {
     mockAuthenticatedAdmin()
     mockGenerateLink.mockResolvedValue(LINK_SUCCESS)
