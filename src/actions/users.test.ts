@@ -242,6 +242,50 @@ describe('inviteUser', () => {
     expect(mockAdminFrom).toHaveBeenCalledWith('profiles')
   })
 
+  it('assigns an invited member to the selected family', async () => {
+    const familyId = '550e8400-e29b-41d4-a716-446655440010'
+    mockAuthenticatedAdmin()
+    mockGenerateLink.mockResolvedValue(LINK_SUCCESS)
+    mockAdminEq.mockResolvedValue({ error: null })
+    mockAdminUpdate.mockReturnValue({ eq: mockAdminEq })
+    mockAdminFrom.mockReturnValue({ update: mockAdminUpdate })
+    mockInsert.mockResolvedValue({ error: null })
+
+    const fd = makeFormData({
+      email: 'member@example.com',
+      full_name: 'Family Member',
+      role: 'member',
+      family_id: familyId,
+    })
+    const result = await inviteUser(INITIAL_STATE, fd)
+
+    expect(result.success).toBe(true)
+    expect(mockAdminUpdate).toHaveBeenCalledWith({ family_id: familyId })
+    expect(mockAdminEq).toHaveBeenCalledWith('id', TARGET_ID)
+  })
+
+  it('reports when an invited member could not be assigned to a family', async () => {
+    const familyId = '550e8400-e29b-41d4-a716-446655440010'
+    mockAuthenticatedAdmin()
+    mockGenerateLink.mockResolvedValue(LINK_SUCCESS)
+    mockAdminEq.mockResolvedValue({ error: { message: 'foreign key violation' } })
+    mockAdminUpdate.mockReturnValue({ eq: mockAdminEq })
+    mockAdminFrom.mockReturnValue({ update: mockAdminUpdate })
+
+    const fd = makeFormData({
+      email: 'member@example.com',
+      full_name: 'Family Member',
+      role: 'member',
+      family_id: familyId,
+    })
+    const result = await inviteUser(INITIAL_STATE, fd)
+
+    expect(result).toEqual({
+      success: false,
+      message: 'User invited but failed to assign family',
+    })
+  })
+
   it('returns error when admin role update fails', async () => {
     mockAuthenticatedAdmin()
     mockGenerateLink.mockResolvedValue(LINK_SUCCESS)

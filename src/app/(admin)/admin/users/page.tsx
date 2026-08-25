@@ -16,19 +16,21 @@ export default async function UsersPage() {
 
   // perPage: 1000 — single-page fetch is fine for a parish-sized user base.
   // If the church ever exceeds 1000 users, paginate with the page param.
-  const [{ user }, profilesResult, authUsersResult, subscribersResult] = await Promise.all([
-    getAuthWithProfile(),
-    supabase
-      .from('profiles')
-      .select('id, email, full_name, role, is_active, created_at, updated_at')
-      .order('created_at', { ascending: false }),
-    createAdminClient().auth.admin.listUsers({ perPage: 1000 }),
-    supabase
-      .from('email_subscribers')
-      .select('email')
-      .eq('confirmed', true)
-      .is('unsubscribed_at', null),
-  ])
+  const [{ user }, profilesResult, authUsersResult, subscribersResult, familiesResult] =
+    await Promise.all([
+      getAuthWithProfile(),
+      supabase
+        .from('profiles')
+        .select('id, email, full_name, role, is_active, family_id, created_at, updated_at')
+        .order('created_at', { ascending: false }),
+      createAdminClient().auth.admin.listUsers({ perPage: 1000 }),
+      supabase
+        .from('email_subscribers')
+        .select('email')
+        .eq('confirmed', true)
+        .is('unsubscribed_at', null),
+      supabase.from('families').select('id, family_name').order('family_name', { ascending: true }),
+    ])
 
   const subscribedEmails = new Set(
     (subscribersResult.data ?? [])
@@ -109,6 +111,7 @@ export default async function UsersPage() {
         users={all}
         currentUserId={user?.id ?? ''}
         subscribedEmails={subscribedEmails}
+        families={familiesResult.data ?? []}
       />
     </main>
   )

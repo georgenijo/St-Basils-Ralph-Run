@@ -31,6 +31,7 @@ async function inviteUserImpl(prevState: ActionState, formData: FormData): Promi
     email: formData.get('email'),
     full_name: formData.get('full_name'),
     role: formData.get('role'),
+    family_id: formData.get('family_id'),
     newsletter_opt_in: formData.get('newsletter_opt_in'),
   })
 
@@ -98,16 +99,27 @@ async function inviteUserImpl(prevState: ActionState, formData: FormData): Promi
   }
   const actionUrl = inviteActionUrl(hashedToken, 'invite')
 
-  // 5. If role is admin, update the profile (handle_new_user trigger defaults to "member")
-  if (parsed.data.role === 'admin') {
+  // 5. Apply non-default profile fields. handle_new_user defaults the role to
+  //    member; the admin client is already required here for invited-user setup.
+  const profileUpdates: { role?: 'admin'; family_id?: string } = {}
+  if (parsed.data.role === 'admin') profileUpdates.role = 'admin'
+  if (parsed.data.family_id) profileUpdates.family_id = parsed.data.family_id
+
+  if (Object.keys(profileUpdates).length > 0) {
     const { error: roleError } = await adminClient
       .from('profiles')
-      .update({ role: 'admin' })
+      .update(profileUpdates)
       .eq('id', newUserId)
 
     if (roleError) {
-      log.error('user.invite_role_update_failed', { error: roleError, targetUserId: newUserId })
-      return { success: false, message: 'User invited but failed to set admin role' }
+      log.error('user.invite_profile_update_failed', { error: roleError, targetUserId: newUserId })
+      return {
+        success: false,
+        message:
+          parsed.data.role === 'admin'
+            ? 'User invited but failed to set admin role'
+            : 'User invited but failed to assign family',
+      }
     }
   }
 
@@ -156,6 +168,7 @@ async function inviteUserImpl(prevState: ActionState, formData: FormData): Promi
       email: parsed.data.email,
       full_name: parsed.data.full_name,
       role: parsed.data.role,
+      family_id: parsed.data.family_id,
       newsletter_opt_in: parsed.data.newsletter_opt_in,
     },
   })
@@ -164,6 +177,7 @@ async function inviteUserImpl(prevState: ActionState, formData: FormData): Promi
 
   // 9. Revalidate and return
   revalidatePath('/admin/users')
+  revalidatePath('/admin/families')
   revalidatePath('/admin/subscribers')
 
   if (inviteEmailError) {

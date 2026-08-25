@@ -2,12 +2,19 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 
 import { InviteUserForm } from '@/components/features/InviteUserForm'
+import { getDataClient } from '@/lib/supabase/auth'
 
 export const metadata: Metadata = {
   title: 'Invite User',
 }
 
-export default function InviteUserPage() {
+export default async function InviteUserPage() {
+  const supabase = await getDataClient()
+  const { data: families } = await supabase
+    .from('families')
+    .select('id, family_name')
+    .order('family_name', { ascending: true })
+
   return (
     <main className="admin-page">
       <div className="mb-6">
@@ -32,7 +39,7 @@ export default function InviteUserPage() {
       </div>
 
       <div className="max-w-2xl">
-        <InviteUserForm />
+        <InviteUserForm families={families ?? []} />
       </div>
     </main>
   )
