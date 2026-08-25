@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 
-import { createClient } from '@/lib/supabase/server'
+import { getDataClient } from '@/lib/supabase/auth'
 import { PaymentsPageClient } from './PaymentsPageClient'
 import type { Payment } from '@/components/features/PaymentsTable'
 
@@ -9,42 +9,36 @@ export const metadata: Metadata = {
 }
 
 export default async function PaymentsPage() {
-  const supabase = await createClient()
+  // Warm-pooled, RLS-enforced read client — see getDataClient() in lib/supabase/auth.
+  const supabase = await getDataClient()
 
-  // Fetch payments with joined family, event, and share data
-  const [paymentsResult, pendingResult, familiesResult, eventsResult, sharesResult] =
-    await Promise.all([
-      supabase
-        .from('payments')
-        .select(
-          `
+  // Fetch payments with joined family, event, share, and recorder-profile data.
+  // The recorder's name is embedded via the payments_recorded_by_fkey FK so it
+  // costs no extra round trip, and the pending queue is derived from the main
+  // result below instead of a second payments query.
+  const [paymentsResult, familiesResult, eventsResult, sharesResult] = await Promise.all([
+    supabase
+      .from('payments')
+      .select(
+        `
         id, family_id, type, amount, method, note,
         recorded_by, related_event_id, related_share_id,
         created_at, status, reference_memo,
         families(family_name),
         events(title),
-        shares(person_name, year)
+        shares(person_name, year),
+        recorder:profiles!payments_recorded_by_fkey(full_name, email)
       `
-        )
-        .order('created_at', { ascending: false }),
-      supabase
-        .from('payments')
-        .select(
-          `
-        id, type, amount, method, reference_memo, created_at,
-        families(family_name)
-      `
-        )
-        .eq('status', 'pending')
-        .order('created_at', { ascending: true }),
-      supabase.from('families').select('id, family_name').order('family_name', { ascending: true }),
-      supabase.from('events').select('id, title').order('start_at', { ascending: false }),
-      supabase
-        .from('shares')
-        .select('id, family_id, person_name, year')
-        .eq('paid', false)
-        .order('year', { ascending: false }),
-    ])
+      )
+      .order('created_at', { ascending: false }),
+    supabase.from('families').select('id, family_name').order('family_name', { ascending: true }),
+    supabase.from('events').select('id, title').order('start_at', { ascending: false }),
+    supabase
+      .from('shares')
+      .select('id, family_id, person_name, year')
+      .eq('paid', false)
+      .order('year', { ascending: false }),
+  ])
 
   if (paymentsResult.error) {
     console.error('Failed to fetch payments:', paymentsResult.error)
@@ -56,32 +50,15 @@ export default async function PaymentsPage() {
     )
   }
 
-  // Build a map of recorded_by user IDs → display names
-  const recorderIds = [
-    ...new Set(
-      (paymentsResult.data ?? [])
-        .map((p) => p.recorded_by)
-        .filter((id): id is string => id !== null)
-    ),
-  ]
-
-  const recorderMap = new Map<string, string>()
-  if (recorderIds.length > 0) {
-    const { data: profiles } = await supabase
-      .from('profiles')
-      .select('id, full_name, email')
-      .in('id', recorderIds)
-
-    for (const p of profiles ?? []) {
-      recorderMap.set(p.id, p.full_name || p.email || 'Unknown')
-    }
-  }
-
   // Transform payments into the flat shape expected by PaymentsTable
   const payments: Payment[] = (paymentsResult.data ?? []).map((p) => {
     const family = p.families as unknown as { family_name: string } | null
     const event = p.events as unknown as { title: string } | null
     const share = p.shares as unknown as { person_name: string; year: number } | null
+    const recorder = p.recorder as unknown as {
+      full_name: string | null
+      email: string | null
+    } | null
 
     return {
       id: p.id,
@@ -97,25 +74,30 @@ export default async function PaymentsPage() {
       family_name: family?.family_name ?? null,
       event_title: event?.title ?? null,
       share_label: share ? `${share.person_name} (${share.year})` : null,
-      recorded_by_name: p.recorded_by ? (recorderMap.get(p.recorded_by) ?? null) : null,
+      recorded_by_name: p.recorded_by
+        ? recorder
+          ? recorder.full_name || recorder.email || 'Unknown'
+          : null
+        : null,
       status: (p.status ?? 'confirmed') as Payment['status'],
       reference_memo: p.reference_memo ?? null,
     }
   })
 
-  // Transform pending payments for the queue
-  const pendingPayments = (pendingResult.data ?? []).map((p) => {
-    const family = p.families as unknown as { family_name: string } | null
-    return {
+  // Derive the pending queue from the main result (oldest first) instead of a
+  // separate payments query — the main query already fetches every field.
+  const pendingPayments = payments
+    .filter((p) => p.status === 'pending')
+    .map((p) => ({
       id: p.id,
-      family_name: family?.family_name ?? null,
+      family_name: p.family_name,
       type: p.type,
       method: p.method,
       amount: p.amount,
       reference_memo: p.reference_memo,
       created_at: p.created_at,
-    }
-  })
+    }))
+    .reverse()
 
   return (
     <main className="admin-page">
