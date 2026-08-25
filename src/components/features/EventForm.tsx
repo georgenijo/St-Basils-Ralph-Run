@@ -133,15 +133,15 @@ export function EventForm({ event }: EventFormProps) {
 
       {/* Server error message */}
       {!state.success && state.message && !state.errors && (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3" role="alert">
-          <p className="font-body text-sm text-red-600">{state.message}</p>
+        <div className="admin-error" role="alert">
+          <p>{state.message}</p>
         </div>
       )}
 
       {/* Title */}
       <div>
         <label htmlFor="title" className="mb-1.5 block font-body text-sm font-medium text-wood-900">
-          Title <span className="text-burgundy-700">*</span>
+          Title <span className="admin-required">*</span>
         </label>
         <input
           type="text"
@@ -160,7 +160,7 @@ export function EventForm({ event }: EventFormProps) {
       {/* Slug */}
       <div>
         <label htmlFor="slug" className="mb-1.5 block font-body text-sm font-medium text-wood-900">
-          Slug <span className="text-burgundy-700">*</span>
+          Slug <span className="admin-required">*</span>
         </label>
         <div className="flex gap-2">
           <input
@@ -184,7 +184,7 @@ export function EventForm({ event }: EventFormProps) {
                 setSlugManual(false)
                 setSlug(slugify(title))
               }}
-              className="shrink-0 rounded-lg border border-wood-800/20 px-3 py-2 font-body text-xs text-wood-800/60 transition-colors hover:bg-cream-100"
+              className="admin-button admin-button-quiet shrink-0"
             >
               Auto
             </button>
@@ -199,7 +199,7 @@ export function EventForm({ event }: EventFormProps) {
           htmlFor="category"
           className="mb-1.5 block font-body text-sm font-medium text-wood-900"
         >
-          Category <span className="text-burgundy-700">*</span>
+          Category <span className="admin-required">*</span>
         </label>
         <select
           id="category"
@@ -259,7 +259,7 @@ export function EventForm({ event }: EventFormProps) {
             htmlFor="start_at"
             className="mb-1.5 block font-body text-sm font-medium text-wood-900"
           >
-            Start <span className="text-burgundy-700">*</span>
+            Start <span className="admin-required">*</span>
           </label>
           <input
             type="datetime-local"
@@ -300,17 +300,9 @@ export function EventForm({ event }: EventFormProps) {
           aria-checked={isRecurring}
           aria-label="Recurring event"
           onClick={() => setIsRecurring(!isRecurring)}
-          className={cn(
-            'relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy-700 focus-visible:ring-offset-2',
-            isRecurring ? 'bg-burgundy-700' : 'bg-wood-800/20'
-          )}
+          className="admin-switch"
         >
-          <span
-            className={cn(
-              'pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-sm transition-transform',
-              isRecurring ? 'translate-x-5' : 'translate-x-0'
-            )}
-          />
+          <span className="admin-switch-knob" />
         </button>
         <span className="font-body text-sm font-medium text-wood-900">Recurring event</span>
         <input type="hidden" name="is_recurring" value={isRecurring ? 'true' : 'false'} />
@@ -332,7 +324,7 @@ export function EventForm({ event }: EventFormProps) {
       )}
 
       {/* RSVP Settings */}
-      <div className="space-y-4 rounded-lg border border-wood-800/10 p-4">
+      <div className="admin-form-section space-y-4">
         <div className="flex items-center gap-3">
           <button
             type="button"
@@ -340,17 +332,9 @@ export function EventForm({ event }: EventFormProps) {
             aria-checked={rsvpEnabled}
             aria-label="Enable RSVP"
             onClick={() => setRsvpEnabled(!rsvpEnabled)}
-            className={cn(
-              'relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy-700 focus-visible:ring-offset-2',
-              rsvpEnabled ? 'bg-burgundy-700' : 'bg-wood-800/20'
-            )}
+            className="admin-switch"
           >
-            <span
-              className={cn(
-                'pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-sm transition-transform',
-                rsvpEnabled ? 'translate-x-5' : 'translate-x-0'
-              )}
-            />
+            <span className="admin-switch-knob" />
           </button>
           <span className="font-body text-sm font-medium text-wood-900">Enable RSVP</span>
         </div>
@@ -391,7 +375,7 @@ export function EventForm({ event }: EventFormProps) {
 
       {/* Submit */}
       <div className="flex items-center gap-4 border-t border-wood-800/10 pt-6">
-        <Button type="submit" disabled={isPending}>
+        <Button type="submit" disabled={isPending} className="admin-button admin-button-primary">
           {isPending ? (
             <span className="flex items-center gap-2">
               <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
@@ -417,7 +401,12 @@ export function EventForm({ event }: EventFormProps) {
             'Create Event'
           )}
         </Button>
-        <Button type="button" variant="ghost" href="/admin/events">
+        <Button
+          type="button"
+          variant="ghost"
+          href="/admin/events"
+          className="admin-button admin-button-quiet"
+        >
           Cancel
         </Button>
       </div>
@@ -442,17 +431,9 @@ function ToggleField({
         aria-checked={checked}
         aria-label={label}
         onClick={() => onChange(!checked)}
-        className={cn(
-          'relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy-700 focus-visible:ring-offset-2',
-          checked ? 'bg-burgundy-700' : 'bg-wood-800/20'
-        )}
+        className="admin-switch"
       >
-        <span
-          className={cn(
-            'pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform',
-            checked ? 'translate-x-4' : 'translate-x-0'
-          )}
-        />
+        <span className="admin-switch-knob" />
       </button>
       <span className="font-body text-sm text-wood-800/80">{label}</span>
     </div>

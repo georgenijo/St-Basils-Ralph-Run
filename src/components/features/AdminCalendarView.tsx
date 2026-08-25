@@ -53,15 +53,15 @@ interface AdminCalendarViewProps {
 }
 
 const CATEGORY_COLORS: Record<string, { bg: string; border: string }> = {
-  liturgical: { bg: '#9B1B3D', border: '#7A1530' },
-  community: { bg: '#253341', border: '#1c2831' },
-  special: { bg: '#4A3729', border: '#352618' },
+  liturgical: { bg: 'var(--fg-soft)', border: 'var(--border)' },
+  community: { bg: 'var(--fg-soft)', border: 'var(--border)' },
+  special: { bg: 'var(--fg-soft)', border: 'var(--border)' },
 }
 
 const INSTANCE_COLORS: Record<string, { bg: string; border: string }> = {
-  modified: { bg: '#d97706', border: '#b45309' },
-  cancelled: { bg: '#dc2626', border: '#b91c1c' },
-  single: { bg: '#059669', border: '#047857' },
+  modified: { bg: 'color-mix(in oklch, var(--warn) 15%, transparent)', border: 'var(--border)' },
+  cancelled: { bg: 'var(--fg-soft)', border: 'var(--border)' },
+  single: { bg: 'color-mix(in oklch, var(--ok) 12%, transparent)', border: 'var(--border)' },
 }
 
 interface ModalState {
@@ -96,7 +96,7 @@ export function AdminCalendarView({ events }: AdminCalendarViewProps) {
       ...event,
       backgroundColor: colors.bg,
       borderColor: colors.border,
-      textColor: '#FFFDF8',
+      textColor: 'var(--fg)',
     }
   })
 
@@ -110,19 +110,6 @@ export function AdminCalendarView({ events }: AdminCalendarViewProps) {
 
   const handleEventContent = useCallback((arg: EventContentArg) => {
     const instanceType = arg.event.extendedProps.instanceType
-    let icon = ''
-    switch (instanceType) {
-      case 'recurring':
-        icon = '⟳ '
-        break
-      case 'modified':
-        icon = '✎ '
-        break
-      case 'cancelled':
-        icon = '✕ '
-        break
-    }
-
     const titleEl = document.createElement('span')
     if (instanceType === 'cancelled') {
       titleEl.style.textDecoration = 'line-through'
@@ -131,12 +118,6 @@ export function AdminCalendarView({ events }: AdminCalendarViewProps) {
 
     const container = document.createElement('div')
     container.className = 'fc-event-main-frame'
-    if (icon) {
-      const iconEl = document.createElement('span')
-      iconEl.textContent = icon
-      iconEl.setAttribute('aria-hidden', 'true')
-      container.appendChild(iconEl)
-    }
     container.appendChild(titleEl)
 
     if (arg.timeText) {
@@ -207,11 +188,7 @@ export function AdminCalendarView({ events }: AdminCalendarViewProps) {
 
   return (
     <>
-      <div
-        className="rounded-2xl bg-cream-50 p-2 shadow sm:p-4"
-        role="region"
-        aria-label="Admin events calendar"
-      >
+      <div role="region" aria-label="Admin events calendar">
         <FullCalendar
           plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin, rrulePlugin]}
           initialView={initialView}

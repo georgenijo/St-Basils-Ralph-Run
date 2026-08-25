@@ -32,13 +32,6 @@ const PRIORITY_LABELS: Record<number, string> = {
   10: 'High',
 }
 
-const PRIORITY_COLORS: Record<number, string> = {
-  0: 'bg-cream-100 text-wood-800',
-  1: 'bg-cream-100 text-wood-800',
-  5: 'bg-gold-500/10 text-wood-900',
-  10: 'bg-burgundy-100 text-burgundy-700',
-}
-
 function formatDate(iso: string | null): string {
   if (!iso) return '—'
   return new Date(iso).toLocaleDateString('en-US', {
@@ -52,12 +45,6 @@ function getStatus(a: Announcement): 'published' | 'draft' | 'expired' {
   if (!a.published_at) return 'draft'
   if (a.expires_at && new Date(a.expires_at) < new Date()) return 'expired'
   return 'published'
-}
-
-const STATUS_BADGE: Record<string, string> = {
-  published: 'bg-green-100 text-green-700',
-  draft: 'bg-cream-100 text-wood-800',
-  expired: 'bg-red-50 text-red-600',
 }
 
 function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
@@ -120,8 +107,7 @@ export function AnnouncementsTable({ announcements }: AnnouncementsTableProps) {
     return counts
   }, [announcements])
 
-  const thClass =
-    'px-4 py-3 text-left font-body text-xs font-medium uppercase tracking-wider text-wood-800/60 cursor-pointer select-none hover:text-wood-900 transition-colors'
+  const thClass = 'cursor-pointer select-none'
 
   const STATUS_FILTERS: { value: StatusFilter; label: string }[] = [
     { value: 'all', label: 'All' },
@@ -133,29 +119,25 @@ export function AnnouncementsTable({ announcements }: AnnouncementsTableProps) {
   return (
     <div>
       {/* Status filter tabs */}
-      <div className="mb-4 flex flex-wrap items-center gap-2">
-        <span className="font-body text-sm text-wood-800/60">Status:</span>
-        {STATUS_FILTERS.map((f) => (
-          <button
-            key={f.value}
-            type="button"
-            onClick={() => setStatusFilter(f.value)}
-            className={cn(
-              'rounded-full px-3 py-1 font-body text-xs font-medium transition-colors',
-              statusFilter === f.value
-                ? 'bg-burgundy-700 text-cream-50'
-                : 'bg-cream-100 text-wood-800 hover:bg-cream-100/80'
-            )}
-          >
-            {f.label} ({statusCounts[f.value]})
-          </button>
-        ))}
+      <div className="admin-toolbar">
+        <div className="admin-segmented" role="group" aria-label="Filter announcements">
+          {STATUS_FILTERS.map((f) => (
+            <button
+              key={f.value}
+              type="button"
+              onClick={() => setStatusFilter(f.value)}
+              aria-pressed={statusFilter === f.value}
+            >
+              {f.label} ({statusCounts[f.value]})
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto rounded-xl border border-wood-800/10">
-        <table className="w-full">
-          <thead className="border-b border-wood-800/10 bg-cream-100/50">
+      <div className="admin-table-wrap">
+        <table className="admin-table">
+          <thead>
             <tr>
               <th className={thClass} onClick={() => toggleSort('title')}>
                 Title
@@ -183,18 +165,13 @@ export function AnnouncementsTable({ announcements }: AnnouncementsTableProps) {
                 Created
                 <SortIcon active={sortKey === 'created_at'} dir={sortDir} />
               </th>
-              <th className="px-4 py-3 text-right font-body text-xs font-medium uppercase tracking-wider text-wood-800/60">
-                Actions
-              </th>
+              <th className="admin-cell-number">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-wood-800/5">
+          <tbody>
             {filtered.length === 0 ? (
               <tr>
-                <td
-                  colSpan={6}
-                  className="px-4 py-12 text-center font-body text-sm text-wood-800/60"
-                >
+                <td colSpan={6} className="admin-empty">
                   {statusFilter !== 'all'
                     ? `No ${statusFilter} announcements`
                     : 'No announcements yet. Create your first announcement!'}
@@ -204,73 +181,56 @@ export function AnnouncementsTable({ announcements }: AnnouncementsTableProps) {
               filtered.map((announcement) => {
                 const status = getStatus(announcement)
                 return (
-                  <tr key={announcement.id} className="transition-colors hover:bg-cream-100/30">
-                    <td className="px-4 py-3">
+                  <tr key={announcement.id}>
+                    <td>
                       <div className="flex items-center gap-2">
                         <Link
                           href={`/admin/announcements/${announcement.id}/edit`}
-                          className="font-body text-sm font-medium text-wood-900 hover:text-burgundy-700"
+                          className="admin-cell-primary"
                         >
                           {announcement.title}
                         </Link>
                         {announcement.is_pinned && (
-                          <span
-                            title="Pinned"
-                            className="inline-flex items-center rounded-full bg-burgundy-100 px-1.5 py-0.5 text-[10px] font-medium text-burgundy-700"
-                          >
-                            <svg
-                              width="10"
-                              height="10"
-                              viewBox="0 0 24 24"
-                              fill="currentColor"
-                              className="mr-0.5"
-                              aria-hidden="true"
-                            >
-                              <path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z" />
-                            </svg>
+                          <span title="Pinned" className="admin-status">
                             Pinned
                           </span>
                         )}
                       </div>
                     </td>
-                    <td className="hidden px-4 py-3 sm:table-cell">
+                    <td className="hidden sm:table-cell">
                       <span
                         className={cn(
-                          'inline-flex rounded-full px-2 py-0.5 text-xs font-medium capitalize',
-                          STATUS_BADGE[status]
+                          'admin-status capitalize',
+                          status === 'published' && 'admin-status-ok',
+                          status === 'expired' && 'admin-status-warn'
                         )}
                       >
                         {status}
                       </span>
                     </td>
-                    <td className="hidden px-4 py-3 md:table-cell">
-                      <span
-                        className={cn(
-                          'inline-flex rounded-full px-2 py-0.5 text-xs font-medium',
-                          PRIORITY_COLORS[announcement.priority] ?? 'bg-cream-100 text-wood-800'
-                        )}
-                      >
+                    <td className="admin-cell-secondary hidden md:table-cell">
+                      <span>
                         {PRIORITY_LABELS[announcement.priority] ?? `P${announcement.priority}`}
                       </span>
                     </td>
-                    <td className="hidden px-4 py-3 font-body text-sm text-wood-800 lg:table-cell">
+                    <td className="admin-cell-mono hidden lg:table-cell">
                       {formatDate(announcement.published_at)}
                     </td>
-                    <td className="hidden px-4 py-3 font-body text-sm text-wood-800/60 lg:table-cell">
+                    <td className="admin-cell-mono admin-cell-secondary hidden lg:table-cell">
                       {formatDate(announcement.created_at)}
                     </td>
-                    <td className="px-4 py-3 text-right">
+                    <td className="admin-cell-number">
                       <div className="flex items-center justify-end gap-2">
                         <Link
                           href={`/admin/announcements/${announcement.id}/edit`}
-                          className="rounded-lg px-2.5 py-1.5 font-body text-xs font-medium text-burgundy-700 transition-colors hover:bg-burgundy-100"
+                          className="admin-button admin-button-bare"
                         >
                           Edit
                         </Link>
                         <button
                           type="button"
                           onClick={() => setDeleteTarget(announcement)}
-                          className="rounded-lg px-2.5 py-1.5 font-body text-xs font-medium text-red-600 transition-colors hover:bg-red-50"
+                          className="admin-button admin-button-bare"
                         >
                           Delete
                         </button>

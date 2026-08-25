@@ -21,7 +21,7 @@ interface UserActionDialogProps {
   ) => Promise<{ success: boolean; message: string }>
   hiddenFields: Record<string, string>
   confirmLabel: string
-  confirmClassName?: string
+  intent?: 'default' | 'destructive'
 }
 
 export function UserActionDialog({
@@ -33,7 +33,7 @@ export function UserActionDialog({
   action,
   hiddenFields,
   confirmLabel,
-  confirmClassName = 'bg-burgundy-700 text-cream-50 hover:bg-burgundy-800',
+  intent = 'default',
 }: UserActionDialogProps) {
   const [state, formAction, isPending] = useActionState(action, initialState)
   const dialogRef = useRef<HTMLDialogElement>(null)
@@ -59,23 +59,26 @@ export function UserActionDialog({
   }, [state.success, onClose, onSuccess])
 
   return (
-    <dialog
-      ref={dialogRef}
-      onClose={onClose}
-      className="m-auto w-full max-w-md rounded-2xl border border-wood-800/10 bg-cream-50 p-0 shadow-lg backdrop:bg-charcoal/50"
-    >
-      <div className="p-6">
-        <h2 className="font-heading text-xl font-semibold text-wood-900">{title}</h2>
-        <p className="mt-2 font-body text-sm text-wood-800/80">{description}</p>
+    <dialog ref={dialogRef} onClose={onClose}>
+      <div className="admin-dialog-head">
+        <h2>{title}</h2>
+        <p>{description}</p>
 
         {state.message && !state.success && (
-          <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3" role="alert">
-            <p className="font-body text-sm text-red-600">{state.message}</p>
+          <div className="admin-error" role="alert">
+            <p>{state.message}</p>
           </div>
         )}
 
-        <div className="mt-6 flex justify-end gap-3">
-          <Button type="button" variant="ghost" size="sm" onClick={onClose} disabled={isPending}>
+        <div className="admin-dialog-footer mt-6">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={onClose}
+            disabled={isPending}
+            className="admin-button admin-button-quiet"
+          >
             Cancel
           </Button>
           <form action={formAction}>
@@ -85,7 +88,8 @@ export function UserActionDialog({
             <button
               type="submit"
               disabled={isPending}
-              className={`inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy-700 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 ${confirmClassName}`}
+              className="admin-button admin-button-primary"
+              data-intent={intent}
             >
               {isPending ? (
                 <span className="flex items-center gap-2">

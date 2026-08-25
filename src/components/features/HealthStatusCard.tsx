@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { Button, Card } from '@/components/ui'
+import { Button } from '@/components/ui'
 import { cn } from '@/lib/utils'
 import {
   deriveHealthView,
@@ -19,18 +19,6 @@ const PROBE_TIMEOUT_MS = 8_000
 export interface HealthStatusCardProps {
   /** External status page (BetterStack). Link is hidden when unset. */
   statusPageUrl?: string
-}
-
-const dotClass: Record<DependencyState, string> = {
-  operational: 'bg-emerald-500',
-  down: 'bg-red-500',
-  unknown: 'bg-wood-800/30',
-}
-
-const statusTextClass: Record<DependencyState, string> = {
-  operational: 'text-emerald-700',
-  down: 'text-red-700',
-  unknown: 'text-wood-800/50',
 }
 
 const stateLabel: Record<DependencyState, string> = {
@@ -119,50 +107,50 @@ export function HealthStatusCard({ statusPageUrl }: HealthStatusCardProps) {
     view ? view[key] : { state: 'unknown', latencyMs: null }
 
   return (
-    <Card variant="outlined" className="max-w-2xl">
+    <section className="admin-section">
       <p className="sr-only" role="status" aria-live="polite">
         {liveMessage}
       </p>
 
-      <Card.Header className="flex items-center justify-between gap-4 pb-4">
-        <h2 className="font-heading text-lg font-semibold text-wood-900">System Status</h2>
-        <span className="inline-flex items-center gap-2 text-sm font-medium text-wood-900">
-          <span className={cn('h-2.5 w-2.5 rounded-full', dotClass[overall])} aria-hidden="true" />
+      <div className="admin-section-head">
+        <h2>Services</h2>
+        <span
+          className={cn(
+            'admin-status',
+            overall === 'operational' && 'admin-status-ok',
+            overall === 'down' && 'admin-status-warn'
+          )}
+        >
           {overallLabel}
         </span>
-      </Card.Header>
+      </div>
 
-      <div className="mx-6 h-px bg-wood-800/10" aria-hidden="true" />
-
-      <Card.Body className="space-y-3">
+      <ul className="admin-list">
         {ROWS.map(({ key, label }) => {
           const row = rowFor(key)
           return (
-            <div key={key} className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-2.5">
-                <span
-                  className={cn('h-2 w-2 rounded-full', dotClass[row.state])}
-                  aria-hidden="true"
-                />
-                <span className="text-sm font-medium text-wood-900">{label}</span>
+            <li key={key} className="admin-list-row">
+              <div className="admin-list-grow">
+                <div className="admin-list-title">{label}</div>
+                <div className="admin-list-subtitle">Live dependency probe</div>
               </div>
-              <div className="flex items-center gap-3 text-sm">
-                <span className={statusTextClass[row.state]}>
-                  {view ? stateLabel[row.state] : 'Checking…'}
-                </span>
-                {row.latencyMs != null && (
-                  <span className="tabular-nums text-wood-800/50">{row.latencyMs} ms</span>
+              {row.latencyMs != null && <span className="admin-meta">{row.latencyMs} ms</span>}
+              <span
+                className={cn(
+                  'admin-status',
+                  row.state === 'operational' && 'admin-status-ok',
+                  row.state === 'down' && 'admin-status-warn'
                 )}
-              </div>
-            </div>
+              >
+                {view ? stateLabel[row.state] : 'Checking…'}
+              </span>
+            </li>
           )
         })}
-      </Card.Body>
+      </ul>
 
-      <div className="mx-6 h-px bg-wood-800/10" aria-hidden="true" />
-
-      <Card.Footer className="flex flex-wrap items-center justify-between gap-3 pt-4">
-        <span className="text-sm text-wood-800/60">
+      <div className="admin-toolbar mt-4">
+        <span className="admin-meta">
           {lastChecked
             ? `Last checked ${lastChecked.toLocaleTimeString()} · auto-refresh 30s`
             : 'Checking…'}
@@ -173,7 +161,7 @@ export function HealthStatusCard({ statusPageUrl }: HealthStatusCardProps) {
               href={statusPageUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm font-medium text-burgundy-700 transition-colors hover:text-burgundy-800"
+              className="admin-button admin-button-bare"
             >
               Status history ↗
             </a>
@@ -183,11 +171,12 @@ export function HealthStatusCard({ statusPageUrl }: HealthStatusCardProps) {
             size="sm"
             onClick={() => probe({ fresh: true })}
             disabled={isRefreshing}
+            className="admin-button admin-button-quiet"
           >
             {isRefreshing ? 'Refreshing…' : 'Refresh'}
           </Button>
         </div>
-      </Card.Footer>
-    </Card>
+      </div>
+    </section>
   )
 }

@@ -32,29 +32,6 @@ const ROLE_LABELS: Record<string, string> = {
   member: 'Member',
 }
 
-const ROLE_COLORS: Record<string, string> = {
-  admin: 'bg-amber-50 text-amber-800',
-  member: 'bg-indigo-50 text-indigo-700',
-}
-
-const STATUS_COLORS = {
-  active: 'bg-emerald-50 text-emerald-700',
-  deactivated: 'bg-red-50 text-red-700',
-}
-
-const AVATAR_COLORS: Record<string, string> = {
-  admin: 'bg-amber-100 text-amber-800',
-  member: 'bg-indigo-100 text-indigo-700',
-}
-
-const AUDIT_DOT_COLORS: Record<string, string> = {
-  'user.invite': 'bg-blue-500',
-  'user.role_change': 'bg-yellow-500',
-  'user.deactivate': 'bg-red-500',
-  'user.reactivate': 'bg-emerald-500',
-  'user.password_reset': 'bg-violet-500',
-}
-
 type DialogType = 'role' | 'deactivate' | 'reactivate' | 'password' | null
 
 // ─── Helpers ─────────────────────────────────────────────────────────
@@ -172,7 +149,7 @@ export function UserDetailPanel({ user, currentUserId, onClose }: UserDetailPane
       {/* Backdrop */}
       <div
         className={cn(
-          'fixed inset-0 z-40 bg-black/30 transition-opacity duration-300',
+          'admin-modal-backdrop transition-opacity',
           isOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
         )}
         onClick={onClose}
@@ -185,18 +162,18 @@ export function UserDetailPanel({ user, currentUserId, onClose }: UserDetailPane
         aria-modal="true"
         aria-label={`Details for ${displayName}`}
         className={cn(
-          'fixed inset-y-0 right-0 z-50 flex w-[520px] max-w-[90vw] flex-col bg-cream-50 shadow-[-8px_0_30px_rgba(0,0,0,0.12)] transition-transform duration-350',
+          'admin-dialog-panel transition-transform',
           isOpen ? 'translate-x-0' : 'translate-x-full'
         )}
         style={{ transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}
       >
         {/* Header */}
-        <div className="sticky top-0 z-10 flex items-start justify-between bg-cream-50 px-6 pt-6">
+        <div className="sticky top-0 z-10 flex items-start justify-between bg-[var(--surface)] px-6 pt-6">
           <div />
           <button
             onClick={onClose}
             aria-label="Close panel"
-            className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg border border-wood-800/15 bg-white text-wood-800/60 transition-colors hover:bg-cream-100 hover:text-wood-900"
+            className="admin-button admin-button-quiet"
           >
             <svg
               width="18"
@@ -218,12 +195,7 @@ export function UserDetailPanel({ user, currentUserId, onClose }: UserDetailPane
         <div className="flex-1 overflow-y-auto px-6 pb-6">
           {/* User info */}
           <div className="flex gap-4">
-            <div
-              className={cn(
-                'flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full text-xl font-semibold',
-                AVATAR_COLORS[user.role] ?? 'bg-gray-100 text-gray-700'
-              )}
-            >
+            <div className="admin-meta flex h-14 w-14 flex-shrink-0 items-center justify-center text-xl font-semibold">
               {initials}
             </div>
             <div>
@@ -235,20 +207,8 @@ export function UserDetailPanel({ user, currentUserId, onClose }: UserDetailPane
               </h2>
               <p className="mt-0.5 font-body text-sm text-wood-800/60">{user.email}</p>
               <div className="mt-2 flex gap-2">
-                <span
-                  className={cn(
-                    'inline-flex rounded-full px-2 py-0.5 text-xs font-medium',
-                    ROLE_COLORS[user.role] ?? 'bg-gray-50 text-gray-700'
-                  )}
-                >
-                  {ROLE_LABELS[user.role] ?? user.role}
-                </span>
-                <span
-                  className={cn(
-                    'inline-flex rounded-full px-2 py-0.5 text-xs font-medium',
-                    STATUS_COLORS[status]
-                  )}
-                >
+                <span className="admin-status">{ROLE_LABELS[user.role] ?? user.role}</span>
+                <span className={cn('admin-status', status === 'active' && 'admin-status-ok')}>
                   {status === 'active' ? 'Active' : 'Deactivated'}
                 </span>
               </div>
@@ -265,21 +225,21 @@ export function UserDetailPanel({ user, currentUserId, onClose }: UserDetailPane
               <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => setActiveDialog('password')}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-wood-800/20 bg-white px-3.5 py-2 font-body text-sm font-medium text-wood-800 transition-colors hover:bg-cream-100"
+                  className="admin-button admin-button-quiet"
                 >
                   <LockIcon />
                   Password Reset
                 </button>
                 <button
                   onClick={() => setActiveDialog('role')}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-wood-800/20 bg-white px-3.5 py-2 font-body text-sm font-medium text-wood-800 transition-colors hover:bg-cream-100"
+                  className="admin-button admin-button-quiet"
                 >
                   <UserCheckIcon />
                   Change Role
                 </button>
                 <button
                   onClick={() => setActiveDialog('deactivate')}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-white px-3.5 py-2 font-body text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
+                  className="admin-button admin-button-quiet"
                 >
                   <BanIcon />
                   Deactivate
@@ -288,7 +248,7 @@ export function UserDetailPanel({ user, currentUserId, onClose }: UserDetailPane
             ) : (
               <button
                 onClick={() => setActiveDialog('reactivate')}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-white px-3.5 py-2 font-body text-sm font-medium text-emerald-600 transition-colors hover:bg-emerald-50"
+                className="admin-button admin-button-quiet"
               >
                 <RefreshIcon />
                 Reactivate
@@ -301,37 +261,23 @@ export function UserDetailPanel({ user, currentUserId, onClose }: UserDetailPane
             <h3 className="mb-3 font-body text-xs font-semibold uppercase tracking-wider text-wood-800/50">
               Account Details
             </h3>
-            <div className="overflow-hidden rounded-xl border border-wood-800/10 bg-white">
+            <div className="admin-list">
               <DetailRow label="Email" value={user.email ?? '—'} />
               <DetailRow
                 label="Role"
-                value={
-                  <span
-                    className={cn(
-                      'inline-flex rounded-full px-2 py-0.5 text-xs font-medium',
-                      ROLE_COLORS[user.role] ?? 'bg-gray-50 text-gray-700'
-                    )}
-                  >
-                    {ROLE_LABELS[user.role] ?? user.role}
-                  </span>
-                }
+                value={<span className="admin-status">{ROLE_LABELS[user.role] ?? user.role}</span>}
               />
               <DetailRow
                 label="Status"
                 value={
-                  <span
-                    className={cn(
-                      'inline-flex rounded-full px-2 py-0.5 text-xs font-medium',
-                      STATUS_COLORS[status]
-                    )}
-                  >
+                  <span className={cn('admin-status', status === 'active' && 'admin-status-ok')}>
                     {status === 'active' ? 'Active' : 'Deactivated'}
                   </span>
                 }
               />
               <DetailRow label="Joined" value={formatDate(user.created_at)} />
               <DetailRow label="Last Updated" value={formatDate(user.updated_at)} />
-              <DetailRow label="Invited By" value={invitedBy} isLast />
+              <DetailRow label="Invited By" value={invitedBy} />
             </div>
           </div>
 
@@ -340,7 +286,7 @@ export function UserDetailPanel({ user, currentUserId, onClose }: UserDetailPane
             <h3 className="mb-3 font-body text-xs font-semibold uppercase tracking-wider text-wood-800/50">
               Activity
             </h3>
-            <div className="overflow-hidden rounded-xl border border-wood-800/10 bg-white">
+            <div className="admin-list">
               {auditLoading ? (
                 <div className="px-4 py-8 text-center font-body text-sm text-wood-800/50">
                   Loading activity...
@@ -351,17 +297,8 @@ export function UserDetailPanel({ user, currentUserId, onClose }: UserDetailPane
                 </div>
               ) : (
                 auditLog.map((entry) => (
-                  <div
-                    key={entry.id}
-                    className="flex items-start gap-2.5 border-b border-wood-800/[0.06] px-3.5 py-3 last:border-b-0"
-                  >
-                    <span
-                      className={cn(
-                        'mt-1.5 h-[7px] w-[7px] flex-shrink-0 rounded-full',
-                        AUDIT_DOT_COLORS[entry.action] ?? 'bg-gray-400'
-                      )}
-                      aria-hidden="true"
-                    />
+                  <div key={entry.id} className="admin-list-row items-start">
+                    <span className="admin-status mt-1.5" aria-hidden="true" />
                     <p className="flex-1 font-body text-[13px] leading-relaxed text-wood-800">
                       <strong className="font-semibold">{entry.actor_name}</strong>{' '}
                       {describeAction(entry)}
@@ -398,7 +335,7 @@ export function UserDetailPanel({ user, currentUserId, onClose }: UserDetailPane
           action={deactivateUser}
           hiddenFields={{ user_id: user.id }}
           confirmLabel="Deactivate"
-          confirmClassName="bg-red-600 text-white hover:bg-red-700"
+          intent="destructive"
         />
       )}
       {activeDialog === 'reactivate' && (
@@ -412,7 +349,6 @@ export function UserDetailPanel({ user, currentUserId, onClose }: UserDetailPane
           action={reactivateUser}
           hiddenFields={{ user_id: user.id }}
           confirmLabel="Reactivate"
-          confirmClassName="bg-emerald-600 text-white hover:bg-emerald-700"
         />
       )}
       {activeDialog === 'password' && (
@@ -434,22 +370,9 @@ export function UserDetailPanel({ user, currentUserId, onClose }: UserDetailPane
 
 // ─── Sub-components ──────────────────────────────────────────────────
 
-function DetailRow({
-  label,
-  value,
-  isLast,
-}: {
-  label: string
-  value: React.ReactNode
-  isLast?: boolean
-}) {
+function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div
-      className={cn(
-        'flex items-center justify-between px-3.5 py-2.5',
-        !isLast && 'border-b border-wood-800/[0.06]'
-      )}
-    >
+    <div className="admin-setting-row">
       <span className="font-body text-sm text-wood-800/60">{label}</span>
       <span className="font-body text-sm font-medium text-wood-900">{value}</span>
     </div>
@@ -498,29 +421,18 @@ function ChangeRoleDialog({
   const isSameRole = selectedRole === user.role
 
   return (
-    <dialog
-      ref={dialogRef}
-      onClose={onClose}
-      className="m-auto w-full max-w-md rounded-2xl border border-wood-800/10 bg-cream-50 p-0 shadow-lg backdrop:bg-charcoal/50"
-    >
-      <div className="p-6">
-        <h2 className="font-heading text-xl font-semibold text-wood-900">Change Role</h2>
-        <p className="mt-2 font-body text-sm text-wood-800/80">
-          Select a new role for {displayName}.
-        </p>
+    <dialog ref={dialogRef} onClose={onClose}>
+      <div className="admin-dialog-head">
+        <h2>Change Role</h2>
+        <p>Select a new role for {displayName}.</p>
 
-        <div className="mt-4 flex gap-2">
+        <div className="admin-segmented mt-4">
           {(['admin', 'member'] as const).map((role) => (
             <button
               key={role}
               type="button"
               onClick={() => setSelectedRole(role)}
-              className={cn(
-                'flex-1 rounded-lg border px-4 py-3 text-center font-body text-sm font-medium transition-colors',
-                selectedRole === role
-                  ? 'border-burgundy-700 bg-burgundy-700/[0.06] text-burgundy-700'
-                  : 'border-wood-800/15 bg-white text-wood-800 hover:bg-cream-100'
-              )}
+              aria-pressed={selectedRole === role}
             >
               {ROLE_LABELS[role]}
               {user.role === role && (
@@ -531,13 +443,20 @@ function ChangeRoleDialog({
         </div>
 
         {state.message && !state.success && (
-          <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3" role="alert">
-            <p className="font-body text-sm text-red-600">{state.message}</p>
+          <div className="admin-error" role="alert">
+            <p>{state.message}</p>
           </div>
         )}
 
-        <div className="mt-6 flex justify-end gap-3">
-          <Button type="button" variant="ghost" size="sm" onClick={onClose} disabled={isPending}>
+        <div className="admin-dialog-footer mt-6">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={onClose}
+            disabled={isPending}
+            className="admin-button admin-button-quiet"
+          >
             Cancel
           </Button>
           <form action={formAction}>
@@ -546,7 +465,7 @@ function ChangeRoleDialog({
             <button
               type="submit"
               disabled={isPending || isSameRole}
-              className="inline-flex items-center justify-center rounded-lg bg-burgundy-700 px-4 py-2 text-sm font-medium text-cream-50 transition-colors hover:bg-burgundy-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy-700 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
+              className="admin-button admin-button-primary"
             >
               {isPending ? (
                 <span className="flex items-center gap-2">

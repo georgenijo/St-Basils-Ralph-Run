@@ -1,5 +1,7 @@
 'use client'
 
+import { usePathname } from 'next/navigation'
+
 import { cn } from '@/lib/utils'
 import { logout } from '@/actions/auth'
 
@@ -11,31 +13,35 @@ export interface AdminTopBarProps {
 }
 
 export function AdminTopBar({ email, className }: AdminTopBarProps) {
+  const pathname = usePathname()
+  const section = getSectionName(pathname)
+
   return (
-    <header
-      className={cn(
-        'flex h-16 items-center justify-between border-b border-wood-800/10 bg-cream-50 px-4 sm:px-6 lg:px-8',
-        className
-      )}
-    >
-      {/* Left spacer for mobile hamburger */}
-      <div className="w-11 lg:hidden" aria-hidden="true" />
+    <header className={cn('admin-topbar', className)}>
+      <span className="admin-breadcrumb">
+        Admin / <strong>{section}</strong>
+      </span>
 
-      {/* Page context — empty for now, can be used for breadcrumbs later */}
-      <div className="hidden lg:block" />
-
-      {/* User info + logout */}
-      <div className="flex items-center gap-4">
-        <span className="text-sm text-wood-800/60">{email}</span>
+      <div className="admin-topbar-actions">
+        <span className="admin-account">{email}</span>
         <form action={logout}>
-          <button
-            type="submit"
-            className="rounded-lg px-4 py-2 text-sm font-medium text-burgundy-700 transition-colors hover:bg-burgundy-100"
-          >
+          <button type="submit" className="admin-button admin-button-bare">
             Log out
           </button>
         </form>
       </div>
     </header>
   )
+}
+
+function getSectionName(pathname: string): string {
+  if (pathname.startsWith('/admin/announcements')) return 'Announcements'
+  if (pathname.startsWith('/admin/subscribers')) return 'Subscribers'
+  if (pathname.startsWith('/admin/payments')) return 'Payments'
+  if (pathname.startsWith('/admin/settings')) return 'Settings'
+  if (pathname.startsWith('/admin/shares')) return 'Shares'
+  if (pathname.startsWith('/admin/health')) return 'System status'
+  if (pathname.startsWith('/admin/users')) return 'Users'
+  if (pathname.startsWith('/admin/events')) return 'Events'
+  return 'Dashboard'
 }

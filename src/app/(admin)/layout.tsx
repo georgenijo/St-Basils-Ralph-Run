@@ -4,6 +4,8 @@ import { createClient } from '@/lib/supabase/server'
 import { AdminSidebar } from '@/components/layout/AdminSidebar'
 import { AdminTopBar } from '@/components/layout/AdminTopBar'
 
+import '../admin.css'
+
 export default async function AdminLayout({
   children,
 }: Readonly<{
@@ -32,11 +34,11 @@ export default async function AdminLayout({
   }
 
   return (
-    <div className="flex min-h-screen bg-cream-50">
+    <div className="admin-shell">
       <AdminSidebar />
-      <div className="flex flex-1 flex-col">
+      <div className="admin-main">
         <AdminTopBar email={user.email ?? ''} />
-        <div className="flex-1">{children}</div>
+        <div className="admin-content">{children}</div>
       </div>
     </div>
   )

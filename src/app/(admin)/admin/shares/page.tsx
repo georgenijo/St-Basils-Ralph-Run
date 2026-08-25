@@ -18,11 +18,9 @@ export default async function SharesPage() {
   if (error) {
     console.error('Failed to fetch shares:', error)
     return (
-      <main className="px-4 py-8 sm:px-6 lg:px-8">
-        <h1 className="font-heading text-3xl font-semibold text-wood-900">Shares</h1>
-        <p className="mt-4 font-body text-sm text-red-600">
-          Failed to load shares. Please try refreshing the page.
-        </p>
+      <main className="admin-page">
+        <h1>Shares</h1>
+        <p className="admin-error">Failed to load shares. Please try refreshing the page.</p>
       </main>
     )
   }
@@ -58,24 +56,23 @@ export default async function SharesPage() {
   const unpaidCount = forYear.filter((s) => !s.paid).length
 
   return (
-    <main className="px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mb-6">
-        <h1 className="font-heading text-3xl font-semibold text-wood-900">Shares</h1>
-        <p className="mt-1 font-body text-sm text-wood-800/60">
-          Manage remembrance shares and payment status.
-        </p>
+    <main className="admin-page">
+      <div className="admin-page-head">
+        <div>
+          <h1>Shares</h1>
+          <p className="admin-page-subtitle">Manage remembrance shares and payment status.</p>
+        </div>
       </div>
 
-      {/* Summary cards */}
-      <div className="mb-8 grid gap-4 sm:grid-cols-4">
-        <SummaryCard label="Total Shares" value={String(totalShares)} />
-        <SummaryCard
+      <div className="admin-stats">
+        <SummaryStat label="Total shares" value={String(totalShares)} detail={`${defaultYear}`} />
+        <SummaryStat
           label="Total Revenue"
           value={`$${totalRevenue.toLocaleString('en-US')}`}
-          accent="blue"
+          detail="recorded value"
         />
-        <SummaryCard label="Paid" value={String(paidCount)} accent="green" />
-        <SummaryCard label="Unpaid" value={String(unpaidCount)} accent="amber" />
+        <SummaryStat label="Paid" value={String(paidCount)} detail="completed" />
+        <SummaryStat label="Unpaid" value={String(unpaidCount)} detail="outstanding" />
       </div>
 
       <SharesPageClient shares={all} years={years} defaultYear={defaultYear} />
@@ -85,31 +82,12 @@ export default async function SharesPage() {
 
 // ─── Summary Card ─────────────────────────────────────────────────
 
-function SummaryCard({
-  label,
-  value,
-  accent,
-}: {
-  label: string
-  value: string
-  accent?: 'blue' | 'green' | 'amber'
-}) {
-  const dotColor =
-    accent === 'blue'
-      ? 'bg-blue-500'
-      : accent === 'green'
-        ? 'bg-emerald-500'
-        : accent === 'amber'
-          ? 'bg-amber-500'
-          : 'bg-burgundy-700'
-
+function SummaryStat({ label, value, detail }: { label: string; value: string; detail: string }) {
   return (
-    <div className="rounded-2xl border border-wood-800/10 bg-cream-50 p-5">
-      <div className="flex items-center gap-2">
-        <span className={`h-2 w-2 rounded-full ${dotColor}`} aria-hidden="true" />
-        <span className="font-body text-sm font-medium text-wood-800/60">{label}</span>
-      </div>
-      <p className="mt-2 font-heading text-3xl font-semibold text-wood-900">{value}</p>
+    <div>
+      <div className="admin-stat-label">{label}</div>
+      <div className="admin-stat-value">{value}</div>
+      <div className="admin-stat-detail">{detail}</div>
     </div>
   )
 }

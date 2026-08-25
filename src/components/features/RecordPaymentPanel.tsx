@@ -120,7 +120,7 @@ export function RecordPaymentPanel({
       {/* Backdrop */}
       <div
         className={cn(
-          'fixed inset-0 z-40 bg-black/30 transition-opacity duration-300',
+          'admin-modal-backdrop transition-opacity',
           open ? 'opacity-100' : 'pointer-events-none opacity-0'
         )}
         onClick={onClose}
@@ -133,7 +133,7 @@ export function RecordPaymentPanel({
         aria-modal="true"
         aria-label="Record payment"
         className={cn(
-          'fixed inset-y-0 right-0 z-50 flex w-[520px] max-w-[90vw] flex-col bg-cream-50 shadow-[-8px_0_30px_rgba(0,0,0,0.12)] transition-transform duration-350',
+          'admin-dialog-panel transition-transform',
           open ? 'translate-x-0' : 'translate-x-full'
         )}
         style={{ transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}
@@ -144,7 +144,7 @@ export function RecordPaymentPanel({
           <button
             onClick={onClose}
             aria-label="Close panel"
-            className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg border border-wood-800/15 bg-white text-wood-800/60 transition-colors hover:bg-cream-100 hover:text-wood-900"
+            className="admin-button admin-button-quiet"
           >
             <svg
               width="18"
@@ -165,23 +165,8 @@ export function RecordPaymentPanel({
         {/* Body */}
         <div className="flex-1 overflow-y-auto px-6 py-6">
           {state.success ? (
-            <div className="flex flex-col items-center justify-center py-12">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50">
-                <svg
-                  width="28"
-                  height="28"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="text-emerald-600"
-                  aria-hidden="true"
-                >
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-              </div>
+            <div className="py-12">
+              <span className="admin-status admin-status-ok">Complete</span>
               <p className="mt-4 font-heading text-lg font-semibold text-wood-900">
                 Payment Recorded
               </p>
@@ -191,8 +176,8 @@ export function RecordPaymentPanel({
             <form ref={formRef} action={formAction} className="space-y-5">
               {/* General error */}
               {state.message && !state.errors && (
-                <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3" role="alert">
-                  <p className="font-body text-sm text-red-600">{state.message}</p>
+                <div className="admin-error" role="alert">
+                  <p>{state.message}</p>
                 </div>
               )}
 
@@ -202,7 +187,7 @@ export function RecordPaymentPanel({
                   htmlFor="family_id"
                   className="mb-1.5 block font-body text-sm font-medium text-wood-800"
                 >
-                  Family <span className="text-burgundy-700">*</span>
+                  Family <span className="admin-required">*</span>
                 </label>
                 <div className="relative">
                   <select
@@ -230,7 +215,7 @@ export function RecordPaymentPanel({
               {/* Payment Type */}
               <fieldset>
                 <legend className="mb-1.5 block font-body text-sm font-medium text-wood-800">
-                  Payment Type <span className="text-burgundy-700">*</span>
+                  Payment Type <span className="admin-required">*</span>
                 </legend>
                 <div className="grid grid-cols-2 gap-2">
                   {PAYMENT_TYPES.map((pt) => (
@@ -239,8 +224,8 @@ export function RecordPaymentPanel({
                       className={cn(
                         'flex cursor-pointer flex-col rounded-lg border px-3 py-2.5 transition-colors',
                         paymentType === pt.value
-                          ? 'border-burgundy-700 bg-burgundy-700/[0.06]'
-                          : 'border-wood-800/15 bg-white hover:bg-cream-100'
+                          ? 'border-[var(--border)] bg-[var(--fg-soft)]'
+                          : 'border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--fg-soft)]'
                       )}
                     >
                       <input
@@ -251,12 +236,7 @@ export function RecordPaymentPanel({
                         onChange={() => setPaymentType(pt.value)}
                         className="sr-only"
                       />
-                      <span
-                        className={cn(
-                          'font-body text-sm font-medium',
-                          paymentType === pt.value ? 'text-burgundy-700' : 'text-wood-800'
-                        )}
-                      >
+                      <span className={cn('font-body text-sm font-medium', 'text-[var(--fg)]')}>
                         {pt.label}
                       </span>
                       <span className="font-body text-xs text-wood-800/50">{pt.description}</span>
@@ -273,7 +253,7 @@ export function RecordPaymentPanel({
                     htmlFor="related_event_id"
                     className="mb-1.5 block font-body text-sm font-medium text-wood-800"
                   >
-                    Event <span className="text-burgundy-700">*</span>
+                    Event <span className="admin-required">*</span>
                   </label>
                   <div className="relative">
                     <select
@@ -306,7 +286,7 @@ export function RecordPaymentPanel({
                     htmlFor="related_share_id"
                     className="mb-1.5 block font-body text-sm font-medium text-wood-800"
                   >
-                    Share <span className="text-burgundy-700">*</span>
+                    Share <span className="admin-required">*</span>
                   </label>
                   {!selectedFamilyId ? (
                     <p className="font-body text-sm text-wood-800/50">
@@ -351,7 +331,7 @@ export function RecordPaymentPanel({
                   htmlFor="amount"
                   className="mb-1.5 block font-body text-sm font-medium text-wood-800"
                 >
-                  Amount <span className="text-burgundy-700">*</span>
+                  Amount <span className="admin-required">*</span>
                 </label>
                 <div className="relative">
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 font-body text-base text-wood-800/50">
@@ -379,7 +359,7 @@ export function RecordPaymentPanel({
                   htmlFor="method"
                   className="mb-1.5 block font-body text-sm font-medium text-wood-800"
                 >
-                  Payment Method <span className="text-burgundy-700">*</span>
+                  Payment Method <span className="admin-required">*</span>
                 </label>
                 <div className="relative">
                   <select
@@ -428,10 +408,16 @@ export function RecordPaymentPanel({
                   size="sm"
                   onClick={onClose}
                   disabled={isPending}
+                  className="admin-button admin-button-quiet"
                 >
                   Cancel
                 </Button>
-                <Button type="submit" size="sm" disabled={isPending}>
+                <Button
+                  type="submit"
+                  size="sm"
+                  disabled={isPending}
+                  className="admin-button admin-button-primary"
+                >
                   {isPending ? (
                     <span className="flex items-center gap-2">
                       <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">

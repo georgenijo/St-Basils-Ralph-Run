@@ -54,7 +54,7 @@ export function RRuleBuilder({
   }
 
   return (
-    <div className="space-y-4 rounded-xl border border-wood-800/10 bg-cream-100/50 p-4">
+    <div className="admin-form-section space-y-4">
       <p className="text-sm font-medium text-wood-900">Recurrence Pattern</p>
 
       {/* Frequency */}
@@ -63,7 +63,7 @@ export function RRuleBuilder({
           htmlFor="rrule_frequency"
           className="mb-1.5 block font-body text-sm font-medium text-wood-900"
         >
-          Frequency <span className="text-burgundy-700">*</span>
+          Frequency <span className="admin-required">*</span>
         </label>
         <select
           id="rrule_frequency"
@@ -90,18 +90,13 @@ export function RRuleBuilder({
       {frequency === 'WEEKLY' && (
         <div>
           <p className="mb-1.5 font-body text-sm font-medium text-wood-900">Repeat on</p>
-          <div className="flex flex-wrap gap-2">
+          <div className="admin-segmented flex-wrap" role="group" aria-label="Repeat on">
             {DAYS.map((day) => (
               <button
                 key={day.value}
                 type="button"
                 onClick={() => toggleDay(day.value)}
-                className={cn(
-                  'rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
-                  byDay.includes(day.value)
-                    ? 'bg-burgundy-700 text-cream-50'
-                    : 'border border-wood-800/20 bg-cream-50 text-wood-800 hover:bg-cream-100'
-                )}
+                aria-pressed={byDay.includes(day.value)}
               >
                 {day.label}
               </button>

@@ -42,11 +42,9 @@ export default async function UsersPage() {
   if (error) {
     console.error('Failed to fetch profiles:', error)
     return (
-      <main className="px-4 py-8 sm:px-6 lg:px-8">
-        <h1 className="font-heading text-3xl font-semibold text-wood-900">Users</h1>
-        <p className="mt-4 font-body text-sm text-red-600">
-          Failed to load users. Please try refreshing the page.
-        </p>
+      <main className="admin-page">
+        <h1>Users</h1>
+        <p className="admin-error">Failed to load users. Please try refreshing the page.</p>
       </main>
     )
   }
@@ -73,18 +71,13 @@ export default async function UsersPage() {
   const pendingCount = all.filter((p) => p.is_active && !p.email_confirmed_at).length
 
   return (
-    <main className="px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mb-6 flex items-start justify-between">
+    <main className="admin-page">
+      <div className="admin-page-head">
         <div>
-          <h1 className="font-heading text-3xl font-semibold text-wood-900">Users</h1>
-          <p className="mt-1 font-body text-sm text-wood-800/60">
-            Manage admin accounts and church members.
-          </p>
+          <h1>Users</h1>
+          <p className="admin-page-subtitle">Manage admin accounts and church members.</p>
         </div>
-        <Link
-          href="/admin/users/invite"
-          className="inline-flex items-center gap-2 rounded-lg bg-burgundy-700 px-4 py-2 font-body text-sm font-medium text-cream-50 transition-colors hover:bg-burgundy-800"
-        >
+        <Link href="/admin/users/invite" className="admin-button admin-button-primary">
           <svg
             width="16"
             height="16"
@@ -103,13 +96,12 @@ export default async function UsersPage() {
         </Link>
       </div>
 
-      {/* Summary cards */}
-      <div className="mb-8 grid gap-4 sm:grid-cols-5">
-        <SummaryCard label="Total" count={all.length} />
-        <SummaryCard label="Admins" count={adminCount} accent="blue" />
-        <SummaryCard label="Members" count={memberCount} accent="green" />
-        <SummaryCard label="Pending" count={pendingCount} accent="amber" />
-        <SummaryCard label="Deactivated" count={deactivatedCount} accent="red" />
+      <div className="admin-stats">
+        <SummaryStat label="Total" count={all.length} detail="all portal accounts" />
+        <SummaryStat label="Admins" count={adminCount} detail="full access" />
+        <SummaryStat label="Members" count={memberCount} detail="active members" />
+        <SummaryStat label="Pending" count={pendingCount} detail="awaiting confirmation" />
+        <SummaryStat label="Deactivated" count={deactivatedCount} detail="access disabled" />
       </div>
 
       <UsersPageClient
@@ -123,33 +115,12 @@ export default async function UsersPage() {
 
 // ─── Summary Card ─────────────────────────────────────────────────
 
-function SummaryCard({
-  label,
-  count,
-  accent,
-}: {
-  label: string
-  count: number
-  accent?: 'blue' | 'green' | 'amber' | 'red'
-}) {
-  const dotColor =
-    accent === 'blue'
-      ? 'bg-blue-500'
-      : accent === 'green'
-        ? 'bg-emerald-500'
-        : accent === 'amber'
-          ? 'bg-amber-500'
-          : accent === 'red'
-            ? 'bg-red-500'
-            : 'bg-burgundy-700'
-
+function SummaryStat({ label, count, detail }: { label: string; count: number; detail: string }) {
   return (
-    <div className="rounded-2xl border border-wood-800/10 bg-cream-50 p-5">
-      <div className="flex items-center gap-2">
-        <span className={`h-2 w-2 rounded-full ${dotColor}`} aria-hidden="true" />
-        <span className="font-body text-sm font-medium text-wood-800/60">{label}</span>
-      </div>
-      <p className="mt-2 font-heading text-3xl font-semibold text-wood-900">{count}</p>
+    <div>
+      <div className="admin-stat-label">{label}</div>
+      <div className="admin-stat-value">{count}</div>
+      <div className="admin-stat-detail">{detail}</div>
     </div>
   )
 }

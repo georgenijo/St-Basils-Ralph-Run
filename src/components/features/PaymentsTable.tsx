@@ -42,13 +42,6 @@ const TYPE_LABELS: Record<string, string> = {
   donation: 'Donation',
 }
 
-const TYPE_COLORS: Record<string, string> = {
-  membership: 'bg-indigo-50 text-indigo-700',
-  share: 'bg-amber-50 text-amber-800',
-  event: 'bg-emerald-50 text-emerald-700',
-  donation: 'bg-violet-50 text-violet-700',
-}
-
 const METHOD_LABELS: Record<string, string> = {
   cash: 'Cash',
   check: 'Check',
@@ -56,12 +49,6 @@ const METHOD_LABELS: Record<string, string> = {
   venmo: 'Venmo',
   cashapp: 'Cash App',
   online: 'Online',
-}
-
-const STATUS_COLORS: Record<string, string> = {
-  pending: 'bg-amber-50 text-amber-700',
-  confirmed: 'bg-emerald-50 text-emerald-700',
-  rejected: 'bg-red-50 text-red-700',
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -151,32 +138,26 @@ export function PaymentsTable({ payments }: PaymentsTableProps) {
   return (
     <div>
       {/* Toolbar */}
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="admin-toolbar">
         {/* Search */}
-        <div className="relative">
+        <div className="admin-search">
           <SearchIcon />
           <input
             type="text"
             placeholder="Search payments..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded-lg border border-wood-800/15 bg-white py-2 pl-9 pr-4 font-body text-sm text-wood-800 placeholder:text-wood-800/40 transition-colors focus:border-burgundy-700 focus:outline-none focus:ring-2 focus:ring-burgundy-700/20 sm:w-64"
           />
         </div>
 
         {/* Filter */}
-        <div className="flex gap-1.5">
+        <div className="admin-segmented" role="group" aria-label="Filter payments">
           {FILTER_OPTIONS.map((opt) => (
             <button
               key={opt.value}
               type="button"
               onClick={() => setFilter(opt.value)}
-              className={cn(
-                'rounded-lg px-3 py-1.5 font-body text-sm font-medium transition-colors',
-                filter === opt.value
-                  ? 'bg-burgundy-700/10 text-burgundy-700'
-                  : 'text-wood-800/60 hover:bg-cream-100 hover:text-wood-800'
-              )}
+              aria-pressed={filter === opt.value}
             >
               {opt.label}
             </button>
@@ -185,11 +166,11 @@ export function PaymentsTable({ payments }: PaymentsTableProps) {
       </div>
 
       {/* Table */}
-      <div className="overflow-hidden rounded-xl border border-wood-800/10 bg-white">
-        <div className="overflow-x-auto">
-          <table className="w-full">
+      <div className="admin-table-wrap">
+        <div>
+          <table className="admin-table">
             <thead>
-              <tr className="border-b border-wood-800/10 bg-cream-50/50">
+              <tr>
                 <SortHeader
                   label="Family"
                   sortKey="family"
@@ -219,15 +200,9 @@ export function PaymentsTable({ payments }: PaymentsTableProps) {
                   dir={sortDir}
                   onSort={toggleSort}
                 />
-                <th className="px-4 py-3 text-left font-body text-xs font-semibold uppercase tracking-wider text-wood-800/50">
-                  Detail
-                </th>
-                <th className="hidden px-4 py-3 text-left font-body text-xs font-semibold uppercase tracking-wider text-wood-800/50 lg:table-cell">
-                  Recorded By
-                </th>
-                <th className="px-4 py-3 text-left font-body text-xs font-semibold uppercase tracking-wider text-wood-800/50">
-                  Status
-                </th>
+                <th>Detail</th>
+                <th className="hidden lg:table-cell">Recorded By</th>
+                <th>Status</th>
                 <SortHeader
                   label="Date"
                   sortKey="date"
@@ -240,10 +215,7 @@ export function PaymentsTable({ payments }: PaymentsTableProps) {
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={8}
-                    className="px-4 py-12 text-center font-body text-sm text-wood-800/50"
-                  >
+                  <td colSpan={8} className="admin-empty">
                     {payments.length === 0
                       ? 'No payments recorded yet.'
                       : 'No payments match the current filter.'}
@@ -251,50 +223,41 @@ export function PaymentsTable({ payments }: PaymentsTableProps) {
                 </tr>
               ) : (
                 filtered.map((payment) => (
-                  <tr
-                    key={payment.id}
-                    className="border-b border-wood-800/[0.06] last:border-b-0 transition-colors hover:bg-cream-50/50"
-                  >
-                    <td className="whitespace-nowrap px-4 py-3 font-body text-sm font-medium text-wood-900">
+                  <tr key={payment.id}>
+                    <td className="admin-cell-primary whitespace-nowrap">
                       {payment.family_name ?? '—'}
                     </td>
-                    <td className="whitespace-nowrap px-4 py-3">
-                      <span
-                        className={cn(
-                          'inline-flex rounded-full px-2 py-0.5 text-xs font-medium',
-                          TYPE_COLORS[payment.type] ?? 'bg-gray-50 text-gray-700'
-                        )}
-                      >
-                        {TYPE_LABELS[payment.type] ?? payment.type}
-                      </span>
+                    <td className="admin-cell-mono admin-cell-secondary whitespace-nowrap">
+                      <span>{TYPE_LABELS[payment.type] ?? payment.type}</span>
                     </td>
-                    <td className="whitespace-nowrap px-4 py-3 text-right font-body text-sm font-medium text-wood-900 tabular-nums">
+                    <td className="admin-cell-number whitespace-nowrap">
                       {usd.format(payment.amount)}
                     </td>
-                    <td className="whitespace-nowrap px-4 py-3 font-body text-sm text-wood-800/80">
+                    <td className="admin-cell-secondary whitespace-nowrap">
                       {METHOD_LABELS[payment.method ?? ''] ?? payment.method ?? '—'}
                     </td>
-                    <td className="max-w-[200px] truncate px-4 py-3 font-body text-sm text-wood-800/60">
+                    <td className="admin-cell-secondary max-w-[200px] truncate">
                       {payment.type === 'event' && payment.event_title
                         ? payment.event_title
                         : payment.type === 'share' && payment.share_label
                           ? payment.share_label
                           : payment.note || '—'}
                     </td>
-                    <td className="hidden whitespace-nowrap px-4 py-3 font-body text-sm text-wood-800/60 lg:table-cell">
+                    <td className="admin-cell-secondary hidden whitespace-nowrap lg:table-cell">
                       {payment.recorded_by_name ?? '—'}
                     </td>
-                    <td className="whitespace-nowrap px-4 py-3">
+                    <td className="whitespace-nowrap">
                       <span
                         className={cn(
-                          'inline-flex rounded-full px-2 py-0.5 text-xs font-medium',
-                          STATUS_COLORS[payment.status] ?? 'bg-gray-50 text-gray-700'
+                          'admin-status',
+                          payment.status === 'confirmed' && 'admin-status-ok',
+                          payment.status === 'pending' && 'admin-status-warn'
                         )}
                       >
                         {STATUS_LABELS[payment.status] ?? payment.status}
                       </span>
                     </td>
-                    <td className="whitespace-nowrap px-4 py-3 font-body text-sm text-wood-800/60">
+                    <td className="admin-cell-secondary whitespace-nowrap">
                       {formatDate(payment.created_at)}
                     </td>
                   </tr>
@@ -307,7 +270,7 @@ export function PaymentsTable({ payments }: PaymentsTableProps) {
 
       {/* Count */}
       {filtered.length > 0 && (
-        <p className="mt-3 font-body text-sm text-wood-800/50">
+        <p className="admin-meta mt-3">
           Showing {filtered.length} of {payments.length} payments
         </p>
       )}
@@ -335,19 +298,11 @@ function SortHeader({
   const isActive = current === sortKey
 
   return (
-    <th
-      className={cn(
-        'px-4 py-3 font-body text-xs font-semibold uppercase tracking-wider',
-        className
-      )}
-    >
+    <th className={className}>
       <button
         type="button"
         onClick={() => onSort(sortKey)}
-        className={cn(
-          'inline-flex items-center gap-1 transition-colors',
-          isActive ? 'text-wood-900' : 'text-wood-800/50 hover:text-wood-800'
-        )}
+        className="inline-flex items-center gap-1"
       >
         {label}
         {isActive && (
@@ -382,7 +337,6 @@ function SearchIcon() {
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="absolute left-3 top-1/2 -translate-y-1/2 text-wood-800/40"
       aria-hidden="true"
     >
       <circle cx="11" cy="11" r="8" />

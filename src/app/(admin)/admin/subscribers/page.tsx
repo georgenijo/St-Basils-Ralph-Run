@@ -29,28 +29,28 @@ export default async function SubscribersPage() {
   const unsubscribedCount = all.filter((s) => s.unsubscribed_at !== null).length
 
   return (
-    <main className="px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mb-6">
-        <h1 className="font-heading text-3xl font-semibold text-wood-900">Subscribers</h1>
-        <p className="mt-1 font-body text-sm text-wood-800/60">
-          View and manage newsletter subscribers.
-        </p>
-        <p className="mt-3 inline-block rounded-lg bg-cream-100 px-3 py-2 font-body text-xs text-wood-800/70">
-          <strong>Note:</strong> Subscribers are newsletter-only email signups — they do not have
-          portal accounts. Invited members with accounts appear under{' '}
-          <Link href="/admin/users" className="text-burgundy-700 underline hover:text-burgundy-800">
-            Users
-          </Link>
-          .
-        </p>
+    <main className="admin-page">
+      <div className="admin-page-head">
+        <div>
+          <h1>Subscribers</h1>
+          <p className="admin-page-subtitle">View and manage newsletter subscribers.</p>
+        </div>
       </div>
 
-      {/* Summary cards */}
-      <div className="mb-8 grid gap-4 sm:grid-cols-4">
-        <SummaryCard label="Total" count={all.length} />
-        <SummaryCard label="Active" count={activeCount} accent="green" />
-        <SummaryCard label="Unconfirmed" count={unconfirmedCount} accent="amber" />
-        <SummaryCard label="Unsubscribed" count={unsubscribedCount} accent="red" />
+      <p className="admin-notice">
+        Subscribers are newsletter-only email signups; invited members with accounts appear under{' '}
+        <Link href="/admin/users">Users</Link>.
+      </p>
+
+      <div className="admin-stats">
+        <SummaryStat label="Total" count={all.length} detail="newsletter signups" />
+        <SummaryStat label="Active" count={activeCount} detail="confirmed subscribers" />
+        <SummaryStat label="Unconfirmed" count={unconfirmedCount} detail="awaiting confirmation" />
+        <SummaryStat
+          label="Unsubscribed"
+          count={unsubscribedCount}
+          detail="no longer receiving email"
+        />
       </div>
 
       <SubscribersTable subscribers={all} profileEmails={profileEmails} />
@@ -60,31 +60,12 @@ export default async function SubscribersPage() {
 
 // ─── Summary Card ─────────────────────────────────────────────────
 
-function SummaryCard({
-  label,
-  count,
-  accent,
-}: {
-  label: string
-  count: number
-  accent?: 'green' | 'amber' | 'red'
-}) {
-  const dotColor =
-    accent === 'green'
-      ? 'bg-emerald-500'
-      : accent === 'amber'
-        ? 'bg-amber-500'
-        : accent === 'red'
-          ? 'bg-red-500'
-          : 'bg-burgundy-700'
-
+function SummaryStat({ label, count, detail }: { label: string; count: number; detail: string }) {
   return (
-    <div className="rounded-2xl border border-wood-800/10 bg-cream-50 p-5">
-      <div className="flex items-center gap-2">
-        <span className={`h-2 w-2 rounded-full ${dotColor}`} aria-hidden="true" />
-        <span className="font-body text-sm font-medium text-wood-800/60">{label}</span>
-      </div>
-      <p className="mt-2 font-heading text-3xl font-semibold text-wood-900">{count}</p>
+    <div>
+      <div className="admin-stat-label">{label}</div>
+      <div className="admin-stat-value">{count}</div>
+      <div className="admin-stat-detail">{detail}</div>
     </div>
   )
 }

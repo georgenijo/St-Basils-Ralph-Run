@@ -42,27 +42,30 @@ export function DeleteAnnouncementDialog({
   }, [state.success, onClose])
 
   return (
-    <dialog
-      ref={dialogRef}
-      onClose={onClose}
-      className="m-auto w-full max-w-md rounded-2xl border border-wood-800/10 bg-cream-50 p-0 shadow-lg backdrop:bg-charcoal/50"
-    >
-      <div className="p-6">
-        <h2 className="font-heading text-xl font-semibold text-wood-900">Delete Announcement</h2>
-        <p className="mt-2 font-body text-sm text-wood-800/80">
+    <dialog ref={dialogRef} onClose={onClose}>
+      <div className="admin-dialog-head">
+        <h2>Delete Announcement</h2>
+        <p>
           Are you sure you want to delete{' '}
           <strong className="text-wood-900">&ldquo;{announcementTitle}&rdquo;</strong>? This action
           cannot be undone.
         </p>
 
         {state.message && !state.success && (
-          <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3" role="alert">
-            <p className="font-body text-sm text-red-600">{state.message}</p>
+          <div className="admin-error" role="alert">
+            <p>{state.message}</p>
           </div>
         )}
 
-        <div className="mt-6 flex justify-end gap-3">
-          <Button type="button" variant="ghost" size="sm" onClick={onClose} disabled={isPending}>
+        <div className="admin-dialog-footer mt-6">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={onClose}
+            disabled={isPending}
+            className="admin-button admin-button-quiet"
+          >
             Cancel
           </Button>
           <form action={action}>
@@ -70,7 +73,7 @@ export function DeleteAnnouncementDialog({
             <button
               type="submit"
               disabled={isPending}
-              className="inline-flex items-center justify-center rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
+              className="admin-button admin-button-primary"
             >
               {isPending ? (
                 <span className="flex items-center gap-2">

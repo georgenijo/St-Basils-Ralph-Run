@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation'
 
 import { formatInChurchTimeZone, getChurchTimeZoneName } from '@/lib/event-time'
 import { createClient } from '@/lib/supabase/server'
-import { Button, Card } from '@/components/ui'
+import { Button } from '@/components/ui'
 import { RsvpAdminPanel } from '@/components/features/RsvpAdminPanel'
 
 import type { RsvpSettings } from '@/lib/validators/rsvp'
@@ -87,13 +87,10 @@ export default async function AdminEventDetailPage({ params }: PageProps) {
   }
 
   return (
-    <main className="px-4 py-8 sm:px-6 lg:px-8">
+    <main className="admin-page">
       {/* Back link */}
       <div className="mb-6">
-        <Link
-          href="/admin/events"
-          className="inline-flex items-center gap-1 font-body text-sm text-wood-800/60 transition-colors hover:text-burgundy-700"
-        >
+        <Link href="/admin/events" className="admin-button admin-button-bare">
           <svg
             width="16"
             height="16"
@@ -113,25 +110,35 @@ export default async function AdminEventDetailPage({ params }: PageProps) {
       </div>
 
       {/* Event header */}
-      <div className="mb-8 flex items-start justify-between gap-4">
+      <div className="admin-page-head">
         <div>
-          <h1 className="font-heading text-3xl font-semibold text-wood-900">{event.title}</h1>
-          <div className="mt-2 space-y-1">
-            <p className="font-body text-sm text-wood-800/80">{date}</p>
-            <p className="font-body text-sm text-wood-800/80">{timeRange}</p>
-            {event.location && (
-              <p className="font-body text-sm text-wood-800/80">{event.location}</p>
-            )}
-          </div>
+          <h1>{event.title}</h1>
+          <p className="admin-page-subtitle">
+            {date} · {timeRange}
+            {event.location ? ` · ${event.location}` : ''}
+          </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button href={`/admin/events/${id}/charges`} size="sm" variant="secondary">
-            Manage Charges
-          </Button>
-          <Button href={`/admin/events/${id}/edit`} size="sm" variant="secondary">
+        <div>
+          <Button
+            href={`/admin/events/${id}/edit`}
+            size="sm"
+            variant="secondary"
+            className="admin-button admin-button-primary"
+          >
             Edit Event
           </Button>
         </div>
+      </div>
+
+      <div className="admin-toolbar">
+        <Button
+          href={`/admin/events/${id}/charges`}
+          size="sm"
+          variant="secondary"
+          className="admin-button admin-button-quiet"
+        >
+          Manage charges
+        </Button>
       </div>
 
       {/* RSVP Section */}
@@ -145,16 +152,17 @@ export default async function AdminEventDetailPage({ params }: PageProps) {
           rsvps={rsvps}
         />
       ) : (
-        <Card variant="outlined">
-          <Card.Body className="py-12 text-center">
-            <p className="font-body text-sm text-wood-800/60">
-              RSVP is not enabled for this event.
-            </p>
-            <Button href={`/admin/events/${id}/edit`} size="sm" variant="ghost" className="mt-3">
-              Edit event to enable RSVP
-            </Button>
-          </Card.Body>
-        </Card>
+        <div className="admin-empty">
+          <p>RSVP is not enabled for this event.</p>
+          <Button
+            href={`/admin/events/${id}/edit`}
+            size="sm"
+            variant="ghost"
+            className="admin-button admin-button-quiet mt-3"
+          >
+            Edit event to enable RSVP
+          </Button>
+        </div>
       )}
     </main>
   )

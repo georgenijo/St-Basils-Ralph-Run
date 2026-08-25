@@ -28,17 +28,6 @@ const ROLE_LABELS: Record<string, string> = {
   member: 'Member',
 }
 
-const ROLE_COLORS: Record<string, string> = {
-  admin: 'bg-amber-50 text-amber-800',
-  member: 'bg-indigo-50 text-indigo-700',
-}
-
-const STATUS_COLORS = {
-  active: 'bg-emerald-50 text-emerald-700',
-  pending: 'bg-yellow-50 text-yellow-800',
-  deactivated: 'bg-red-50 text-red-700',
-}
-
 const FILTER_OPTIONS: { value: FilterValue; label: string }[] = [
   { value: '', label: 'All' },
   { value: 'admin', label: 'Admins' },
@@ -109,7 +98,6 @@ function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
 
 export function UsersTable({
   users,
-  currentUserId: _currentUserId,
   selectedUserId,
   subscribedEmails,
   onRowClick,
@@ -176,8 +164,7 @@ export function UsersTable({
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
-  const thClass =
-    'px-4 py-3 text-left font-body text-xs font-medium uppercase tracking-wider text-wood-800/60 cursor-pointer select-none hover:text-wood-900 transition-colors'
+  const thClass = 'cursor-pointer select-none'
 
   function sortableThProps(key: SortKey) {
     return {
@@ -200,9 +187,9 @@ export function UsersTable({
   return (
     <div>
       {/* Toolbar */}
-      <div className="mb-4 flex flex-wrap items-center gap-3">
+      <div className="admin-toolbar">
         {/* Search */}
-        <div className="relative flex-1 sm:max-w-xs">
+        <div className="admin-search">
           <SearchIcon />
           <input
             type="search"
@@ -212,12 +199,10 @@ export function UsersTable({
               setSearch(e.target.value)
               setPage(1)
             }}
-            className="w-full rounded-lg border border-wood-800/10 bg-cream-50 py-2 pl-9 pr-3 font-body text-sm text-wood-900 placeholder:text-wood-800/40 focus:border-burgundy-700 focus:outline-none focus:ring-1 focus:ring-burgundy-700"
           />
         </div>
 
-        {/* Filter pills */}
-        <div className="flex items-center gap-1.5">
+        <div className="admin-segmented" role="group" aria-label="Filter users">
           {FILTER_OPTIONS.map(({ value, label }) => (
             <button
               key={value}
@@ -226,12 +211,7 @@ export function UsersTable({
                 setFilter(value)
                 setPage(1)
               }}
-              className={cn(
-                'rounded-full px-3 py-1 font-body text-xs font-medium transition-colors',
-                filter === value
-                  ? 'bg-burgundy-700 text-cream-50'
-                  : 'bg-cream-100 text-wood-800 hover:bg-cream-100/80'
-              )}
+              aria-pressed={filter === value}
             >
               {label}
             </button>
@@ -240,9 +220,9 @@ export function UsersTable({
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto rounded-xl border border-wood-800/10">
-        <table className="w-full">
-          <thead className="border-b border-wood-800/10 bg-cream-100/50">
+      <div className="admin-table-wrap">
+        <table className="admin-table">
+          <thead>
             <tr>
               <th className={thClass} {...sortableThProps('name')}>
                 User
@@ -266,13 +246,10 @@ export function UsersTable({
               <th className={cn(thClass, 'hidden lg:table-cell cursor-default')}>Newsletter</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-wood-800/5">
+          <tbody>
             {paginated.length === 0 ? (
               <tr>
-                <td
-                  colSpan={5}
-                  className="px-4 py-12 text-center font-body text-sm text-wood-800/60"
-                >
+                <td colSpan={5} className="admin-empty">
                   {search || filter ? 'No users match your filters.' : 'No users yet.'}
                 </td>
               </tr>
@@ -285,43 +262,32 @@ export function UsersTable({
                   <tr
                     key={user.id}
                     onClick={() => onRowClick?.(user)}
+                    data-selected={isSelected}
                     className={cn(
-                      'transition-colors',
                       onRowClick && 'cursor-pointer',
-                      isSelected && 'bg-burgundy-700/[0.04]',
-                      !user.is_active ? 'opacity-60' : 'hover:bg-cream-100/30'
+                      !user.is_active && 'admin-cell-secondary'
                     )}
                   >
                     {/* User (name + email) */}
-                    <td className="px-4 py-3">
+                    <td>
                       <div className="flex flex-col">
-                        <span className="font-body text-sm font-medium text-burgundy-700">
-                          {user.full_name || '—'}
-                        </span>
-                        <span className="font-body text-xs text-wood-800/50">
-                          {user.email || '—'}
-                        </span>
+                        <span className="admin-cell-primary">{user.full_name || '—'}</span>
+                        <span className="admin-list-subtitle">{user.email || '—'}</span>
                       </div>
                     </td>
 
                     {/* Role badge */}
-                    <td className="hidden px-4 py-3 sm:table-cell">
-                      <span
-                        className={cn(
-                          'inline-flex rounded-full px-2 py-0.5 text-xs font-medium',
-                          ROLE_COLORS[user.role] ?? 'bg-gray-50 text-gray-700'
-                        )}
-                      >
-                        {ROLE_LABELS[user.role] ?? user.role}
-                      </span>
+                    <td className="admin-cell-mono admin-cell-secondary hidden sm:table-cell">
+                      <span>{ROLE_LABELS[user.role] ?? user.role}</span>
                     </td>
 
                     {/* Status badge */}
-                    <td className="hidden px-4 py-3 sm:table-cell">
+                    <td className="hidden sm:table-cell">
                       <span
                         className={cn(
-                          'inline-flex rounded-full px-2 py-0.5 text-xs font-medium',
-                          STATUS_COLORS[status]
+                          'admin-status',
+                          status === 'active' && 'admin-status-ok',
+                          status === 'pending' && 'admin-status-warn'
                         )}
                       >
                         {status === 'active'
@@ -333,18 +299,16 @@ export function UsersTable({
                     </td>
 
                     {/* Joined date */}
-                    <td className="hidden px-4 py-3 font-body text-sm text-wood-800/60 sm:table-cell">
+                    <td className="admin-cell-secondary hidden sm:table-cell">
                       {formatDate(user.created_at)}
                     </td>
 
                     {/* Newsletter badge */}
-                    <td className="hidden px-4 py-3 lg:table-cell">
+                    <td className="hidden lg:table-cell">
                       {isSubscribed(user.email) ? (
-                        <span className="inline-flex rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
-                          Subscribed
-                        </span>
+                        <span className="admin-status admin-status-ok">Subscribed</span>
                       ) : (
-                        <span className="font-body text-xs text-wood-800/40">—</span>
+                        <span className="admin-cell-secondary">—</span>
                       )}
                     </td>
                   </tr>
@@ -357,8 +321,8 @@ export function UsersTable({
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="mt-4 flex items-center justify-between">
-          <p className="font-body text-sm text-wood-800/60">
+        <div className="admin-pagination">
+          <p>
             {filtered.length} user{filtered.length !== 1 ? 's' : ''}
           </p>
           <div className="flex items-center gap-1">
@@ -366,18 +330,18 @@ export function UsersTable({
               type="button"
               disabled={page <= 1}
               onClick={() => setPage(page - 1)}
-              className="rounded-lg px-3 py-1.5 font-body text-xs font-medium text-wood-800 transition-colors hover:bg-cream-100 disabled:opacity-40 disabled:pointer-events-none"
+              className="admin-button admin-button-bare"
             >
               Previous
             </button>
-            <span className="px-2 font-body text-xs text-wood-800/60">
+            <span className="admin-meta px-2">
               {page} of {totalPages}
             </span>
             <button
               type="button"
               disabled={page >= totalPages}
               onClick={() => setPage(page + 1)}
-              className="rounded-lg px-3 py-1.5 font-body text-xs font-medium text-wood-800 transition-colors hover:bg-cream-100 disabled:opacity-40 disabled:pointer-events-none"
+              className="admin-button admin-button-bare"
             >
               Next
             </button>
@@ -401,7 +365,6 @@ function SearchIcon() {
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="absolute left-3 top-1/2 -translate-y-1/2 text-wood-800/40"
       aria-hidden="true"
     >
       <circle cx="11" cy="11" r="8" />

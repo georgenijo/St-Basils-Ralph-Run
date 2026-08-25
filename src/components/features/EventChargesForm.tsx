@@ -133,8 +133,8 @@ export function EventChargesForm({
     >
       {/* Server error message */}
       {!state.success && state.message && !state.errors && (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3" role="alert">
-          <p className="font-body text-sm text-red-600">{state.message}</p>
+        <div className="admin-error" role="alert">
+          <p>{state.message}</p>
         </div>
       )}
 
@@ -144,7 +144,7 @@ export function EventChargesForm({
           htmlFor="total-cost"
           className="mb-1.5 block font-body text-sm font-medium text-wood-900"
         >
-          Total Event Cost <span className="text-burgundy-700">*</span>
+          Total Event Cost <span className="admin-required">*</span>
         </label>
         <p className="mb-2 text-xs text-wood-800/60">
           The total cost for &quot;{eventTitle}&quot; to be split among selected families.
@@ -170,7 +170,7 @@ export function EventChargesForm({
       <div>
         <div className="mb-1.5 flex items-center justify-between">
           <span className="font-body text-sm font-medium text-wood-900" id="family-selector-label">
-            Select Families <span className="text-burgundy-700">*</span>
+            Select Families <span className="admin-required">*</span>
           </span>
           <span className="font-body text-xs text-wood-800/60">
             {selectedFamilyIds.size} of {availableFamilies.length} selected
@@ -189,21 +189,21 @@ export function EventChargesForm({
           <button
             type="button"
             onClick={selectAll}
-            className="shrink-0 rounded-lg px-3 py-2 font-body text-xs font-medium text-burgundy-700 transition-colors hover:bg-burgundy-100"
+            className="admin-button admin-button-bare shrink-0"
           >
             All
           </button>
           <button
             type="button"
             onClick={deselectAll}
-            className="shrink-0 rounded-lg px-3 py-2 font-body text-xs font-medium text-wood-800/60 transition-colors hover:bg-cream-100"
+            className="admin-button admin-button-bare shrink-0"
           >
             None
           </button>
         </div>
 
         {/* Family list */}
-        <div className="max-h-64 overflow-y-auto rounded-xl border border-wood-800/10 bg-cream-50">
+        <div className="max-h-64 overflow-y-auto">
           {filteredFamilies.length === 0 ? (
             <div className="px-4 py-8 text-center font-body text-sm text-wood-800/40">
               {searchQuery
@@ -211,7 +211,12 @@ export function EventChargesForm({
                 : 'All families already have charges for this event'}
             </div>
           ) : (
-            <ul role="listbox" aria-labelledby="family-selector-label" aria-multiselectable="true">
+            <ul
+              className="admin-list"
+              role="listbox"
+              aria-labelledby="family-selector-label"
+              aria-multiselectable="true"
+            >
               {filteredFamilies.map((family) => {
                 const selected = selectedFamilyIds.has(family.id)
                 return (
@@ -227,17 +232,15 @@ export function EventChargesForm({
                         toggleFamily(family.id)
                       }
                     }}
-                    className={cn(
-                      'flex cursor-pointer items-center gap-3 border-b border-wood-800/5 px-4 py-2.5 transition-colors last:border-b-0',
-                      selected ? 'bg-burgundy-700/5' : 'hover:bg-cream-100'
-                    )}
+                    className="admin-list-row cursor-pointer"
+                    data-selected={selected}
                   >
                     <span
                       className={cn(
                         'flex h-5 w-5 shrink-0 items-center justify-center rounded border transition-colors',
                         selected
-                          ? 'border-burgundy-700 bg-burgundy-700 text-cream-50'
-                          : 'border-wood-800/20 bg-cream-50'
+                          ? 'border-[var(--fg)] bg-[var(--fg)] text-[var(--surface)]'
+                          : 'border-[var(--border)] bg-[var(--surface)]'
                       )}
                       aria-hidden="true"
                     >
@@ -274,35 +277,25 @@ export function EventChargesForm({
       {/* ─── Amount Mode Toggle ──────────────────────────────────── */}
       {selectedFamilyIds.size > 0 && totalCost && (
         <div>
-          <div className="mb-3 flex items-center gap-4">
+          <div className="admin-segmented mb-3" role="group" aria-label="Charge amount mode">
             <button
               type="button"
               onClick={() => setUseManualAmounts(false)}
-              className={cn(
-                'rounded-full px-3 py-1 font-body text-xs font-medium transition-colors',
-                !useManualAmounts
-                  ? 'bg-burgundy-700 text-cream-50'
-                  : 'bg-cream-100 text-wood-800 hover:bg-cream-100/80'
-              )}
+              aria-pressed={!useManualAmounts}
             >
               Even Split
             </button>
             <button
               type="button"
               onClick={() => setUseManualAmounts(true)}
-              className={cn(
-                'rounded-full px-3 py-1 font-body text-xs font-medium transition-colors',
-                useManualAmounts
-                  ? 'bg-burgundy-700 text-cream-50'
-                  : 'bg-cream-100 text-wood-800 hover:bg-cream-100/80'
-              )}
+              aria-pressed={useManualAmounts}
             >
               Custom Amounts
             </button>
           </div>
 
           {/* ─── Summary / Manual Overrides ───────────────────────── */}
-          <div className="rounded-xl border border-wood-800/10 bg-cream-50">
+          <div className="admin-section">
             <div className="border-b border-wood-800/5 px-4 py-3">
               <h3 className="font-body text-sm font-medium text-wood-900">Charge Breakdown</h3>
             </div>
@@ -311,7 +304,7 @@ export function EventChargesForm({
                 const family = families.find((f) => f.id === familyId)
                 if (!family) return null
                 return (
-                  <div key={familyId} className="flex items-center justify-between px-4 py-2.5">
+                  <div key={familyId} className="admin-list-row justify-between">
                     <span className="font-body text-sm text-wood-900">{family.family_name}</span>
                     {useManualAmounts ? (
                       <div className="relative w-28">
@@ -368,13 +361,10 @@ export function EventChargesForm({
       {existingCharges.length > 0 && (
         <div>
           <h3 className="mb-2 font-body text-sm font-medium text-wood-900">Existing Charges</h3>
-          <div className="rounded-xl border border-wood-800/10 bg-cream-50">
+          <div className="admin-list">
             <div className="divide-y divide-wood-800/5">
               {existingCharges.map((charge) => (
-                <div
-                  key={charge.family_id}
-                  className="flex items-center justify-between px-4 py-2.5"
-                >
+                <div key={charge.family_id} className="admin-list-row justify-between">
                   <span className="font-body text-sm text-wood-900">{charge.family_name}</span>
                   <div className="flex items-center gap-2">
                     <span className="font-body text-sm font-medium text-wood-900">
@@ -382,10 +372,8 @@ export function EventChargesForm({
                     </span>
                     <span
                       className={cn(
-                        'inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium',
-                        charge.paid
-                          ? 'bg-emerald-100 text-emerald-800'
-                          : 'bg-amber-100 text-amber-800'
+                        'admin-status',
+                        charge.paid ? 'admin-status-ok' : 'admin-status-warn'
                       )}
                     >
                       {charge.paid ? 'Paid' : 'Unpaid'}
@@ -400,7 +388,11 @@ export function EventChargesForm({
 
       {/* ─── Submit / Cancel ─────────────────────────────────────── */}
       <div className="flex items-center gap-4 border-t border-wood-800/10 pt-6">
-        <Button type="submit" disabled={isPending || selectedFamilyIds.size === 0 || !totalCost}>
+        <Button
+          type="submit"
+          disabled={isPending || selectedFamilyIds.size === 0 || !totalCost}
+          className="admin-button admin-button-primary"
+        >
           {isPending ? (
             <span className="flex items-center gap-2">
               <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">

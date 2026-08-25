@@ -134,17 +134,10 @@ export function SharesPageClient({ shares, years, defaultYear }: SharesPageClien
   return (
     <>
       {/* Toolbar: year selector + action buttons */}
-      <div className="mb-4 flex flex-wrap items-center gap-3">
+      <div className="admin-toolbar">
         <div className="flex items-center gap-2">
-          <label htmlFor="year-select" className="font-body text-sm font-medium text-wood-800/60">
-            Year
-          </label>
-          <select
-            id="year-select"
-            value={year}
-            onChange={(e) => setYear(Number(e.target.value))}
-            className="rounded-lg border border-wood-800/10 bg-cream-50 px-3 py-2 font-body text-sm text-wood-900 focus:border-burgundy-700 focus:outline-none focus:ring-1 focus:ring-burgundy-700"
-          >
+          <label htmlFor="year-select">Year</label>
+          <select id="year-select" value={year} onChange={(e) => setYear(Number(e.target.value))}>
             {years.map((y) => (
               <option key={y} value={y}>
                 {y}
@@ -158,16 +151,12 @@ export function SharesPageClient({ shares, years, defaultYear }: SharesPageClien
             <button
               type="button"
               onClick={handleMarkPaidSelected}
-              className="inline-flex items-center gap-2 rounded-lg bg-burgundy-700 px-4 py-2 font-body text-sm font-medium text-cream-50 transition-colors hover:bg-burgundy-800"
+              className="admin-button admin-button-primary"
             >
               Mark as Paid ({unpaidSelectedCount})
             </button>
           )}
-          <button
-            type="button"
-            onClick={exportCsv}
-            className="inline-flex items-center gap-2 rounded-lg border border-wood-800/10 bg-cream-50 px-4 py-2 font-body text-sm font-medium text-wood-800 transition-colors hover:bg-cream-100"
-          >
+          <button type="button" onClick={exportCsv} className="admin-button admin-button-quiet">
             <DownloadIcon />
             Export CSV
           </button>
@@ -220,39 +209,27 @@ const MarkPaidDialog = forwardRef<HTMLDialogElement, MarkPaidDialogProps>(functi
   }, [state.success, open, onClose])
 
   return (
-    <dialog
-      ref={ref}
-      className="w-full max-w-md rounded-2xl border border-wood-800/10 bg-cream-50 p-0 shadow-xl backdrop:bg-black/40"
-      onClose={onClose}
-    >
-      <form action={formAction} className="p-6">
-        <h2 className="font-heading text-xl font-semibold text-wood-900">Mark as Paid</h2>
-        <p className="mt-1 font-body text-sm text-wood-800/60">
-          Mark {shareIds.length} share{shareIds.length !== 1 ? 's' : ''} as paid and record the
-          payment.
-        </p>
+    <dialog ref={ref} onClose={onClose}>
+      <form action={formAction}>
+        <div className="admin-dialog-head">
+          <h2>Mark as Paid</h2>
+          <p>
+            Mark {shareIds.length} share{shareIds.length !== 1 ? 's' : ''} as paid and record the
+            payment.
+          </p>
+        </div>
 
         {state.message && !state.success && (
-          <p className="mt-3 font-body text-sm text-red-600">{state.message}</p>
+          <p className="admin-error mx-[22px]">{state.message}</p>
         )}
 
         {/* Hidden share_ids */}
         <input type="hidden" name="share_ids" value={JSON.stringify(shareIds)} />
 
-        <div className="mt-4 space-y-4">
-          <div>
-            <label
-              htmlFor="payment-method"
-              className="mb-1 block font-body text-sm font-medium text-wood-900"
-            >
-              Payment Method
-            </label>
-            <select
-              id="payment-method"
-              name="method"
-              required
-              className="w-full rounded-lg border border-wood-800/10 bg-cream-50 px-3 py-2 font-body text-sm text-wood-900 focus:border-burgundy-700 focus:outline-none focus:ring-1 focus:ring-burgundy-700"
-            >
+        <div className="admin-dialog-body">
+          <div className="admin-field">
+            <label htmlFor="payment-method">Payment Method</label>
+            <select id="payment-method" name="method" required>
               {PAYMENT_METHODS.map((m) => (
                 <option key={m.value} value={m.value}>
                   {m.label}
@@ -261,38 +238,28 @@ const MarkPaidDialog = forwardRef<HTMLDialogElement, MarkPaidDialogProps>(functi
             </select>
           </div>
 
-          <div>
-            <label
-              htmlFor="payment-note"
-              className="mb-1 block font-body text-sm font-medium text-wood-900"
-            >
-              Note (optional)
-            </label>
+          <div className="admin-field">
+            <label htmlFor="payment-note">Note (optional)</label>
             <input
               id="payment-note"
               name="note"
               type="text"
               maxLength={500}
-              className="w-full rounded-lg border border-wood-800/10 bg-cream-50 px-3 py-2 font-body text-sm text-wood-900 placeholder:text-wood-800/40 focus:border-burgundy-700 focus:outline-none focus:ring-1 focus:ring-burgundy-700"
-              placeholder="e.g. Check #1234"
+              placeholder="e.g. check number 1234"
             />
           </div>
         </div>
 
-        <div className="mt-6 flex items-center justify-end gap-3">
+        <div className="admin-dialog-footer">
           <button
             type="button"
             onClick={onClose}
             disabled={isPending}
-            className="rounded-lg px-4 py-2 font-body text-sm font-medium text-wood-800 transition-colors hover:bg-cream-100"
+            className="admin-button admin-button-quiet"
           >
             Cancel
           </button>
-          <button
-            type="submit"
-            disabled={isPending}
-            className="rounded-lg bg-burgundy-700 px-4 py-2 font-body text-sm font-medium text-cream-50 transition-colors hover:bg-burgundy-800 disabled:opacity-50"
-          >
+          <button type="submit" disabled={isPending} className="admin-button admin-button-primary">
             {isPending ? 'Saving...' : 'Confirm Payment'}
           </button>
         </div>

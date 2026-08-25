@@ -49,11 +49,9 @@ export default async function PaymentsPage() {
   if (paymentsResult.error) {
     console.error('Failed to fetch payments:', paymentsResult.error)
     return (
-      <main className="px-4 py-8 sm:px-6 lg:px-8">
-        <h1 className="font-heading text-3xl font-semibold text-wood-900">Payments</h1>
-        <p className="mt-4 font-body text-sm text-red-600">
-          Failed to load payments. Please try refreshing the page.
-        </p>
+      <main className="admin-page">
+        <h1>Payments</h1>
+        <p className="admin-error">Failed to load payments. Please try refreshing the page.</p>
       </main>
     )
   }
@@ -119,33 +117,8 @@ export default async function PaymentsPage() {
     }
   })
 
-  // Summary counts
-  const total = payments.length
-  const pendingCount = payments.filter((p) => p.status === 'pending').length
-  const membershipCount = payments.filter((p) => p.type === 'membership').length
-  const shareCount = payments.filter((p) => p.type === 'share').length
-  const eventCount = payments.filter((p) => p.type === 'event').length
-  const donationCount = payments.filter((p) => p.type === 'donation').length
-
   return (
-    <main className="px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mb-6">
-        <h1 className="font-heading text-3xl font-semibold text-wood-900">Payments</h1>
-        <p className="mt-1 font-body text-sm text-wood-800/60">
-          Record and track member payments, dues, and donations.
-        </p>
-      </div>
-
-      {/* Summary cards */}
-      <div className="mb-8 grid gap-4 sm:grid-cols-6">
-        <SummaryCard label="Total" count={total} />
-        <SummaryCard label="Pending" count={pendingCount} accent="amber" />
-        <SummaryCard label="Membership" count={membershipCount} accent="indigo" />
-        <SummaryCard label="Share" count={shareCount} accent="amber" />
-        <SummaryCard label="Event" count={eventCount} accent="green" />
-        <SummaryCard label="Donation" count={donationCount} accent="violet" />
-      </div>
-
+    <main className="admin-page">
       <PaymentsPageClient
         payments={payments}
         pendingPayments={pendingPayments}
@@ -154,38 +127,5 @@ export default async function PaymentsPage() {
         unpaidShares={sharesResult.data ?? []}
       />
     </main>
-  )
-}
-
-// ─── Summary Card ─────────────────────────────────────────────────
-
-function SummaryCard({
-  label,
-  count,
-  accent,
-}: {
-  label: string
-  count: number
-  accent?: 'indigo' | 'amber' | 'green' | 'violet'
-}) {
-  const dotColor =
-    accent === 'indigo'
-      ? 'bg-indigo-500'
-      : accent === 'amber'
-        ? 'bg-amber-500'
-        : accent === 'green'
-          ? 'bg-emerald-500'
-          : accent === 'violet'
-            ? 'bg-violet-500'
-            : 'bg-burgundy-700'
-
-  return (
-    <div className="rounded-2xl border border-wood-800/10 bg-cream-50 p-5">
-      <div className="flex items-center gap-2">
-        <span className={`h-2 w-2 rounded-full ${dotColor}`} aria-hidden="true" />
-        <span className="font-body text-sm font-medium text-wood-800/60">{label}</span>
-      </div>
-      <p className="mt-2 font-heading text-3xl font-semibold text-wood-900">{count}</p>
-    </div>
   )
 }

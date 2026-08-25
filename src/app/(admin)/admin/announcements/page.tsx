@@ -17,15 +17,19 @@ export default async function AnnouncementsPage() {
     .order('created_at', { ascending: false })
 
   return (
-    <main className="px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mb-6 flex items-center justify-between">
+    <main className="admin-page">
+      <div className="admin-page-head">
         <div>
-          <h1 className="font-heading text-3xl font-semibold text-wood-900">Announcements</h1>
-          <p className="mt-1 font-body text-sm text-wood-800/60">
+          <h1>Announcements</h1>
+          <p className="admin-page-subtitle">
             Manage parish announcements, updates, and notifications.
           </p>
         </div>
-        <Button href="/admin/announcements/new" size="sm">
+        <Button
+          href="/admin/announcements/new"
+          size="sm"
+          className="admin-button admin-button-primary"
+        >
           <span className="flex items-center gap-2">
             <svg
               width="16"

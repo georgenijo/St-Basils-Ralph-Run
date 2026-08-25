@@ -39,12 +39,6 @@ const STATUS_LABELS: Record<string, string> = {
   unsubscribed: 'Unsubscribed',
 }
 
-const STATUS_COLORS: Record<string, string> = {
-  active: 'bg-emerald-50 text-emerald-700',
-  unconfirmed: 'bg-amber-50 text-amber-700',
-  unsubscribed: 'bg-red-50 text-red-600',
-}
-
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-US', {
     month: 'short',
@@ -149,15 +143,14 @@ export function SubscribersTable({
     URL.revokeObjectURL(url)
   }
 
-  const thClass =
-    'px-4 py-3 text-left font-body text-xs font-medium uppercase tracking-wider text-wood-800/60 cursor-pointer select-none hover:text-wood-900 transition-colors'
+  const thClass = 'cursor-pointer select-none'
 
   return (
     <div>
       {/* Toolbar */}
-      <div className="mb-4 flex flex-wrap items-center gap-3">
+      <div className="admin-toolbar">
         {/* Search */}
-        <div className="relative flex-1 sm:max-w-xs">
+        <div className="admin-search">
           <SearchIcon />
           <input
             type="search"
@@ -167,12 +160,10 @@ export function SubscribersTable({
               setSearch(e.target.value)
               setPage(1)
             }}
-            className="w-full rounded-lg border border-wood-800/10 bg-cream-50 py-2 pl-9 pr-3 font-body text-sm text-wood-900 placeholder:text-wood-800/40 focus:border-burgundy-700 focus:outline-none focus:ring-1 focus:ring-burgundy-700"
           />
         </div>
 
-        {/* Status filter pills */}
-        <div className="flex items-center gap-1.5">
+        <div className="admin-segmented" role="group" aria-label="Filter subscribers">
           {['', 'active', 'unconfirmed', 'unsubscribed'].map((value) => (
             <button
               key={value}
@@ -181,12 +172,7 @@ export function SubscribersTable({
                 setStatusFilter(value)
                 setPage(1)
               }}
-              className={cn(
-                'rounded-full px-3 py-1 font-body text-xs font-medium transition-colors',
-                statusFilter === value
-                  ? 'bg-burgundy-700 text-cream-50'
-                  : 'bg-cream-100 text-wood-800 hover:bg-cream-100/80'
-              )}
+              aria-pressed={statusFilter === value}
             >
               {value ? STATUS_LABELS[value] : 'All'}
             </button>
@@ -197,7 +183,7 @@ export function SubscribersTable({
         <button
           type="button"
           onClick={exportCsv}
-          className="ml-auto inline-flex items-center gap-1.5 rounded-lg border border-wood-800/10 px-3 py-2 font-body text-xs font-medium text-wood-800 transition-colors hover:bg-cream-100"
+          className="admin-button admin-button-quiet ml-auto"
         >
           <DownloadIcon />
           Export CSV
@@ -205,9 +191,9 @@ export function SubscribersTable({
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto rounded-xl border border-wood-800/10">
-        <table className="w-full">
-          <thead className="border-b border-wood-800/10 bg-cream-100/50">
+      <div className="admin-table-wrap">
+        <table className="admin-table">
+          <thead>
             <tr>
               <th className={thClass} onClick={() => toggleSort('email')}>
                 Email
@@ -227,13 +213,10 @@ export function SubscribersTable({
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-wood-800/5">
+          <tbody>
             {paginated.length === 0 ? (
               <tr>
-                <td
-                  colSpan={4}
-                  className="px-4 py-12 text-center font-body text-sm text-wood-800/60"
-                >
+                <td colSpan={4} className="admin-empty">
                   {search || statusFilter
                     ? 'No subscribers match your filters'
                     : 'No subscribers yet.'}
@@ -244,30 +227,27 @@ export function SubscribersTable({
                 const status = getStatus(subscriber)
                 const linked = hasAccount(subscriber.email)
                 return (
-                  <tr key={subscriber.id} className="transition-colors hover:bg-cream-100/30">
-                    <td className="px-4 py-3 font-body text-sm text-wood-900">
-                      {subscriber.email}
-                    </td>
-                    <td className="px-4 py-3">
+                  <tr key={subscriber.id}>
+                    <td className="admin-cell-primary">{subscriber.email}</td>
+                    <td>
                       <span
                         className={cn(
-                          'inline-flex rounded-full px-2 py-0.5 text-xs font-medium',
-                          STATUS_COLORS[status]
+                          'admin-status',
+                          status === 'active' && 'admin-status-ok',
+                          status === 'unconfirmed' && 'admin-status-warn'
                         )}
                       >
                         {STATUS_LABELS[status]}
                       </span>
                     </td>
-                    <td className="hidden px-4 py-3 md:table-cell">
+                    <td className="hidden md:table-cell">
                       {linked ? (
-                        <span className="inline-flex rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
-                          Has Account
-                        </span>
+                        <span className="admin-status">Has Account</span>
                       ) : (
-                        <span className="font-body text-xs text-wood-800/40">—</span>
+                        <span className="admin-cell-secondary">—</span>
                       )}
                     </td>
-                    <td className="hidden px-4 py-3 font-body text-sm text-wood-800/60 sm:table-cell">
+                    <td className="admin-cell-mono admin-cell-secondary hidden sm:table-cell">
                       {formatDate(subscriber.created_at)}
                     </td>
                   </tr>
@@ -280,8 +260,8 @@ export function SubscribersTable({
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="mt-4 flex items-center justify-between">
-          <p className="font-body text-sm text-wood-800/60">
+        <div className="admin-pagination">
+          <p>
             {filtered.length} subscriber{filtered.length !== 1 ? 's' : ''}
           </p>
           <div className="flex items-center gap-1">
@@ -289,18 +269,18 @@ export function SubscribersTable({
               type="button"
               disabled={page <= 1}
               onClick={() => setPage(page - 1)}
-              className="rounded-lg px-3 py-1.5 font-body text-xs font-medium text-wood-800 transition-colors hover:bg-cream-100 disabled:opacity-40 disabled:pointer-events-none"
+              className="admin-button admin-button-bare"
             >
               Previous
             </button>
-            <span className="px-2 font-body text-xs text-wood-800/60">
+            <span className="admin-meta px-2">
               {page} of {totalPages}
             </span>
             <button
               type="button"
               disabled={page >= totalPages}
               onClick={() => setPage(page + 1)}
-              className="rounded-lg px-3 py-1.5 font-body text-xs font-medium text-wood-800 transition-colors hover:bg-cream-100 disabled:opacity-40 disabled:pointer-events-none"
+              className="admin-button admin-button-bare"
             >
               Next
             </button>
@@ -324,7 +304,6 @@ function SearchIcon() {
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="absolute left-3 top-1/2 -translate-y-1/2 text-wood-800/40"
       aria-hidden="true"
     >
       <circle cx="11" cy="11" r="8" />

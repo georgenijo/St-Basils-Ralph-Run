@@ -24,34 +24,53 @@ export function PaymentsPageClient({
   unpaidShares,
 }: PaymentsPageClientProps) {
   const [panelOpen, setPanelOpen] = useState(false)
+  const pendingCount = payments.filter((payment) => payment.status === 'pending').length
 
   return (
     <>
-      <PendingPaymentsQueue payments={pendingPayments} />
-
-      <div className="mb-6 flex items-center justify-end">
+      <div className="admin-page-head">
+        <div>
+          <h1>Payments</h1>
+          <p className="admin-page-subtitle">
+            Record and track member payments, dues, and donations.
+          </p>
+        </div>
         <button
           type="button"
           onClick={() => setPanelOpen(true)}
-          className="inline-flex items-center gap-2 rounded-lg bg-burgundy-700 px-4 py-2 font-body text-sm font-medium text-cream-50 transition-colors hover:bg-burgundy-800"
+          className="admin-button admin-button-primary"
         >
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <line x1="12" y1="5" x2="12" y2="19" />
-            <line x1="5" y1="12" x2="19" y2="12" />
-          </svg>
-          Record Payment
+          <PlusIcon />
+          Record payment
         </button>
       </div>
+
+      <div className="admin-stats">
+        <SummaryStat label="Total" count={payments.length} detail="recorded payments" />
+        <SummaryStat label="Pending" count={pendingCount} detail="awaiting review" />
+        <SummaryStat
+          label="Membership"
+          count={payments.filter((payment) => payment.type === 'membership').length}
+          detail="membership dues"
+        />
+        <SummaryStat
+          label="Shares"
+          count={payments.filter((payment) => payment.type === 'share').length}
+          detail="share payments"
+        />
+        <SummaryStat
+          label="Events"
+          count={payments.filter((payment) => payment.type === 'event').length}
+          detail="event payments"
+        />
+        <SummaryStat
+          label="Donations"
+          count={payments.filter((payment) => payment.type === 'donation').length}
+          detail="donations"
+        />
+      </div>
+
+      <PendingPaymentsQueue payments={pendingPayments} />
 
       <PaymentsTable payments={payments} />
 
@@ -63,5 +82,33 @@ export function PaymentsPageClient({
         unpaidShares={unpaidShares}
       />
     </>
+  )
+}
+
+function SummaryStat({ label, count, detail }: { label: string; count: number; detail: string }) {
+  return (
+    <div>
+      <div className="admin-stat-label">{label}</div>
+      <div className="admin-stat-value">{count}</div>
+      <div className="admin-stat-detail">{detail}</div>
+    </div>
+  )
+}
+
+function PlusIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M12 5v14M5 12h14" />
+    </svg>
   )
 }

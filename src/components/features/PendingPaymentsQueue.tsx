@@ -2,7 +2,6 @@
 
 import { useActionState, useState } from 'react'
 
-import { cn } from '@/lib/utils'
 import { confirmPayment, rejectPayment } from '@/actions/admin-payments'
 import { Button } from '@/components/ui'
 
@@ -23,13 +22,6 @@ interface PendingPaymentsQueueProps {
 }
 
 // ─── Constants ──────────────────────────────────────────────────────
-
-const TYPE_COLORS: Record<string, string> = {
-  membership: 'bg-indigo-50 text-indigo-700',
-  share: 'bg-amber-50 text-amber-800',
-  event: 'bg-emerald-50 text-emerald-700',
-  donation: 'bg-violet-50 text-violet-700',
-}
 
 const METHOD_LABELS: Record<string, string> = {
   zelle: 'Zelle',
@@ -63,40 +55,24 @@ export function PendingPaymentsQueue({ payments }: PendingPaymentsQueueProps) {
   if (payments.length === 0) return null
 
   return (
-    <div className="mb-8">
-      <div className="mb-4 flex items-center gap-3">
-        <h2 className="font-heading text-xl font-semibold text-wood-900">Pending Payments</h2>
-        <span className="inline-flex h-6 min-w-[24px] items-center justify-center rounded-full bg-amber-100 px-2 font-body text-xs font-semibold text-amber-800">
-          {payments.length}
-        </span>
+    <section className="admin-section">
+      <div className="admin-section-head">
+        <h2>Pending payments</h2>
+        <span className="admin-meta">{payments.length} pending</span>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-amber-200 bg-white">
-        <div className="overflow-x-auto">
-          <table className="w-full">
+      <div className="admin-table-wrap">
+        <div>
+          <table className="admin-table">
             <thead>
-              <tr className="border-b border-amber-100 bg-amber-50/50">
-                <th className="px-4 py-3 text-left font-body text-xs font-semibold uppercase tracking-wider text-wood-800/50">
-                  Family
-                </th>
-                <th className="px-4 py-3 text-left font-body text-xs font-semibold uppercase tracking-wider text-wood-800/50">
-                  Type
-                </th>
-                <th className="px-4 py-3 text-left font-body text-xs font-semibold uppercase tracking-wider text-wood-800/50">
-                  Method
-                </th>
-                <th className="px-4 py-3 text-left font-body text-xs font-semibold uppercase tracking-wider text-wood-800/50">
-                  Reference
-                </th>
-                <th className="px-4 py-3 text-right font-body text-xs font-semibold uppercase tracking-wider text-wood-800/50">
-                  Amount
-                </th>
-                <th className="px-4 py-3 text-left font-body text-xs font-semibold uppercase tracking-wider text-wood-800/50">
-                  Submitted
-                </th>
-                <th className="px-4 py-3 text-right font-body text-xs font-semibold uppercase tracking-wider text-wood-800/50">
-                  Actions
-                </th>
+              <tr>
+                <th>Family</th>
+                <th>Type</th>
+                <th>Method</th>
+                <th>Reference</th>
+                <th className="admin-cell-number">Amount</th>
+                <th>Submitted</th>
+                <th className="admin-cell-number">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -107,7 +83,7 @@ export function PendingPaymentsQueue({ payments }: PendingPaymentsQueueProps) {
           </table>
         </div>
       </div>
-    </div>
+    </section>
   )
 }
 
@@ -124,39 +100,31 @@ function PendingPaymentRow({ payment }: { payment: PendingPayment }) {
 
   return (
     <>
-      <tr className="border-b border-wood-800/[0.06] last:border-b-0 transition-colors hover:bg-cream-50/50">
-        <td className="whitespace-nowrap px-4 py-3 font-body text-sm font-medium text-wood-900">
-          {payment.family_name ?? '—'}
+      <tr>
+        <td className="admin-cell-primary whitespace-nowrap">{payment.family_name ?? '—'}</td>
+        <td className="admin-cell-secondary whitespace-nowrap">
+          <span className="capitalize">{payment.type}</span>
         </td>
-        <td className="whitespace-nowrap px-4 py-3">
-          <span
-            className={cn(
-              'inline-flex rounded-full px-2 py-0.5 text-xs font-medium capitalize',
-              TYPE_COLORS[payment.type] ?? 'bg-gray-50 text-gray-700'
-            )}
-          >
-            {payment.type}
-          </span>
-        </td>
-        <td className="whitespace-nowrap px-4 py-3 font-body text-sm text-wood-800/80">
+        <td className="admin-cell-secondary whitespace-nowrap">
           {METHOD_LABELS[payment.method ?? ''] ?? payment.method ?? '—'}
         </td>
-        <td className="whitespace-nowrap px-4 py-3">
-          <code className="font-mono text-xs text-wood-800/70">
-            {payment.reference_memo ?? '—'}
-          </code>
+        <td className="whitespace-nowrap">
+          <code className="admin-meta">{payment.reference_memo ?? '—'}</code>
         </td>
-        <td className="whitespace-nowrap px-4 py-3 text-right font-body text-sm font-medium text-wood-900 tabular-nums">
-          {usd.format(payment.amount)}
-        </td>
-        <td className="whitespace-nowrap px-4 py-3 font-body text-sm text-wood-800/60">
+        <td className="admin-cell-number whitespace-nowrap">{usd.format(payment.amount)}</td>
+        <td className="admin-cell-mono admin-cell-secondary whitespace-nowrap">
           {formatDate(payment.created_at)}
         </td>
-        <td className="whitespace-nowrap px-4 py-3 text-right">
+        <td className="admin-cell-number whitespace-nowrap">
           <div className="flex items-center justify-end gap-2">
             <form action={confirmAction}>
               <input type="hidden" name="payment_id" value={payment.id} />
-              <Button type="submit" size="sm" disabled={isConfirming || isRejecting}>
+              <Button
+                type="submit"
+                size="sm"
+                disabled={isConfirming || isRejecting}
+                className="admin-button admin-button-quiet"
+              >
                 {isConfirming ? 'Confirming...' : 'Confirm'}
               </Button>
             </form>
@@ -166,20 +134,21 @@ function PendingPaymentRow({ payment }: { payment: PendingPayment }) {
               size="sm"
               onClick={() => setShowRejectForm(!showRejectForm)}
               disabled={isConfirming || isRejecting}
+              className="admin-button admin-button-bare"
             >
               Reject
             </Button>
           </div>
           {confirmState.message && !confirmState.success && (
-            <p className="mt-1 text-xs text-red-600">{confirmState.message}</p>
+            <p className="admin-error">{confirmState.message}</p>
           )}
         </td>
       </tr>
 
       {/* Inline reject form */}
       {showRejectForm && (
-        <tr className="border-b border-wood-800/[0.06]">
-          <td colSpan={7} className="px-4 py-3">
+        <tr>
+          <td colSpan={7}>
             <form action={rejectAction} className="flex items-center gap-3">
               <input type="hidden" name="payment_id" value={payment.id} />
               <input
@@ -187,21 +156,27 @@ function PendingPaymentRow({ payment }: { payment: PendingPayment }) {
                 type="text"
                 required
                 placeholder="Reason for rejection..."
-                className="flex-1 rounded-lg border border-wood-800/15 bg-white px-3 py-2 font-body text-sm text-wood-900 placeholder:text-wood-800/40 focus-visible:border-burgundy-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy-700/20"
+                className="flex-1"
               />
-              <Button type="submit" variant="ghost" size="sm" disabled={isRejecting}>
+              <Button
+                type="submit"
+                variant="ghost"
+                size="sm"
+                disabled={isRejecting}
+                className="admin-button admin-button-quiet"
+              >
                 {isRejecting ? 'Rejecting...' : 'Submit'}
               </Button>
               <button
                 type="button"
                 onClick={() => setShowRejectForm(false)}
-                className="font-body text-sm text-wood-800/50 hover:text-wood-800"
+                className="admin-button admin-button-bare"
               >
                 Cancel
               </button>
             </form>
             {rejectState.message && !rejectState.success && (
-              <p className="mt-1 text-xs text-red-600">{rejectState.message}</p>
+              <p className="admin-error">{rejectState.message}</p>
             )}
           </td>
         </tr>

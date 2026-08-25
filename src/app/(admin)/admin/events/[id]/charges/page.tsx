@@ -45,13 +45,10 @@ export default async function EventChargesPage({ params }: PageProps) {
   })
 
   return (
-    <main className="px-4 py-8 sm:px-6 lg:px-8">
+    <main className="admin-page">
       {/* Back link */}
       <div className="mb-6">
-        <Link
-          href={`/admin/events/${id}`}
-          className="inline-flex items-center gap-1 font-body text-sm text-wood-800/60 transition-colors hover:text-burgundy-700"
-        >
+        <Link href={`/admin/events/${id}`} className="admin-button admin-button-bare">
           <svg
             width="16"
             height="16"

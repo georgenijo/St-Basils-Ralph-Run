@@ -43,15 +43,15 @@ export function InviteUserForm() {
     <form action={formAction} className="space-y-6">
       {/* Server error message */}
       {!state.success && state.message && !state.errors && (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3" role="alert">
-          <p className="font-body text-sm text-red-600">{state.message}</p>
+        <div className="admin-error" role="alert">
+          <p>{state.message}</p>
         </div>
       )}
 
       {/* Email */}
       <div>
         <label htmlFor="email" className="mb-1.5 block font-body text-sm font-medium text-wood-900">
-          Email <span className="text-burgundy-700">*</span>
+          Email <span className="admin-required">*</span>
         </label>
         <input
           type="email"
@@ -72,7 +72,7 @@ export function InviteUserForm() {
           htmlFor="full_name"
           className="mb-1.5 block font-body text-sm font-medium text-wood-900"
         >
-          Full Name <span className="text-burgundy-700">*</span>
+          Full Name <span className="admin-required">*</span>
         </label>
         <input
           type="text"
@@ -129,7 +129,7 @@ export function InviteUserForm() {
 
       {/* Submit / Cancel */}
       <div className="flex items-center gap-4 border-t border-wood-800/10 pt-6">
-        <Button type="submit" disabled={isPending}>
+        <Button type="submit" disabled={isPending} className="admin-button admin-button-primary">
           {isPending ? (
             <span className="flex items-center gap-2">
               <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
@@ -153,7 +153,7 @@ export function InviteUserForm() {
             'Send Invite'
           )}
         </Button>
-        <Button variant="ghost" href="/admin/users">
+        <Button variant="ghost" href="/admin/users" className="admin-button admin-button-quiet">
           Cancel
         </Button>
       </div>

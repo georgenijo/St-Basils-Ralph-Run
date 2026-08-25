@@ -66,8 +66,8 @@ interface OccurrenceModalProps {
 
 function ErrorAlert({ message }: { message: string }) {
   return (
-    <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3" role="alert">
-      <p className="font-body text-sm text-red-600">{message}</p>
+    <div className="admin-error mt-4" role="alert">
+      <p>{message}</p>
     </div>
   )
 }
@@ -98,11 +98,8 @@ function ActionView({
       <button
         type="button"
         onClick={() => onModeChange('edit')}
-        className="flex w-full items-center gap-3 rounded-lg border border-wood-800/10 px-4 py-3 text-left transition-colors hover:bg-cream-100"
+        className="admin-button admin-button-quiet h-auto w-full justify-start py-3 text-left"
       >
-        <span className="text-lg" aria-hidden="true">
-          ✎
-        </span>
         <div>
           <p className="font-body text-sm font-medium text-wood-900">Edit this occurrence</p>
           <p className="font-body text-xs text-wood-800/60">
@@ -114,11 +111,8 @@ function ActionView({
       <button
         type="button"
         onClick={() => onModeChange('cancel')}
-        className="flex w-full items-center gap-3 rounded-lg border border-red-200 px-4 py-3 text-left transition-colors hover:bg-red-50"
+        className="admin-button admin-button-quiet h-auto w-full justify-start py-3 text-left"
       >
-        <span className="text-lg text-red-600" aria-hidden="true">
-          ✕
-        </span>
         <div>
           <p className="font-body text-sm font-medium text-red-700">Cancel this occurrence</p>
           <p className="font-body text-xs text-wood-800/60">
@@ -133,11 +127,8 @@ function ActionView({
           onClose()
           router.push(`/admin/events/${event.eventId}/edit`)
         }}
-        className="flex w-full items-center gap-3 rounded-lg border border-wood-800/10 px-4 py-3 text-left transition-colors hover:bg-cream-100"
+        className="admin-button admin-button-quiet h-auto w-full justify-start py-3 text-left"
       >
-        <span className="text-lg" aria-hidden="true">
-          ⟳
-        </span>
         <div>
           <p className="font-body text-sm font-medium text-wood-900">Edit entire series</p>
           <p className="font-body text-xs text-wood-800/60">
@@ -283,10 +274,16 @@ function EditView({
             size="sm"
             onClick={() => onModeChange('action')}
             disabled={isPending}
+            className="admin-button admin-button-quiet"
           >
             Back
           </Button>
-          <Button type="submit" size="sm" disabled={isPending}>
+          <Button
+            type="submit"
+            size="sm"
+            disabled={isPending}
+            className="admin-button admin-button-primary"
+          >
             {isPending ? 'Saving...' : 'Save Changes'}
           </Button>
         </div>
@@ -312,7 +309,7 @@ function CancelView({
 
   return (
     <div>
-      <h2 className="font-heading text-xl font-semibold text-red-700">Cancel Occurrence</h2>
+      <h2>Cancel Occurrence</h2>
       <p className="mt-2 font-body text-sm text-wood-800/80">
         This will cancel <strong className="text-wood-900">&ldquo;{event.title}&rdquo;</strong> on{' '}
         {formatInChurchTimeZone(event.startAt, {
@@ -366,14 +363,11 @@ function CancelView({
             size="sm"
             onClick={() => onModeChange('action')}
             disabled={isPending}
+            className="admin-button admin-button-quiet"
           >
             Back
           </Button>
-          <button
-            type="submit"
-            disabled={isPending}
-            className="inline-flex items-center justify-center rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
-          >
+          <button type="submit" disabled={isPending} className="admin-button admin-button-primary">
             {isPending ? 'Cancelling...' : 'Cancel this occurrence'}
           </button>
         </div>
@@ -404,7 +398,7 @@ function ModifiedView({
       <h2 className="font-heading text-xl font-semibold text-wood-900">Modified Occurrence</h2>
       <p className="mt-1 font-body text-sm text-wood-800/60">{event.title}</p>
 
-      <div className="mt-4 space-y-2 rounded-lg bg-cream-100/50 p-3">
+      <div className="admin-notice mt-4 space-y-2">
         {instance.startAtOverride && (
           <p className="font-body text-sm text-wood-800">
             Time:{' '}
@@ -450,9 +444,9 @@ function ModifiedView({
         <button
           type="button"
           onClick={() => onModeChange('edit')}
-          className="flex w-full items-center gap-2 rounded-lg border border-wood-800/10 px-4 py-2.5 font-body text-sm font-medium text-wood-900 transition-colors hover:bg-cream-100"
+          className="admin-button admin-button-quiet h-auto w-full justify-start py-2.5"
         >
-          ✎ Edit again
+          Edit again
         </button>
 
         <form action={formAction} className="space-y-2">
@@ -472,18 +466,18 @@ function ModifiedView({
           <button
             type="submit"
             disabled={isPending}
-            className="flex w-full items-center gap-2 rounded-lg border border-wood-800/10 px-4 py-2.5 font-body text-sm font-medium text-wood-900 transition-colors hover:bg-cream-100 disabled:opacity-50"
+            className="admin-button admin-button-quiet h-auto w-full justify-start py-2.5"
           >
-            {isPending ? 'Restoring...' : '⟳ Revert to regular schedule'}
+            {isPending ? 'Restoring...' : 'Revert to regular schedule'}
           </button>
         </form>
 
         <button
           type="button"
           onClick={() => onModeChange('cancel')}
-          className="flex w-full items-center gap-2 rounded-lg border border-red-200 px-4 py-2.5 font-body text-sm font-medium text-red-700 transition-colors hover:bg-red-50"
+          className="admin-button admin-button-quiet h-auto w-full justify-start py-2.5"
         >
-          ✕ Cancel instead
+          Cancel instead
         </button>
       </div>
     </div>
@@ -507,7 +501,7 @@ function CancelledView({
 
   return (
     <div>
-      <h2 className="font-heading text-xl font-semibold text-red-700">Cancelled Occurrence</h2>
+      <h2>Cancelled Occurrence</h2>
 
       <div className="mt-4 space-y-1">
         <p className="font-body text-sm text-wood-800/40 line-through">{event.title}</p>
@@ -520,7 +514,7 @@ function CancelledView({
       </div>
 
       {instance.note && (
-        <div className="mt-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3">
+        <div className="admin-notice mt-3">
           <p className="font-body text-sm font-medium text-red-700">Reason</p>
           <p className="mt-0.5 font-body text-sm text-red-600">{instance.note}</p>
         </div>
@@ -559,7 +553,12 @@ function CancelledView({
               Send notification to subscribers
             </label>
           </div>
-          <Button type="submit" size="sm" disabled={isPending}>
+          <Button
+            type="submit"
+            size="sm"
+            disabled={isPending}
+            className="admin-button admin-button-primary"
+          >
             {isPending ? 'Restoring...' : 'Restore this occurrence'}
           </Button>
         </form>
@@ -587,12 +586,8 @@ export function OccurrenceModal({
   }, [open])
 
   return (
-    <dialog
-      ref={dialogRef}
-      onClose={onClose}
-      className="m-auto w-full max-w-lg rounded-2xl border border-wood-800/10 bg-cream-50 p-0 shadow-lg backdrop:bg-charcoal/50"
-    >
-      <div className="p-6">
+    <dialog ref={dialogRef} onClose={onClose}>
+      <div className="admin-dialog-body">
         {mode === 'action' && (
           <ActionView event={event} onModeChange={onModeChange} onClose={onClose} />
         )}

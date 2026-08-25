@@ -1,6 +1,5 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
@@ -16,51 +15,30 @@ interface NavItem {
 
 // ─── Navigation Data ─────────────────────────────────────────────────
 
-const navigation: NavItem[] = [
+const navigation: { label: string; items: NavItem[] }[] = [
   {
-    label: 'Dashboard',
-    href: '/admin/dashboard',
-    icon: <DashboardIcon />,
+    label: 'Content',
+    items: [
+      { label: 'Dashboard', href: '/admin/dashboard', icon: <DashboardIcon /> },
+      { label: 'Events', href: '/admin/events', icon: <CalendarIcon /> },
+      { label: 'Announcements', href: '/admin/announcements', icon: <MegaphoneIcon /> },
+    ],
   },
   {
-    label: 'Events',
-    href: '/admin/events',
-    icon: <CalendarIcon />,
+    label: 'Community',
+    items: [
+      { label: 'Subscribers', href: '/admin/subscribers', icon: <UsersIcon /> },
+      { label: 'Users', href: '/admin/users', icon: <ShieldUserIcon /> },
+      { label: 'Shares', href: '/admin/shares', icon: <HeartIcon /> },
+      { label: 'Payments', href: '/admin/payments', icon: <PaymentsIcon /> },
+    ],
   },
   {
-    label: 'Announcements',
-    href: '/admin/announcements',
-    icon: <MegaphoneIcon />,
-  },
-  {
-    label: 'Subscribers',
-    href: '/admin/subscribers',
-    icon: <UsersIcon />,
-  },
-  {
-    label: 'Users',
-    href: '/admin/users',
-    icon: <ShieldUserIcon />,
-  },
-  {
-    label: 'Shares',
-    href: '/admin/shares',
-    icon: <HeartIcon />,
-  },
-  {
-    label: 'Payments',
-    href: '/admin/payments',
-    icon: <PaymentsIcon />,
-  },
-  {
-    label: 'Settings',
-    href: '/admin/settings',
-    icon: <SettingsIcon />,
-  },
-  {
-    label: 'System Status',
-    href: '/admin/health',
-    icon: <ActivityIcon />,
+    label: 'System',
+    items: [
+      { label: 'Settings', href: '/admin/settings', icon: <SettingsIcon /> },
+      { label: 'System Status', href: '/admin/health', icon: <ActivityIcon /> },
+    ],
   },
 ]
 
@@ -68,137 +46,58 @@ const navigation: NavItem[] = [
 
 export interface AdminSidebarProps {
   className?: string
+  activePath?: string
 }
 
-export function AdminSidebar({ className }: AdminSidebarProps) {
+export function AdminSidebar({ className, activePath }: AdminSidebarProps) {
   const pathname = usePathname()
-  const [mobileOpen, setMobileOpen] = useState(false)
+  const currentPath = activePath ?? pathname
 
-  // Close sidebar on route change
-  useEffect(() => {
-    setMobileOpen(false)
-  }, [pathname])
+  const isActive = (href: string) => currentPath === href || currentPath.startsWith(href + '/')
 
-  // Lock body scroll when mobile sidebar is open
-  useEffect(() => {
-    document.body.style.overflow = mobileOpen ? 'hidden' : ''
-    return () => {
-      document.body.style.overflow = ''
-    }
-  }, [mobileOpen])
-
-  // Escape key closes mobile sidebar
-  useEffect(() => {
-    function onKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape' && mobileOpen) {
-        setMobileOpen(false)
-      }
-    }
-    document.addEventListener('keydown', onKeyDown)
-    return () => document.removeEventListener('keydown', onKeyDown)
-  }, [mobileOpen])
-
-  const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/')
-
-  const sidebarContent = (
-    <>
-      {/* Header */}
-      <div className="flex h-16 items-center px-6">
-        <span className="font-heading text-lg font-semibold text-cream-50">Admin</span>
+  return (
+    <aside className={cn('admin-sidebar', className)} aria-label="Admin sidebar">
+      <div className="admin-brand">
+        <div className="admin-brand-mark" aria-hidden="true">
+          B
+        </div>
+        <div className="admin-brand-copy">
+          <b>St. Basil&apos;s</b>
+          <span>Admin console</span>
+        </div>
       </div>
 
-      {/* Gold accent line */}
-      <div
-        className="mx-4 h-px bg-gradient-to-r from-transparent via-gold-500 to-transparent"
-        aria-hidden="true"
-      />
-
-      {/* Navigation */}
-      <nav className="mt-4 flex-1 px-3" aria-label="Admin navigation">
-        <ul className="space-y-1">
-          {navigation.map((item) => (
-            <li key={item.href}>
-              <Link
-                href={item.href}
-                className={cn(
-                  'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
-                  isActive(item.href)
-                    ? 'bg-cream-50/10 text-cream-50'
-                    : 'text-cream-50/60 hover:bg-cream-50/5 hover:text-cream-50'
-                )}
-                {...(isActive(item.href) && {
-                  'aria-current': 'page' as const,
-                })}
-              >
-                <span className="flex h-5 w-5 items-center justify-center" aria-hidden="true">
-                  {item.icon}
-                </span>
-                {item.label}
-              </Link>
-            </li>
-          ))}
-        </ul>
+      <nav aria-label="Admin navigation">
+        {navigation.map((group) => (
+          <div className="admin-nav-group" key={group.label}>
+            <p className="admin-nav-label">{group.label}</p>
+            <ul className="admin-nav-list">
+              {group.items.map((item) => (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    className="admin-nav-item"
+                    {...(isActive(item.href) && { 'aria-current': 'page' as const })}
+                  >
+                    <span aria-hidden="true">{item.icon}</span>
+                    <span>{item.label}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
       </nav>
 
-      {/* Back to site link */}
-      <div className="px-3 pb-4">
-        <div className="mx-1 mb-3 h-px bg-cream-50/10" aria-hidden="true" />
-        <Link
-          href="/"
-          className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-cream-50/60 transition-colors hover:bg-cream-50/5 hover:text-cream-50"
-        >
-          <span className="flex h-5 w-5 items-center justify-center" aria-hidden="true">
+      <div className="admin-sidebar-foot">
+        <Link href="/" className="admin-nav-item">
+          <span aria-hidden="true">
             <ArrowLeftIcon />
           </span>
           Back to site
         </Link>
       </div>
-    </>
-  )
-
-  return (
-    <>
-      {/* Mobile hamburger — visible only on small screens */}
-      <button
-        type="button"
-        className="fixed left-4 top-4 z-50 flex h-11 w-11 items-center justify-center rounded-lg bg-charcoal text-cream-50 shadow-md transition-colors hover:bg-charcoal/90 lg:hidden"
-        onClick={() => setMobileOpen(!mobileOpen)}
-        aria-expanded={mobileOpen}
-        aria-controls="admin-sidebar-mobile"
-        aria-label={mobileOpen ? 'Close admin menu' : 'Open admin menu'}
-      >
-        {mobileOpen ? <CloseIcon /> : <HamburgerIcon />}
-      </button>
-
-      {/* Mobile backdrop */}
-      <div
-        className={cn(
-          'fixed inset-0 z-40 bg-black/40 transition-opacity duration-300 lg:hidden',
-          mobileOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
-        )}
-        aria-hidden="true"
-        onClick={() => setMobileOpen(false)}
-      />
-
-      {/* Mobile sidebar */}
-      <aside
-        id="admin-sidebar-mobile"
-        className={cn(
-          'fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-charcoal transition-transform duration-300 ease-in-out lg:hidden',
-          mobileOpen ? 'translate-x-0' : '-translate-x-full'
-        )}
-      >
-        {sidebarContent}
-      </aside>
-
-      {/* Desktop sidebar */}
-      <aside
-        className={cn('hidden w-64 flex-shrink-0 flex-col bg-charcoal lg:flex', className)}
-        aria-label="Admin sidebar"
-      >
-        {sidebarContent}
-      </aside>
-    </>
+    </aside>
   )
 }
 
@@ -392,42 +291,6 @@ function PaymentsIcon() {
     >
       <line x1="12" y1="1" x2="12" y2="23" />
       <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-    </svg>
-  )
-}
-
-function HamburgerIcon() {
-  return (
-    <svg
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M3 6h18M3 12h18M3 18h18" />
-    </svg>
-  )
-}
-
-function CloseIcon() {
-  return (
-    <svg
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M18 6L6 18M6 6l12 12" />
     </svg>
   )
 }

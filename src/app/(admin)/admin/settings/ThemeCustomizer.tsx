@@ -106,19 +106,19 @@ export function ThemeCustomizer({ currentFonts, currentSectionOrder }: ThemeCust
   }, [])
 
   return (
-    <form action={formAction} className="space-y-8">
+    <form id="theme-settings-form" action={formAction}>
       {/* Hidden fields for serialized data */}
       <input type="hidden" name="fonts" value={JSON.stringify(fonts)} />
       <input type="hidden" name="section_order" value={JSON.stringify(sectionOrder)} />
 
       {/* Font Picker Section */}
-      <section className="rounded-xl border border-wood-800/10 bg-white p-6">
-        <h2 className="mb-4 font-heading text-xl font-semibold text-wood-900">Font Selection</h2>
-        <p className="mb-6 text-sm text-wood-800/60">
+      <section className="admin-settings-group">
+        <h2>Font selection</h2>
+        <p className="admin-notice">
           Choose fonts for different text roles. Changes preview immediately below.
         </p>
 
-        <div className="grid gap-6 lg:grid-cols-3">
+        <div>
           <FontPicker
             label="Heading Font"
             description="Used for page titles and section headings"
@@ -140,10 +140,8 @@ export function ThemeCustomizer({ currentFonts, currentSectionOrder }: ThemeCust
         </div>
 
         {/* Live Preview */}
-        <div className="mt-8 rounded-lg border border-wood-800/10 bg-cream-50 p-6">
-          <h3 className="mb-4 text-sm font-medium uppercase tracking-wider text-wood-800/60">
-            Live Preview
-          </h3>
+        <div className="admin-section mt-8">
+          <h3 className="admin-section-title">Live Preview</h3>
           <div className="space-y-4">
             <h4
               className="text-2xl font-semibold text-wood-900"
@@ -158,11 +156,11 @@ export function ThemeCustomizer({ currentFonts, currentSectionOrder }: ThemeCust
               Serving the Jacobite Malayalee community in the New England region. Join us for Holy
               Qurbono every Sunday at 9:15 AM EST.
             </p>
-            <nav className="flex gap-4">
+            <nav className="flex gap-4" aria-label="Font preview navigation">
               {['Home', 'About', 'Events', 'Contact'].map((item) => (
                 <span
                   key={item}
-                  className="text-sm font-medium text-burgundy-700"
+                  className="text-sm font-medium"
                   style={{ fontFamily: `'${fonts.nav.family}', serif` }}
                 >
                   {item}
@@ -174,33 +172,18 @@ export function ThemeCustomizer({ currentFonts, currentSectionOrder }: ThemeCust
       </section>
 
       {/* Section Order */}
-      <section className="rounded-xl border border-wood-800/10 bg-white p-6">
-        <h2 className="mb-4 font-heading text-xl font-semibold text-wood-900">
-          Homepage Section Order
-        </h2>
-        <p className="mb-6 text-sm text-wood-800/60">Drag and drop to reorder homepage sections.</p>
+      <section className="admin-settings-group">
+        <h2>Homepage Section Order</h2>
+        <p className="admin-notice">Drag and drop to reorder homepage sections.</p>
 
         <SectionReorder sections={sectionOrder} onChange={setSectionOrder} />
       </section>
 
-      {/* Save Button & Status */}
-      <div className="flex items-center gap-4">
-        <button
-          type="submit"
-          disabled={isPending}
-          className={cn(
-            'rounded-lg bg-burgundy-700 px-6 py-2.5 text-sm font-medium text-cream-50 transition-colors',
-            isPending
-              ? 'cursor-not-allowed opacity-60'
-              : 'hover:bg-burgundy-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-burgundy-700'
-          )}
-        >
-          {isPending ? 'Saving...' : 'Save Settings'}
-        </button>
-
+      <div className="admin-toolbar" aria-live="polite">
+        {isPending && <span className="admin-status admin-status-warn">Saving changes</span>}
         {state.message && (
           <p
-            className={cn('text-sm font-medium', state.success ? 'text-green-700' : 'text-red-700')}
+            className={state.success ? 'admin-status admin-status-ok' : 'admin-error'}
             role="status"
           >
             {state.message}
@@ -243,15 +226,17 @@ function FontPicker({ label, description, value, onChange }: FontPickerProps) {
   }, [isOpen])
 
   return (
-    <div ref={containerRef} className="relative">
-      <label className="mb-1 block text-sm font-medium text-wood-900">{label}</label>
-      <p className="mb-2 text-xs text-wood-800/60">{description}</p>
+    <div ref={containerRef} className="admin-setting-row relative">
+      <div className="admin-setting-copy">
+        <div className="admin-setting-title">{label}</div>
+        <p className="admin-setting-description">{description}</p>
+      </div>
 
       {/* Selected font display / trigger */}
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex w-full items-center justify-between rounded-lg border border-wood-800/20 bg-white px-3 py-2 text-left text-sm transition-colors hover:border-wood-800/40"
+        className="admin-button admin-button-quiet min-w-[220px] justify-between"
       >
         <span style={{ fontFamily: `'${value.family}', sans-serif` }}>{value.family}</span>
         <ChevronDownIcon className={cn('transition-transform', isOpen && 'rotate-180')} />
@@ -259,14 +244,13 @@ function FontPicker({ label, description, value, onChange }: FontPickerProps) {
 
       {/* Dropdown */}
       {isOpen && (
-        <div className="absolute left-0 right-0 top-full z-10 mt-1 rounded-lg border border-wood-800/20 bg-white shadow-lg">
-          <div className="border-b border-wood-800/10 p-2">
+        <div className="absolute right-0 top-full z-10 mt-1 w-[260px] rounded-lg border border-[var(--border)] bg-[var(--surface)]">
+          <div className="border-b border-[var(--border)] p-2">
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search fonts..."
-              className="w-full rounded-md border border-wood-800/10 px-2 py-1.5 text-sm focus:border-burgundy-700 focus:outline-none"
               // eslint-disable-next-line jsx-a11y/no-autofocus -- intentional: dropdown search input should focus on open
               autoFocus
             />
@@ -284,20 +268,13 @@ function FontPicker({ label, description, value, onChange }: FontPickerProps) {
                     setSearch('')
                   }}
                   onMouseEnter={() => loadGoogleFont(font.family)}
-                  className={cn(
-                    'flex w-full items-center px-3 py-2 text-sm transition-colors',
-                    value.family === font.family
-                      ? 'bg-burgundy-100 text-burgundy-700'
-                      : 'text-wood-800 hover:bg-cream-50'
-                  )}
+                  className="flex w-full items-center px-3 py-2 text-sm hover:bg-[var(--fg-soft)]"
                 >
                   <span style={{ fontFamily: `'${font.family}', sans-serif` }}>{font.family}</span>
                 </button>
               </li>
             ))}
-            {filtered.length === 0 && (
-              <li className="px-3 py-2 text-sm text-wood-800/40">No fonts found</li>
-            )}
+            {filtered.length === 0 && <li className="admin-empty">No fonts found</li>}
           </ul>
         </div>
       )}
@@ -347,7 +324,7 @@ function SectionReorder({ sections, onChange }: SectionReorderProps) {
   }
 
   return (
-    <ul className="space-y-2">
+    <ul className="admin-list">
       {sections.map((section, index) => (
         <li
           key={section}
@@ -356,20 +333,12 @@ function SectionReorder({ sections, onChange }: SectionReorderProps) {
           onDragOver={(e) => handleDragOver(e, index)}
           onDrop={(e) => handleDrop(e, index)}
           onDragEnd={handleDragEnd}
-          className={cn(
-            'flex cursor-grab items-center gap-3 rounded-lg border bg-white px-4 py-3 transition-all active:cursor-grabbing',
-            dragIndex === index
-              ? 'border-burgundy-700 opacity-50'
-              : overIndex === index
-                ? 'border-burgundy-700 bg-burgundy-100'
-                : 'border-wood-800/10 hover:border-wood-800/20'
-          )}
+          className="admin-list-row cursor-grab active:cursor-grabbing"
+          data-selected={dragIndex === index || overIndex === index}
         >
-          <GripIcon className="text-wood-800/30" />
-          <span className="text-sm font-medium text-wood-900">
-            {SECTION_LABELS[section] ?? section}
-          </span>
-          <span className="ml-auto text-xs text-wood-800/40">{index + 1}</span>
+          <GripIcon />
+          <span className="admin-list-title">{SECTION_LABELS[section] ?? section}</span>
+          <span className="admin-list-time ml-auto">{index + 1}</span>
         </li>
       ))}
     </ul>
