@@ -41,6 +41,7 @@ interface PageProps {
 const getAnnouncement = unstable_cache(
   async (slug: string): Promise<AnnouncementRow | null> => {
     const supabase = getPublicSupabaseClient()
+    if (!supabase) return null
     const { data } = await supabase
       .from('announcements')
       .select('id, title, slug, body, priority, is_pinned, published_at, expires_at, created_at')

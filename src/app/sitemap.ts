@@ -44,6 +44,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   try {
     const supabase = getPublicSupabaseClient()
+    if (!supabase) return staticPages
 
     // All events are public: the public page query has no additional predicates,
     // and the events SELECT policy is USING (true).

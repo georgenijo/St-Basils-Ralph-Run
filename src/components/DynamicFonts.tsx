@@ -46,6 +46,7 @@ function isCustomFont(fonts: FontsConfig): boolean {
 const getFontSettings = unstable_cache(
   async (): Promise<FontsConfig | null> => {
     const supabase = getPublicSupabaseClient()
+    if (!supabase) return null
     const { data } = await supabase.from('site_settings').select('fonts').limit(1).single()
 
     return (data?.fonts as FontsConfig | undefined) ?? null

@@ -150,6 +150,7 @@ function transformEvents(events: EventRow[]): CalendarEvent[] {
 const getCalendarEvents = unstable_cache(
   async (): Promise<CalendarEvent[]> => {
     const supabase = getPublicSupabaseClient()
+    if (!supabase) return []
     const { data: events } = await supabase
       .from('events')
       .select(

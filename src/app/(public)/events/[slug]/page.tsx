@@ -49,6 +49,7 @@ interface PageProps {
 const getEvent = unstable_cache(
   async (slug: string): Promise<EventRow | null> => {
     const supabase = getPublicSupabaseClient()
+    if (!supabase) return null
     const { data } = await supabase
       .from('events')
       .select(

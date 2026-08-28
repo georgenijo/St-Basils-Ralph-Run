@@ -42,6 +42,15 @@ const getHomePageData = unstable_cache(
     const supabase = getPublicSupabaseClient()
     const now = new Date()
 
+    if (!supabase) {
+      return {
+        recentAnnouncements: null,
+        pinnedAnnouncements: null,
+        eventSources: null,
+        generatedAt: now.toISOString(),
+      }
+    }
+
     const [{ data: recentAnnouncements }, { data: pinnedAnnouncements }, { data: eventSources }] =
       await Promise.all([
         supabase

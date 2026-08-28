@@ -10,19 +10,22 @@ let publicClient: SupabaseClient | null = null
  * Public pages must not use the SSR client: reading request cookies opts the
  * route into per-request rendering and prevents Next/Vercel from caching it.
  */
-export function getPublicSupabaseClient(): SupabaseClient {
+export function getPublicSupabaseClient(): SupabaseClient | null {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  // CI intentionally builds without production credentials. Static generation
+  // should fall back to empty public data rather than failing the entire build.
+  if (!supabaseUrl || !supabaseAnonKey) return null
+
   if (!publicClient) {
-    publicClient = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        auth: {
-          autoRefreshToken: false,
-          detectSessionInUrl: false,
-          persistSession: false,
-        },
-      }
-    )
+    publicClient = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        autoRefreshToken: false,
+        detectSessionInUrl: false,
+        persistSession: false,
+      },
+    })
   }
 
   return publicClient

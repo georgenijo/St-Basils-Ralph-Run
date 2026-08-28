@@ -51,6 +51,7 @@ interface PageProps {
 const getAnnouncementsPage = unstable_cache(
   async (offset: number) => {
     const supabase = getPublicSupabaseClient()
+    if (!supabase) return { data: null, count: null }
 
     // RLS handles filtering to published + non-expired.
     return supabase
