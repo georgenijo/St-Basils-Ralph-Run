@@ -1,9 +1,11 @@
 import type { Metadata } from 'next'
+import { unstable_cache } from 'next/cache'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
+import { PUBLIC_EVENTS_CACHE_TAG } from '@/lib/cache-tags'
 import { formatInChurchTimeZone, getChurchTimeZoneName } from '@/lib/event-time'
-import { createClient } from '@/lib/supabase/server'
+import { getPublicSupabaseClient } from '@/lib/supabase/public'
 import { renderTiptapHTML } from '@/lib/tiptap'
 import { describeRecurrence } from '@/lib/recurrence'
 import { eventSchema, breadcrumbSchema } from '@/lib/structured-data'
@@ -44,14 +46,31 @@ interface PageProps {
   params: Promise<{ slug: string }>
 }
 
+const getEvent = unstable_cache(
+  async (slug: string): Promise<EventRow | null> => {
+    const supabase = getPublicSupabaseClient()
+    const { data } = await supabase
+      .from('events')
+      .select(
+        `
+        id, title, slug, description, location, start_at, end_at, is_recurring, category, created_at,
+        recurrence_rules(rrule_string, dtstart, until)
+      `
+      )
+      .eq('slug', slug)
+      .single<EventRow>()
+
+    return data
+  },
+  ['public-event-detail'],
+  { revalidate: 60, tags: [PUBLIC_EVENTS_CACHE_TAG] }
+)
+
+export const revalidate = 60
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params
-  const supabase = await createClient()
-  const { data: event } = await supabase
-    .from('events')
-    .select('title, description, location, start_at')
-    .eq('slug', slug)
-    .single()
+  const event = await getEvent(slug)
 
   if (!event) {
     return { title: 'Event Not Found' }
@@ -85,13 +104,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function EventDetailPage({ params }: PageProps) {
   const { slug } = await params
-  const supabase = await createClient()
-
-  const { data: event } = await supabase
-    .from('events')
-    .select('*, recurrence_rules(*)')
-    .eq('slug', slug)
-    .single<EventRow>()
+  const event = await getEvent(slug)
 
   if (!event) notFound()
 

@@ -117,6 +117,8 @@ archive/                   # Legacy static site, design PSDs, mockups (see archi
 ```
 
 Generated Playwright output (gitignored): `archive/test-results/`, `archive/playwright-report/`.
+Persistent navigation benchmark evidence is written to the separate
+`archive/bench-results/` directory so test runs do not delete it.
 
 **Data split:** Editorial copy and bios → Sanity. Operational records (events, users, payments, forms) → Supabase.
 

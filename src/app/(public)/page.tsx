@@ -1,9 +1,11 @@
 import type { Metadata } from 'next'
+import { unstable_cache } from 'next/cache'
 import Link from 'next/link'
 
-import { createClient } from '@/lib/supabase/server'
+import { PUBLIC_ANNOUNCEMENTS_CACHE_TAG, PUBLIC_EVENTS_CACHE_TAG } from '@/lib/cache-tags'
 import { formatInChurchTimeZone } from '@/lib/event-time'
 import { formatChurchPhone, getChurchPhoneTelHref } from '@/lib/site-config'
+import { getPublicSupabaseClient } from '@/lib/supabase/public'
 import { getUpcomingEventOccurrences, type UpcomingEventSource } from '@/lib/upcoming-events'
 import { Button, Card, GoldDivider, ScrollReveal, SectionHeader } from '@/components/ui'
 import { PinnedAnnouncementsBanner } from '@/components/features/PinnedAnnouncementsBanner'
@@ -35,45 +37,67 @@ interface AnnouncementRow {
 const formattedChurchPhone = formatChurchPhone()
 const churchPhoneTelHref = getChurchPhoneTelHref()
 
-export default async function HomePage() {
-  const supabase = await createClient()
-  const now = new Date()
+const getHomePageData = unstable_cache(
+  async () => {
+    const supabase = getPublicSupabaseClient()
+    const now = new Date()
 
-  const [{ data: recentAnnouncements }, { data: pinnedAnnouncements }, { data: eventSources }] =
-    await Promise.all([
-      supabase
-        .from('announcements')
-        .select('id, title, slug, body, priority, is_pinned, published_at')
-        .order('priority', { ascending: false })
-        .order('published_at', { ascending: false })
-        .limit(3),
-      supabase
-        .from('announcements')
-        .select('id, title, slug, priority')
-        .eq('is_pinned', true)
-        .order('priority', { ascending: false }),
-      supabase
-        .from('events')
-        .select(
+    const [{ data: recentAnnouncements }, { data: pinnedAnnouncements }, { data: eventSources }] =
+      await Promise.all([
+        supabase
+          .from('announcements')
+          .select('id, title, slug, body, priority, is_pinned, published_at')
+          .order('priority', { ascending: false })
+          .order('published_at', { ascending: false })
+          .limit(3),
+        supabase
+          .from('announcements')
+          .select('id, title, slug, priority')
+          .eq('is_pinned', true)
+          .order('priority', { ascending: false }),
+        supabase
+          .from('events')
+          .select(
+            `
+            id, title, slug, location, start_at, end_at, is_recurring, category,
+            recurrence_rules(rrule_string, dtstart),
+            event_instances(
+              original_date, is_cancelled, title_override, location_override,
+              start_at_override, end_at_override
+            )
           `
-          id, title, slug, location, start_at, end_at, is_recurring, category,
-          recurrence_rules(rrule_string, dtstart),
-          event_instances(
-            original_date, is_cancelled, title_override, location_override,
-            start_at_override, end_at_override
           )
-        `
-        )
-        .or(`is_recurring.eq.true,start_at.gte.${now.toISOString()}`)
-        .order('start_at', { ascending: true }),
-    ])
+          .or(`is_recurring.eq.true,start_at.gte.${now.toISOString()}`)
+          .order('start_at', { ascending: true }),
+      ])
+
+    return {
+      recentAnnouncements,
+      pinnedAnnouncements,
+      eventSources,
+      generatedAt: now.toISOString(),
+    }
+  },
+  ['public-home-page-data'],
+  {
+    revalidate: 60,
+    tags: [PUBLIC_ANNOUNCEMENTS_CACHE_TAG, PUBLIC_EVENTS_CACHE_TAG],
+  }
+)
+
+export const revalidate = 60
+
+export default async function HomePage() {
+  const { recentAnnouncements, pinnedAnnouncements, eventSources, generatedAt } =
+    await getHomePageData()
+  const generatedAtDate = new Date(generatedAt)
 
   const recent = (recentAnnouncements as AnnouncementRow[]) || []
   const pinned =
     (pinnedAnnouncements as { id: string; title: string; slug: string; priority: number }[]) || []
   const upcoming = getUpcomingEventOccurrences(
     (eventSources as unknown as UpcomingEventSource[]) || [],
-    now,
+    generatedAtDate,
     3
   )
 

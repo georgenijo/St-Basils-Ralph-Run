@@ -1,6 +1,7 @@
 import { updateSession } from '@/lib/supabase/middleware'
 import { logger } from '@/lib/logger'
-import type { NextRequest } from 'next/server'
+import { requiresSessionRefresh } from '@/lib/session-paths'
+import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
   const startedAt = performance.now()
@@ -25,7 +26,13 @@ export async function middleware(request: NextRequest) {
   })
   requestLogger.debug('request.received')
 
-  const response = await updateSession(request, requestHeaders)
+  // Anonymous public pages do not consume identity. Avoid a Supabase
+  // auth.getUser() round trip on every page/RSC request and leave those routes
+  // eligible for Next/Vercel caching. Auth, protected, RSVP, and API routes keep
+  // the normal session refresh behavior.
+  const response = requiresSessionRefresh(request.nextUrl.pathname)
+    ? await updateSession(request, requestHeaders)
+    : NextResponse.next({ request: { headers: requestHeaders } })
   response.headers.set('x-request-id', requestId)
   requestLogger.debug('middleware.completed', {
     status: response.status,

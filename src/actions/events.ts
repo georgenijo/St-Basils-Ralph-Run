@@ -1,7 +1,8 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 
+import { PUBLIC_EVENTS_CACHE_TAG } from '@/lib/cache-tags'
 import {
   CHURCH_TIME_ZONE,
   buildRecurrenceUntilIso,
@@ -191,6 +192,7 @@ async function createEventImpl(prevState: ActionState, formData: FormData): Prom
   }
 
   // 6. Revalidate and return
+  revalidateTag(PUBLIC_EVENTS_CACHE_TAG)
   revalidatePath('/admin/events')
   revalidatePath('/events')
   return { success: true, message: 'Event created successfully' }
@@ -336,6 +338,7 @@ async function updateEventImpl(prevState: ActionState, formData: FormData): Prom
   }
 
   // 6. Revalidate and return
+  revalidateTag(PUBLIC_EVENTS_CACHE_TAG)
   revalidatePath('/admin/events')
   revalidatePath('/events')
   return { success: true, message: 'Event updated successfully' }
@@ -359,6 +362,7 @@ async function deleteEventImpl(prevState: ActionState, formData: FormData): Prom
   }
 
   // 3. Revalidate and return
+  revalidateTag(PUBLIC_EVENTS_CACHE_TAG)
   revalidatePath('/admin/events')
   revalidatePath('/events')
   return { success: true, message: 'Event deleted successfully' }

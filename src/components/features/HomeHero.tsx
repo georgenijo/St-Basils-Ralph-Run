@@ -3,14 +3,32 @@
 import { useRef, useState, useEffect } from 'react'
 
 export function HomeHero() {
+  const videoRef = useRef<HTMLVideoElement>(null)
   const audioRef = useRef<HTMLAudioElement>(null)
+  const [isVideoReady, setIsVideoReady] = useState(false)
   const [isPlaying, setIsPlaying] = useState(false)
 
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.volume = 0.3
     }
+
+    const revealVideo = () => setIsVideoReady(true)
+    const requestIdleCallback = window.requestIdleCallback
+    if (typeof requestIdleCallback === 'function') {
+      const idleCallback = requestIdleCallback(revealVideo, { timeout: 1_500 })
+      return () => window.cancelIdleCallback(idleCallback)
+    }
+
+    const timer = setTimeout(revealVideo, 750)
+    return () => clearTimeout(timer)
   }, [])
+
+  useEffect(() => {
+    if (!isVideoReady || !videoRef.current) return
+    videoRef.current.load()
+    void videoRef.current.play().catch(() => undefined)
+  }, [isVideoReady])
 
   function toggleAudio() {
     const audio = audioRef.current
@@ -29,15 +47,17 @@ export function HomeHero() {
     <section className="relative flex min-h-[calc(100svh-4rem)] items-center justify-center overflow-hidden bg-charcoal">
       {/* Background video */}
       <video
+        ref={videoRef}
         autoPlay
         loop
         muted
         playsInline
+        preload="none"
         poster="/video/intro-poster.webp"
         className="absolute inset-0 h-full w-full object-cover"
         aria-hidden="true"
       >
-        <source src="/video/intro.mp4" type="video/mp4" />
+        {isVideoReady && <source src="/video/intro.mp4" type="video/mp4" />}
         <track kind="descriptions" label="Church interior video" />
       </video>
 

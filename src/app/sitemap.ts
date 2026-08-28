@@ -1,8 +1,10 @@
 import type { MetadataRoute } from 'next'
 
-import { createClient } from '@/lib/supabase/server'
+import { getPublicSupabaseClient } from '@/lib/supabase/public'
 
 const BASE_URL = 'https://stbasilsboston.org'
+
+export const revalidate = 300
 
 const STATIC_ROUTES = [
   '/',
@@ -41,7 +43,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages = staticEntries(generatedAt)
 
   try {
-    const supabase = await createClient()
+    const supabase = getPublicSupabaseClient()
 
     // All events are public: the public page query has no additional predicates,
     // and the events SELECT policy is USING (true).

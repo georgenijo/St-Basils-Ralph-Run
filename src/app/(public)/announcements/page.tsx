@@ -1,8 +1,10 @@
 import type { Metadata } from 'next'
+import { unstable_cache } from 'next/cache'
 import Link from 'next/link'
 
-import { createClient } from '@/lib/supabase/server'
+import { PUBLIC_ANNOUNCEMENTS_CACHE_TAG } from '@/lib/cache-tags'
 import { breadcrumbSchema } from '@/lib/structured-data'
+import { getPublicSupabaseClient } from '@/lib/supabase/public'
 import { PageHero, SectionHeader, Card, ScrollReveal, Button, JsonLd } from '@/components/ui'
 
 export const metadata: Metadata = {
@@ -46,22 +48,32 @@ interface PageProps {
   searchParams: Promise<{ page?: string }>
 }
 
+const getAnnouncementsPage = unstable_cache(
+  async (offset: number) => {
+    const supabase = getPublicSupabaseClient()
+
+    // RLS handles filtering to published + non-expired.
+    return supabase
+      .from('announcements')
+      .select('id, title, slug, body, priority, is_pinned, published_at, expires_at, created_at', {
+        count: 'exact',
+      })
+      .order('priority', { ascending: false })
+      .order('published_at', { ascending: false })
+      .range(offset, offset + PAGE_SIZE - 1)
+  },
+  ['public-announcements-page'],
+  { revalidate: 60, tags: [PUBLIC_ANNOUNCEMENTS_CACHE_TAG] }
+)
+
+export const revalidate = 60
+
 export default async function AnnouncementsPage({ searchParams }: PageProps) {
   const { page: pageParam } = await searchParams
   const currentPage = Math.max(1, parseInt(pageParam || '1', 10) || 1)
   const offset = (currentPage - 1) * PAGE_SIZE
 
-  const supabase = await createClient()
-
-  // RLS handles filtering to published + non-expired
-  const { data: announcements, count } = await supabase
-    .from('announcements')
-    .select('id, title, slug, body, priority, is_pinned, published_at, expires_at, created_at', {
-      count: 'exact',
-    })
-    .order('priority', { ascending: false })
-    .order('published_at', { ascending: false })
-    .range(offset, offset + PAGE_SIZE - 1)
+  const { data: announcements, count } = await getAnnouncementsPage(offset)
 
   const items = (announcements as AnnouncementRow[]) || []
   const totalCount = count || 0

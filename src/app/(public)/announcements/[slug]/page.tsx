@@ -1,9 +1,11 @@
 import type { Metadata } from 'next'
+import { unstable_cache } from 'next/cache'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
+import { PUBLIC_ANNOUNCEMENTS_CACHE_TAG } from '@/lib/cache-tags'
 import { formatInChurchTimeZone } from '@/lib/event-time'
-import { createClient } from '@/lib/supabase/server'
+import { getPublicSupabaseClient } from '@/lib/supabase/public'
 import { renderTiptapHTML } from '@/lib/tiptap'
 import { articleSchema, breadcrumbSchema } from '@/lib/structured-data'
 import { Button, Card, GoldDivider, JsonLd, ScrollReveal } from '@/components/ui'
@@ -36,15 +38,26 @@ interface PageProps {
   params: Promise<{ slug: string }>
 }
 
+const getAnnouncement = unstable_cache(
+  async (slug: string): Promise<AnnouncementRow | null> => {
+    const supabase = getPublicSupabaseClient()
+    const { data } = await supabase
+      .from('announcements')
+      .select('id, title, slug, body, priority, is_pinned, published_at, expires_at, created_at')
+      .eq('slug', slug)
+      .single<AnnouncementRow>()
+
+    return data
+  },
+  ['public-announcement-detail'],
+  { revalidate: 60, tags: [PUBLIC_ANNOUNCEMENTS_CACHE_TAG] }
+)
+
+export const revalidate = 60
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params
-  const supabase = await createClient()
-
-  const { data: announcement } = await supabase
-    .from('announcements')
-    .select('title')
-    .eq('slug', slug)
-    .single()
+  const announcement = await getAnnouncement(slug)
 
   if (!announcement) {
     return { title: 'Announcement Not Found' }
@@ -78,14 +91,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function AnnouncementDetailPage({ params }: PageProps) {
   const { slug } = await params
-  const supabase = await createClient()
-
-  // RLS ensures only published + non-expired are returned for public users
-  const { data: announcement } = await supabase
-    .from('announcements')
-    .select('*')
-    .eq('slug', slug)
-    .single<AnnouncementRow>()
+  const announcement = await getAnnouncement(slug)
 
   if (!announcement) notFound()
 

@@ -15,6 +15,7 @@
     "test:e2e:ci": "playwright test e2e/ci e2e/smoke",
     "test:smoke": "playwright test --grep @smoke",
     "test:smoke:prod": "playwright test e2e/smoke/public-pages.spec.ts e2e/smoke/forms.spec.ts e2e/smoke/mobile-nav.spec.ts e2e/smoke/images.spec.ts e2e/smoke/redirects.spec.ts e2e/smoke/calendar-announcements.spec.ts e2e/smoke/admin.spec.ts",
+    "bench:public-nav": "node scripts/bench/bench-public-nav.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "ci:validate": "npm run format:check && npm run lint && npm run typecheck && npm run build"

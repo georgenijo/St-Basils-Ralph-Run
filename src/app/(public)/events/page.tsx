@@ -1,8 +1,10 @@
 import type { Metadata } from 'next'
+import { unstable_cache } from 'next/cache'
 
+import { PUBLIC_EVENTS_CACHE_TAG } from '@/lib/cache-tags'
 import { toRRuleUtcTimestamp } from '@/lib/event-time'
-import { createClient } from '@/lib/supabase/server'
 import { breadcrumbSchema } from '@/lib/structured-data'
+import { getPublicSupabaseClient } from '@/lib/supabase/public'
 import { PageHero, SectionHeader, ScrollReveal, JsonLd } from '@/components/ui'
 import { EventCalendar } from '@/components/features/EventCalendar'
 import { CalendarLegend } from '@/components/features/CalendarLegend'
@@ -145,15 +147,33 @@ function transformEvents(events: EventRow[]): CalendarEvent[] {
   return result
 }
 
+const getCalendarEvents = unstable_cache(
+  async (): Promise<CalendarEvent[]> => {
+    const supabase = getPublicSupabaseClient()
+    const { data: events } = await supabase
+      .from('events')
+      .select(
+        `
+        id, title, slug, description, location, start_at, end_at, is_recurring, category,
+        recurrence_rules(rrule_string, dtstart, until),
+        event_instances(
+          original_date, is_cancelled, start_at_override, end_at_override,
+          location_override, note
+        )
+      `
+      )
+      .order('start_at', { ascending: true })
+
+    return transformEvents((events as EventRow[]) || [])
+  },
+  ['public-calendar-events'],
+  { revalidate: 60, tags: [PUBLIC_EVENTS_CACHE_TAG] }
+)
+
+export const revalidate = 60
+
 export default async function EventsPage() {
-  const supabase = await createClient()
-
-  const { data: events } = await supabase
-    .from('events')
-    .select('*, recurrence_rules(*), event_instances(*)')
-    .order('start_at', { ascending: true })
-
-  const calendarEvents = transformEvents((events as EventRow[]) || [])
+  const calendarEvents = await getCalendarEvents()
 
   return (
     <>

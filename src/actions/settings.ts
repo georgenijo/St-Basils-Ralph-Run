@@ -1,7 +1,8 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 
+import { PUBLIC_SITE_SETTINGS_CACHE_TAG } from '@/lib/cache-tags'
 import { logger } from '@/lib/logger'
 import { withLogging } from '@/lib/logger.server'
 import { createClient } from '@/lib/supabase/server'
@@ -127,6 +128,7 @@ async function updateThemeSettingsImpl(
   }
 
   // 5. Revalidate all pages so they pick up new fonts
+  revalidateTag(PUBLIC_SITE_SETTINGS_CACHE_TAG)
   revalidatePath('/', 'layout')
   return { success: true, message: 'Theme settings saved successfully' }
 }

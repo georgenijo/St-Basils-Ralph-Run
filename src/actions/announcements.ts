@@ -1,7 +1,8 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 
+import { PUBLIC_ANNOUNCEMENTS_CACHE_TAG } from '@/lib/cache-tags'
 import { parseDatetimeLocalInTimeZone, CHURCH_TIME_ZONE } from '@/lib/event-time'
 import { logger } from '@/lib/logger'
 import { withLogging } from '@/lib/logger.server'
@@ -100,7 +101,10 @@ async function createAnnouncementImpl(
   }
 
   // 6. Revalidate and return
+  revalidateTag(PUBLIC_ANNOUNCEMENTS_CACHE_TAG)
   revalidatePath('/admin/announcements')
+  revalidatePath('/announcements')
+  revalidatePath('/')
   return { success: true, message: 'Announcement created successfully' }
 }
 
@@ -207,7 +211,10 @@ async function updateAnnouncementImpl(
   }
 
   // 7. Revalidate and return
+  revalidateTag(PUBLIC_ANNOUNCEMENTS_CACHE_TAG)
   revalidatePath('/admin/announcements')
+  revalidatePath('/announcements')
+  revalidatePath('/')
   return { success: true, message: 'Announcement updated successfully' }
 }
 
@@ -234,7 +241,10 @@ async function deleteAnnouncementImpl(
   }
 
   // 3. Revalidate and return
+  revalidateTag(PUBLIC_ANNOUNCEMENTS_CACHE_TAG)
   revalidatePath('/admin/announcements')
+  revalidatePath('/announcements')
+  revalidatePath('/')
   return { success: true, message: 'Announcement deleted successfully' }
 }
 

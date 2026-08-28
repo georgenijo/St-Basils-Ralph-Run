@@ -2,8 +2,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mockCreateClient = vi.hoisted(() => vi.fn())
 
-vi.mock('@/lib/supabase/server', () => ({
-  createClient: mockCreateClient,
+vi.mock('@/lib/supabase/public', () => ({
+  getPublicSupabaseClient: mockCreateClient,
 }))
 
 import sitemap from '@/app/sitemap'
@@ -63,7 +63,7 @@ beforeEach(() => {
 describe('sitemap', () => {
   it('includes the complete public static route list and no private routes', async () => {
     const { client } = queryClient()
-    mockCreateClient.mockResolvedValue(client)
+    mockCreateClient.mockReturnValue(client)
 
     const entries = await sitemap()
 
@@ -83,7 +83,7 @@ describe('sitemap', () => {
           error: null,
         },
       })
-    mockCreateClient.mockResolvedValue(client)
+    mockCreateClient.mockReturnValue(client)
 
     const entries = await sitemap()
 
@@ -108,7 +108,7 @@ describe('sitemap', () => {
       },
       announcements: { data: null, error: { message: 'database unavailable' } },
     })
-    mockCreateClient.mockResolvedValue(client)
+    mockCreateClient.mockReturnValue(client)
 
     const entries = await sitemap()
 
@@ -116,7 +116,9 @@ describe('sitemap', () => {
   })
 
   it('falls back to only static routes when client creation throws', async () => {
-    mockCreateClient.mockRejectedValue(new Error('configuration unavailable'))
+    mockCreateClient.mockImplementation(() => {
+      throw new Error('configuration unavailable')
+    })
 
     const entries = await sitemap()
 

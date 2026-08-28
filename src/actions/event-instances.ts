@@ -1,9 +1,10 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import { rrulestr } from 'rrule'
 
 import { sendEmail } from '@/lib/email'
+import { PUBLIC_EVENTS_CACHE_TAG } from '@/lib/cache-tags'
 import { formatInChurchTimeZone, parseDatetimeLocalInTimeZone } from '@/lib/event-time'
 import { logger } from '@/lib/logger'
 import { withLogging } from '@/lib/logger.server'
@@ -166,6 +167,7 @@ async function sendOccurrenceNotification(
 }
 
 function revalidateEventPaths() {
+  revalidateTag(PUBLIC_EVENTS_CACHE_TAG)
   revalidatePath('/admin/events')
   revalidatePath('/admin/events/calendar')
   revalidatePath('/events')

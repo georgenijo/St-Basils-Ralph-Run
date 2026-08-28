@@ -1,4 +1,7 @@
-import { createClient } from '@/lib/supabase/server'
+import { unstable_cache } from 'next/cache'
+
+import { PUBLIC_SITE_SETTINGS_CACHE_TAG } from '@/lib/cache-tags'
+import { getPublicSupabaseClient } from '@/lib/supabase/public'
 import type { FontChoice } from '@/lib/validators/settings'
 
 type FontsConfig = {
@@ -40,16 +43,21 @@ function isCustomFont(fonts: FontsConfig): boolean {
   )
 }
 
+const getFontSettings = unstable_cache(
+  async (): Promise<FontsConfig | null> => {
+    const supabase = getPublicSupabaseClient()
+    const { data } = await supabase.from('site_settings').select('fonts').limit(1).single()
+
+    return (data?.fonts as FontsConfig | undefined) ?? null
+  },
+  ['public-font-settings'],
+  { revalidate: 300, tags: [PUBLIC_SITE_SETTINGS_CACHE_TAG] }
+)
+
 export async function DynamicFonts() {
-  const supabase = await createClient()
+  const fonts = await getFontSettings()
 
-  const { data } = await supabase.from('site_settings').select('fonts').limit(1).single()
-
-  if (!data?.fonts) return null
-
-  const fonts = data.fonts as FontsConfig
-
-  if (!isCustomFont(fonts)) return null
+  if (!fonts || !isCustomFont(fonts)) return null
 
   const fontsUrl = buildGoogleFontsUrl(fonts)
 
