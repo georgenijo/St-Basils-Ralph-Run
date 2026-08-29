@@ -42,7 +42,9 @@ test.describe('CI forms and newsletter', () => {
     await footer.locator('input#newsletter-email').fill(emailAddress)
     await footer.getByRole('button', { name: 'Subscribe' }).click()
 
-    await expect(page.getByRole('status')).toContainText('A confirmation email has been sent')
+    // Scoped to the footer: route loading boundaries also expose role="status",
+    // which makes the page-wide locator ambiguous under strict mode.
+    await expect(footer.getByRole('status')).toContainText('A confirmation email has been sent')
 
     const confirmationEmail = await waitForMockEmail(request, {
       template: 'newsletter-confirmation',
