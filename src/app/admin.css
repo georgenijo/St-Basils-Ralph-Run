@@ -398,7 +398,10 @@
   background: var(--fg-soft);
 }
 
-.admin-segmented button {
+.admin-segmented button,
+.admin-segmented a {
+  display: inline-flex;
+  align-items: center;
   height: 30px;
   padding: 0 12px;
   border: 0;
@@ -407,14 +410,17 @@
   color: var(--muted);
   font-size: 12.5px;
   font-weight: 500;
+  text-decoration: none;
 }
 
-.admin-segmented button:hover {
+.admin-segmented button:hover,
+.admin-segmented a:hover {
   color: var(--fg);
 }
 
 .admin-segmented button[aria-pressed='true'],
-.admin-segmented button[data-selected='true'] {
+.admin-segmented button[data-selected='true'],
+.admin-segmented a[data-selected='true'] {
   background: var(--surface);
   box-shadow:
     0 1px 2px oklch(0.2 0.01 260 / 0.12),
@@ -533,6 +539,11 @@
   letter-spacing: 0.05em !important;
   text-align: left;
   text-transform: uppercase;
+}
+
+.admin-table th a {
+  color: inherit;
+  text-decoration: none;
 }
 
 .admin-table td {
@@ -1191,6 +1202,7 @@
 
   .admin-button,
   .admin-segmented button,
+  .admin-segmented a,
   .admin-shell input:not([type='checkbox']):not([type='radio']),
   .admin-shell select {
     min-height: 44px;

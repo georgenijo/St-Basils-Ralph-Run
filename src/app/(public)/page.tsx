@@ -37,6 +37,12 @@ interface AnnouncementRow {
 const formattedChurchPhone = formatChurchPhone()
 const churchPhoneTelHref = getChurchPhoneTelHref()
 
+/** Upper bounds on the events fetch: the page shows 3 occurrences, so 25
+ *  candidate series within the next year is ample headroom for recurring
+ *  expansion, cancellations, and overrides. */
+const EVENTS_FETCH_LIMIT = 25
+const EVENTS_HORIZON_DAYS = 366
+
 const getHomePageData = unstable_cache(
   async () => {
     const supabase = getPublicSupabaseClient()
@@ -77,7 +83,12 @@ const getHomePageData = unstable_cache(
           `
           )
           .or(`is_recurring.eq.true,start_at.gte.${now.toISOString()}`)
-          .order('start_at', { ascending: true }),
+          .lte(
+            'start_at',
+            new Date(now.getTime() + EVENTS_HORIZON_DAYS * 24 * 60 * 60 * 1000).toISOString()
+          )
+          .order('start_at', { ascending: true })
+          .limit(EVENTS_FETCH_LIMIT),
       ])
 
     return {
