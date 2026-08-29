@@ -235,6 +235,31 @@ async function assignUserToFamilyImpl(
     return { success: false, message: 'User is already assigned to this family' }
   }
 
+  if (target.family_id) {
+    const { data: previousFamily, error: previousFamilyError } = await supabase
+      .from('families')
+      .select('head_of_household')
+      .eq('id', target.family_id)
+      .single()
+
+    if (previousFamilyError || !previousFamily) {
+      if (previousFamilyError) {
+        log.error('family.assignment_previous_family_lookup_failed', {
+          error: previousFamilyError,
+          targetUserId: parsed.data.user_id,
+        })
+      }
+      return { success: false, message: 'Failed to assign user to family' }
+    }
+
+    if (previousFamily.head_of_household === parsed.data.user_id) {
+      return {
+        success: false,
+        message: 'Change or clear the head of household before reassigning them',
+      }
+    }
+  }
+
   const { error } = await supabase
     .from('profiles')
     .update({ family_id: parsed.data.family_id })

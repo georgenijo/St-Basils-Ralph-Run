@@ -301,23 +301,22 @@ function RemoveMemberForm({ familyId, user }: { familyId: string; user: FamilyPr
   }, [state.success, router])
 
   return (
-    <form action={formAction}>
+    <form action={formAction} className="text-right">
       <input type="hidden" name="family_id" value={familyId} />
       <input type="hidden" name="user_id" value={user.id} />
-      {state.message && !state.success && (
-        <span className="sr-only" role="alert">
-          {state.message}
-        </span>
-      )}
       <button
         type="submit"
         disabled={isPending}
         className="admin-button admin-button-quiet"
         aria-label={`Remove ${profileName(user)} from family`}
-        title={state.message && !state.success ? state.message : undefined}
       >
         {isPending ? 'Removing...' : 'Remove'}
       </button>
+      {state.message && !state.success && (
+        <p className="mt-1 font-body text-xs text-red-600" role="alert">
+          {state.message}
+        </p>
+      )}
     </form>
   )
 }
