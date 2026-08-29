@@ -3,34 +3,83 @@ import { redirect } from 'next/navigation'
 
 import { createClient } from '@/lib/supabase/server'
 import { paginationRange, parsePageParam, totalPageCount } from '@/lib/pagination'
+import { buildAdminQueryString } from '@/lib/admin-table-params'
 import { Button } from '@/components/ui'
 import { AdminPagination } from '@/components/features/AdminPagination'
-import { EventsTable } from '@/components/features/EventsTable'
+import {
+  EventsTable,
+  EVENT_CATEGORIES,
+  EVENT_SORT_KEYS,
+  DEFAULT_EVENT_SORT,
+  type EventCategory,
+  type EventSortKey,
+} from '@/components/features/EventsTable'
 
 export const metadata: Metadata = {
   title: 'Events',
 }
 
-export default async function EventsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ page?: string | string[] }>
-}) {
+type SearchParams = Promise<{
+  page?: string | string[]
+  category?: string | string[]
+  sort?: string | string[]
+  dir?: string | string[]
+}>
+
+function first(value: string | string[] | undefined): string | undefined {
+  return Array.isArray(value) ? value[0] : value
+}
+
+export default async function EventsPage({ searchParams }: { searchParams: SearchParams }) {
   const supabase = await createClient()
-  const page = parsePageParam((await searchParams).page)
+  const params = await searchParams
+  const page = parsePageParam(params.page)
   const { from, to } = paginationRange(page)
 
-  const { data: events, count } = await supabase
+  const categoryParam = first(params.category)
+  const category: EventCategory | 'all' = (EVENT_CATEGORIES as readonly string[]).includes(
+    categoryParam ?? ''
+  )
+    ? (categoryParam as EventCategory)
+    : 'all'
+
+  const sortParam = first(params.sort)
+  const sortKey: EventSortKey = (EVENT_SORT_KEYS as readonly string[]).includes(sortParam ?? '')
+    ? (sortParam as EventSortKey)
+    : DEFAULT_EVENT_SORT.key
+  const dirParam = first(params.dir)
+  const sortDir: 'asc' | 'desc' =
+    dirParam === 'asc' || dirParam === 'desc'
+      ? dirParam
+      : sortKey === DEFAULT_EVENT_SORT.key
+        ? DEFAULT_EVENT_SORT.dir
+        : 'asc'
+
+  let query = supabase
     .from('events')
     .select('id, title, slug, start_at, end_at, category, is_recurring, created_at', {
       count: 'exact',
     })
-    .order('start_at', { ascending: false })
+  if (category !== 'all') {
+    query = query.eq('category', category)
+  }
+  const { data: events, count } = await query
+    .order(sortKey, { ascending: sortDir === 'asc' })
+    .order('id', { ascending: true })
     .range(from, to)
 
   const totalCount = count ?? 0
   const totalPages = totalPageCount(totalCount)
-  if (page > totalPages) redirect(`/admin/events?page=${totalPages}`)
+  if (page > totalPages) {
+    redirect(
+      `/admin/events${buildAdminQueryString({
+        category: category === 'all' ? undefined : category,
+        sort: sortParam,
+        dir: dirParam,
+        page: totalPages > 1 ? String(totalPages) : undefined,
+      })}`
+    )
+  }
 
   return (
     <main className="admin-page">
@@ -75,8 +124,17 @@ export default async function EventsPage({
         <span className="admin-meta">{totalCount} events</span>
       </div>
 
-      <EventsTable events={events ?? []} />
-      <AdminPagination pathname="/admin/events" page={page} totalCount={totalCount} />
+      <EventsTable events={events ?? []} category={category} sortKey={sortKey} sortDir={sortDir} />
+      <AdminPagination
+        pathname="/admin/events"
+        page={page}
+        totalCount={totalCount}
+        searchParams={{
+          category: category === 'all' ? undefined : category,
+          sort: sortParam,
+          dir: dirParam,
+        }}
+      />
     </main>
   )
 }

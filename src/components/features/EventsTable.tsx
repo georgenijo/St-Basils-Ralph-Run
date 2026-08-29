@@ -1,10 +1,11 @@
 'use client'
 
 import Link from 'next/link'
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 
 import { formatInChurchTimeZone } from '@/lib/event-time'
 import { cn } from '@/lib/utils'
+import { buildAdminQueryString } from '@/lib/admin-table-params'
 import { DeleteEventDialog } from '@/components/features/DeleteEventDialog'
 
 interface Event {
@@ -18,14 +19,25 @@ interface Event {
   created_at: string
 }
 
-interface EventsTableProps {
-  events: Event[]
-}
+export const EVENT_CATEGORIES = ['liturgical', 'community', 'special'] as const
+export type EventCategory = (typeof EVENT_CATEGORIES)[number]
 
-type SortKey = 'title' | 'start_at' | 'category' | 'created_at'
+export const EVENT_SORT_KEYS = ['title', 'start_at', 'category', 'created_at'] as const
+export type EventSortKey = (typeof EVENT_SORT_KEYS)[number]
+
+export const DEFAULT_EVENT_SORT = { key: 'start_at', dir: 'desc' } as const
+
 type SortDir = 'asc' | 'desc'
 
-const CATEGORY_LABELS: Record<string, string> = {
+interface EventsTableProps {
+  /** Current page of events, already filtered and sorted server-side. */
+  events: Event[]
+  category: EventCategory | 'all'
+  sortKey: EventSortKey
+  sortDir: SortDir
+}
+
+const CATEGORY_LABELS: Record<EventCategory, string> = {
   liturgical: 'Liturgical',
   community: 'Community',
   special: 'Special',
@@ -66,57 +78,55 @@ function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
   )
 }
 
-export function EventsTable({ events }: EventsTableProps) {
-  const [sortKey, setSortKey] = useState<SortKey>('start_at')
-  const [sortDir, setSortDir] = useState<SortDir>('desc')
-  const [categoryFilter, setCategoryFilter] = useState<string>('')
+export function EventsTable({ events, category, sortKey, sortDir }: EventsTableProps) {
   const [deleteTarget, setDeleteTarget] = useState<Event | null>(null)
 
-  function toggleSort(key: SortKey) {
-    if (sortKey === key) {
-      setSortDir(sortDir === 'asc' ? 'desc' : 'asc')
-    } else {
-      setSortKey(key)
-      setSortDir('asc')
-    }
+  function tableHref(overrides: {
+    category?: EventCategory | 'all'
+    sortKey?: EventSortKey
+    sortDir?: SortDir
+  }): string {
+    const nextCategory = overrides.category ?? category
+    const nextSortKey = overrides.sortKey ?? sortKey
+    const nextSortDir = overrides.sortDir ?? sortDir
+    const isDefaultSort =
+      nextSortKey === DEFAULT_EVENT_SORT.key && nextSortDir === DEFAULT_EVENT_SORT.dir
+    // Changing filter or sort always returns to page 1.
+    return `/admin/events${buildAdminQueryString({
+      category: nextCategory === 'all' ? undefined : nextCategory,
+      sort: isDefaultSort ? undefined : nextSortKey,
+      dir: isDefaultSort ? undefined : nextSortDir,
+    })}`
   }
 
-  const filtered = useMemo(() => {
-    let result = [...events]
-    if (categoryFilter) {
-      result = result.filter((e) => e.category === categoryFilter)
+  function sortHref(key: EventSortKey): string {
+    if (sortKey === key) {
+      return tableHref({ sortDir: sortDir === 'asc' ? 'desc' : 'asc' })
     }
-    return result.sort((a, b) => {
-      const aVal = a[sortKey]
-      const bVal = b[sortKey]
-      const cmp = String(aVal).localeCompare(String(bVal))
-      return sortDir === 'asc' ? cmp : -cmp
-    })
-  }, [events, sortKey, sortDir, categoryFilter])
+    return tableHref({ sortKey: key, sortDir: 'asc' })
+  }
 
   const thClass = 'cursor-pointer select-none'
+
+  const CATEGORY_FILTERS: { value: EventCategory | 'all'; label: string }[] = [
+    { value: 'all', label: 'All' },
+    ...EVENT_CATEGORIES.map((value) => ({ value, label: CATEGORY_LABELS[value] })),
+  ]
 
   return (
     <div>
       {/* Filter bar */}
       <div className="admin-toolbar">
         <div className="admin-segmented" role="group" aria-label="Filter events">
-          <button
-            type="button"
-            onClick={() => setCategoryFilter('')}
-            aria-pressed={!categoryFilter}
-          >
-            All
-          </button>
-          {Object.entries(CATEGORY_LABELS).map(([value, label]) => (
-            <button
-              key={value}
-              type="button"
-              onClick={() => setCategoryFilter(value)}
-              aria-pressed={categoryFilter === value}
+          {CATEGORY_FILTERS.map((f) => (
+            <Link
+              key={f.value}
+              href={tableHref({ category: f.value })}
+              data-selected={category === f.value ? 'true' : undefined}
+              aria-current={category === f.value ? 'true' : undefined}
             >
-              {label}
-            </button>
+              {f.label}
+            </Link>
           ))}
         </div>
       </div>
@@ -126,39 +136,44 @@ export function EventsTable({ events }: EventsTableProps) {
         <table className="admin-table">
           <thead>
             <tr>
-              <th className={thClass} onClick={() => toggleSort('title')}>
-                Title
-                <SortIcon active={sortKey === 'title'} dir={sortDir} />
+              <th className={thClass}>
+                <Link href={sortHref('title')}>
+                  Title
+                  <SortIcon active={sortKey === 'title'} dir={sortDir} />
+                </Link>
               </th>
-              <th className={thClass} onClick={() => toggleSort('category')}>
-                Category
-                <SortIcon active={sortKey === 'category'} dir={sortDir} />
+              <th className={thClass}>
+                <Link href={sortHref('category')}>
+                  Category
+                  <SortIcon active={sortKey === 'category'} dir={sortDir} />
+                </Link>
               </th>
-              <th className={thClass} onClick={() => toggleSort('start_at')}>
-                Date
-                <SortIcon active={sortKey === 'start_at'} dir={sortDir} />
+              <th className={thClass}>
+                <Link href={sortHref('start_at')}>
+                  Date
+                  <SortIcon active={sortKey === 'start_at'} dir={sortDir} />
+                </Link>
               </th>
-              <th
-                className={cn(thClass, 'hidden lg:table-cell')}
-                onClick={() => toggleSort('created_at')}
-              >
-                Created
-                <SortIcon active={sortKey === 'created_at'} dir={sortDir} />
+              <th className={cn(thClass, 'hidden lg:table-cell')}>
+                <Link href={sortHref('created_at')}>
+                  Created
+                  <SortIcon active={sortKey === 'created_at'} dir={sortDir} />
+                </Link>
               </th>
               <th className="admin-cell-number">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {filtered.length === 0 ? (
+            {events.length === 0 ? (
               <tr>
                 <td colSpan={5} className="admin-empty">
-                  {categoryFilter
+                  {category !== 'all'
                     ? 'No events in this category'
                     : 'No events yet. Create your first event!'}
                 </td>
               </tr>
             ) : (
-              filtered.map((event) => (
+              events.map((event) => (
                 <tr key={event.id}>
                   <td>
                     <div className="flex items-center gap-2">
@@ -190,7 +205,9 @@ export function EventsTable({ events }: EventsTableProps) {
                     </div>
                   </td>
                   <td className="admin-cell-secondary">
-                    <span>{CATEGORY_LABELS[event.category] ?? event.category}</span>
+                    <span>
+                      {CATEGORY_LABELS[event.category as EventCategory] ?? event.category}
+                    </span>
                   </td>
                   <td className="admin-cell-mono">{formatDate(event.start_at)}</td>
                   <td className="admin-cell-mono admin-cell-secondary hidden lg:table-cell">

@@ -1,9 +1,10 @@
 'use client'
 
 import Link from 'next/link'
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 
 import { cn } from '@/lib/utils'
+import { buildAdminQueryString } from '@/lib/admin-table-params'
 import { DeleteAnnouncementDialog } from '@/components/features/DeleteAnnouncementDialog'
 
 interface Announcement {
@@ -17,13 +18,25 @@ interface Announcement {
   created_at: string
 }
 
-interface AnnouncementsTableProps {
-  announcements: Announcement[]
-}
+export const ANNOUNCEMENT_STATUSES = ['published', 'draft', 'expired'] as const
+export type AnnouncementStatus = (typeof ANNOUNCEMENT_STATUSES)[number]
 
-type StatusFilter = 'all' | 'published' | 'draft' | 'expired'
-type SortKey = 'title' | 'priority' | 'published_at' | 'created_at'
+export const ANNOUNCEMENT_SORT_KEYS = ['title', 'priority', 'published_at', 'created_at'] as const
+export type AnnouncementSortKey = (typeof ANNOUNCEMENT_SORT_KEYS)[number]
+
+export const DEFAULT_ANNOUNCEMENT_SORT = { key: 'created_at', dir: 'desc' } as const
+
 type SortDir = 'asc' | 'desc'
+
+interface AnnouncementsTableProps {
+  /** Current page of announcements, already filtered and sorted server-side. */
+  announcements: Announcement[]
+  /** Counts across the whole dataset, not just this page. */
+  statusCounts: Record<AnnouncementStatus | 'all', number>
+  status: AnnouncementStatus | 'all'
+  sortKey: AnnouncementSortKey
+  sortDir: SortDir
+}
 
 const PRIORITY_LABELS: Record<number, string> = {
   0: 'Normal',
@@ -41,7 +54,7 @@ function formatDate(iso: string | null): string {
   })
 }
 
-function getStatus(a: Announcement): 'published' | 'draft' | 'expired' {
+function getStatus(a: Announcement): AnnouncementStatus {
   if (!a.published_at) return 'draft'
   if (a.expires_at && new Date(a.expires_at) < new Date()) return 'expired'
   return 'published'
@@ -71,45 +84,43 @@ function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
   )
 }
 
-export function AnnouncementsTable({ announcements }: AnnouncementsTableProps) {
-  const [sortKey, setSortKey] = useState<SortKey>('created_at')
-  const [sortDir, setSortDir] = useState<SortDir>('desc')
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
+export function AnnouncementsTable({
+  announcements,
+  statusCounts,
+  status,
+  sortKey,
+  sortDir,
+}: AnnouncementsTableProps) {
   const [deleteTarget, setDeleteTarget] = useState<Announcement | null>(null)
 
-  function toggleSort(key: SortKey) {
-    if (sortKey === key) {
-      setSortDir(sortDir === 'asc' ? 'desc' : 'asc')
-    } else {
-      setSortKey(key)
-      setSortDir('asc')
-    }
+  function tableHref(overrides: {
+    status?: AnnouncementStatus | 'all'
+    sortKey?: AnnouncementSortKey
+    sortDir?: SortDir
+  }): string {
+    const nextStatus = overrides.status ?? status
+    const nextSortKey = overrides.sortKey ?? sortKey
+    const nextSortDir = overrides.sortDir ?? sortDir
+    const isDefaultSort =
+      nextSortKey === DEFAULT_ANNOUNCEMENT_SORT.key && nextSortDir === DEFAULT_ANNOUNCEMENT_SORT.dir
+    // Changing filter or sort always returns to page 1.
+    return `/admin/announcements${buildAdminQueryString({
+      status: nextStatus === 'all' ? undefined : nextStatus,
+      sort: isDefaultSort ? undefined : nextSortKey,
+      dir: isDefaultSort ? undefined : nextSortDir,
+    })}`
   }
 
-  const filtered = useMemo(() => {
-    let result = [...announcements]
-    if (statusFilter !== 'all') {
-      result = result.filter((a) => getStatus(a) === statusFilter)
+  function sortHref(key: AnnouncementSortKey): string {
+    if (sortKey === key) {
+      return tableHref({ sortDir: sortDir === 'asc' ? 'desc' : 'asc' })
     }
-    return result.sort((a, b) => {
-      const aVal = a[sortKey] ?? ''
-      const bVal = b[sortKey] ?? ''
-      const cmp = String(aVal).localeCompare(String(bVal))
-      return sortDir === 'asc' ? cmp : -cmp
-    })
-  }, [announcements, sortKey, sortDir, statusFilter])
-
-  const statusCounts = useMemo(() => {
-    const counts = { all: announcements.length, published: 0, draft: 0, expired: 0 }
-    for (const a of announcements) {
-      counts[getStatus(a)]++
-    }
-    return counts
-  }, [announcements])
+    return tableHref({ sortKey: key, sortDir: 'asc' })
+  }
 
   const thClass = 'cursor-pointer select-none'
 
-  const STATUS_FILTERS: { value: StatusFilter; label: string }[] = [
+  const STATUS_FILTERS: { value: AnnouncementStatus | 'all'; label: string }[] = [
     { value: 'all', label: 'All' },
     { value: 'published', label: 'Published' },
     { value: 'draft', label: 'Draft' },
@@ -122,14 +133,14 @@ export function AnnouncementsTable({ announcements }: AnnouncementsTableProps) {
       <div className="admin-toolbar">
         <div className="admin-segmented" role="group" aria-label="Filter announcements">
           {STATUS_FILTERS.map((f) => (
-            <button
+            <Link
               key={f.value}
-              type="button"
-              onClick={() => setStatusFilter(f.value)}
-              aria-pressed={statusFilter === f.value}
+              href={tableHref({ status: f.value })}
+              data-selected={status === f.value ? 'true' : undefined}
+              aria-current={status === f.value ? 'true' : undefined}
             >
               {f.label} ({statusCounts[f.value]})
-            </button>
+            </Link>
           ))}
         </div>
       </div>
@@ -139,47 +150,46 @@ export function AnnouncementsTable({ announcements }: AnnouncementsTableProps) {
         <table className="admin-table">
           <thead>
             <tr>
-              <th className={thClass} onClick={() => toggleSort('title')}>
-                Title
-                <SortIcon active={sortKey === 'title'} dir={sortDir} />
+              <th className={thClass}>
+                <Link href={sortHref('title')}>
+                  Title
+                  <SortIcon active={sortKey === 'title'} dir={sortDir} />
+                </Link>
               </th>
-              <th className={cn(thClass, 'hidden sm:table-cell')}>Status</th>
-              <th
-                className={cn(thClass, 'hidden md:table-cell')}
-                onClick={() => toggleSort('priority')}
-              >
-                Priority
-                <SortIcon active={sortKey === 'priority'} dir={sortDir} />
+              <th className="hidden sm:table-cell">Status</th>
+              <th className={cn(thClass, 'hidden md:table-cell')}>
+                <Link href={sortHref('priority')}>
+                  Priority
+                  <SortIcon active={sortKey === 'priority'} dir={sortDir} />
+                </Link>
               </th>
-              <th
-                className={cn(thClass, 'hidden lg:table-cell')}
-                onClick={() => toggleSort('published_at')}
-              >
-                Published
-                <SortIcon active={sortKey === 'published_at'} dir={sortDir} />
+              <th className={cn(thClass, 'hidden lg:table-cell')}>
+                <Link href={sortHref('published_at')}>
+                  Published
+                  <SortIcon active={sortKey === 'published_at'} dir={sortDir} />
+                </Link>
               </th>
-              <th
-                className={cn(thClass, 'hidden lg:table-cell')}
-                onClick={() => toggleSort('created_at')}
-              >
-                Created
-                <SortIcon active={sortKey === 'created_at'} dir={sortDir} />
+              <th className={cn(thClass, 'hidden lg:table-cell')}>
+                <Link href={sortHref('created_at')}>
+                  Created
+                  <SortIcon active={sortKey === 'created_at'} dir={sortDir} />
+                </Link>
               </th>
               <th className="admin-cell-number">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {filtered.length === 0 ? (
+            {announcements.length === 0 ? (
               <tr>
                 <td colSpan={6} className="admin-empty">
-                  {statusFilter !== 'all'
-                    ? `No ${statusFilter} announcements`
+                  {status !== 'all'
+                    ? `No ${status} announcements`
                     : 'No announcements yet. Create your first announcement!'}
                 </td>
               </tr>
             ) : (
-              filtered.map((announcement) => {
-                const status = getStatus(announcement)
+              announcements.map((announcement) => {
+                const rowStatus = getStatus(announcement)
                 return (
                   <tr key={announcement.id}>
                     <td>
@@ -201,11 +211,11 @@ export function AnnouncementsTable({ announcements }: AnnouncementsTableProps) {
                       <span
                         className={cn(
                           'admin-status capitalize',
-                          status === 'published' && 'admin-status-ok',
-                          status === 'expired' && 'admin-status-warn'
+                          rowStatus === 'published' && 'admin-status-ok',
+                          rowStatus === 'expired' && 'admin-status-warn'
                         )}
                       >
-                        {status}
+                        {rowStatus}
                       </span>
                     </td>
                     <td className="admin-cell-secondary hidden md:table-cell">
