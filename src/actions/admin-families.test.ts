@@ -301,6 +301,7 @@ describe('assignUserToFamily', () => {
       ],
       families: [
         singleQuery({ data: { id: FAMILY_ID, family_name: 'Thomas Family' }, error: null }),
+        singleQuery({ data: { head_of_household: HEAD_ID }, error: null }),
       ],
       admin_audit_log: [audit.client],
     })
@@ -354,6 +355,65 @@ describe('assignUserToFamily', () => {
         previous_family_id: null,
       },
     })
+  })
+
+  it('rejects reassigning the head of household of their current family', async () => {
+    mockAdmin({
+      profiles: [
+        singleQuery({
+          data: {
+            id: USER_ID,
+            email: 'head@example.com',
+            full_name: 'Head Member',
+            family_id: OLD_FAMILY_ID,
+          },
+          error: null,
+        }),
+      ],
+      families: [
+        singleQuery({ data: { id: FAMILY_ID, family_name: 'Thomas Family' }, error: null }),
+        singleQuery({ data: { head_of_household: USER_ID }, error: null }),
+      ],
+    })
+
+    const result = await assignUserToFamily(
+      INITIAL_STATE,
+      form({ family_id: FAMILY_ID, user_id: USER_ID })
+    )
+
+    expect(result).toEqual({
+      success: false,
+      message: 'Change or clear the head of household before reassigning them',
+    })
+    expect(mockSendEmail).not.toHaveBeenCalled()
+  })
+
+  it('fails closed when the previous family lookup fails', async () => {
+    mockAdmin({
+      profiles: [
+        singleQuery({
+          data: {
+            id: USER_ID,
+            email: 'member@example.com',
+            full_name: 'Member',
+            family_id: OLD_FAMILY_ID,
+          },
+          error: null,
+        }),
+      ],
+      families: [
+        singleQuery({ data: { id: FAMILY_ID, family_name: 'Thomas Family' }, error: null }),
+        singleQuery({ data: null, error: { message: 'connection lost' } }),
+      ],
+    })
+
+    const result = await assignUserToFamily(
+      INITIAL_STATE,
+      form({ family_id: FAMILY_ID, user_id: USER_ID })
+    )
+
+    expect(result).toEqual({ success: false, message: 'Failed to assign user to family' })
+    expect(mockSendEmail).not.toHaveBeenCalled()
   })
 
   it('keeps a successful assignment when email delivery fails', async () => {
