@@ -20,7 +20,7 @@ export interface AuthWithProfile {
  * Extract the `sub` claim from a JWT without verifying it. Used ONLY as a
  * query hint — see the security note in getAuthWithProfile().
  */
-function subFromJwt(token: string): string | null {
+export function subFromJwt(token: string): string | null {
   try {
     const payload = token.split('.')[1]
     const decoded = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'))
