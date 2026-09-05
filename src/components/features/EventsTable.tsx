@@ -6,6 +6,13 @@ import { useState } from 'react'
 import { formatInChurchTimeZone } from '@/lib/event-time'
 import { cn } from '@/lib/utils'
 import { buildAdminQueryString } from '@/lib/admin-table-params'
+import {
+  EVENT_CATEGORIES,
+  EVENT_CATEGORY_LABELS,
+  DEFAULT_EVENT_SORT,
+  type EventCategory,
+  type EventSortKey,
+} from '@/lib/admin-table-config'
 import { DeleteEventDialog } from '@/components/features/DeleteEventDialog'
 
 interface Event {
@@ -19,14 +26,6 @@ interface Event {
   created_at: string
 }
 
-export const EVENT_CATEGORIES = ['liturgical', 'community', 'special'] as const
-export type EventCategory = (typeof EVENT_CATEGORIES)[number]
-
-export const EVENT_SORT_KEYS = ['title', 'start_at', 'category', 'created_at'] as const
-export type EventSortKey = (typeof EVENT_SORT_KEYS)[number]
-
-export const DEFAULT_EVENT_SORT = { key: 'start_at', dir: 'desc' } as const
-
 type SortDir = 'asc' | 'desc'
 
 interface EventsTableProps {
@@ -35,12 +34,6 @@ interface EventsTableProps {
   category: EventCategory | 'all'
   sortKey: EventSortKey
   sortDir: SortDir
-}
-
-const CATEGORY_LABELS: Record<EventCategory, string> = {
-  liturgical: 'Liturgical',
-  community: 'Community',
-  special: 'Special',
 }
 
 function formatDate(iso: string): string {
@@ -110,7 +103,7 @@ export function EventsTable({ events, category, sortKey, sortDir }: EventsTableP
 
   const CATEGORY_FILTERS: { value: EventCategory | 'all'; label: string }[] = [
     { value: 'all', label: 'All' },
-    ...EVENT_CATEGORIES.map((value) => ({ value, label: CATEGORY_LABELS[value] })),
+    ...EVENT_CATEGORIES.map((value) => ({ value, label: EVENT_CATEGORY_LABELS[value] })),
   ]
 
   return (
@@ -206,7 +199,7 @@ export function EventsTable({ events, category, sortKey, sortDir }: EventsTableP
                   </td>
                   <td className="admin-cell-secondary">
                     <span>
-                      {CATEGORY_LABELS[event.category as EventCategory] ?? event.category}
+                      {EVENT_CATEGORY_LABELS[event.category as EventCategory] ?? event.category}
                     </span>
                   </td>
                   <td className="admin-cell-mono">{formatDate(event.start_at)}</td>

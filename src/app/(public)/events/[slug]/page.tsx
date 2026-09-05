@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation'
 
 import { PUBLIC_EVENTS_CACHE_TAG } from '@/lib/cache-tags'
 import { formatInChurchTimeZone, getChurchTimeZoneName } from '@/lib/event-time'
+import { EVENT_CATEGORY_LABELS, type EventCategory } from '@/lib/admin-table-config'
 import { getPublicSupabaseClient } from '@/lib/supabase/public'
 import { renderTiptapHTML } from '@/lib/tiptap'
 import { describeRecurrence } from '@/lib/recurrence'
@@ -21,19 +22,13 @@ interface EventRow {
   start_at: string
   end_at: string | null
   is_recurring: boolean
-  category: 'liturgical' | 'community' | 'special'
+  category: EventCategory
   created_at: string
   recurrence_rules: {
     rrule_string: string
     dtstart: string
     until: string | null
   }[]
-}
-
-const CATEGORY_LABELS: Record<string, string> = {
-  liturgical: 'Liturgical',
-  community: 'Community',
-  special: 'Special',
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -165,7 +160,7 @@ export default async function EventDetailPage({ params }: PageProps) {
                 <span
                   className={`inline-block rounded-full px-3 py-1 text-xs font-medium ${CATEGORY_COLORS[event.category]}`}
                 >
-                  {CATEGORY_LABELS[event.category]}
+                  {EVENT_CATEGORY_LABELS[event.category]}
                 </span>
                 {event.is_recurring && (
                   <span className="inline-block rounded-full border border-gold-500/40 bg-gold-500/10 px-3 py-1 text-xs font-medium text-wood-800">

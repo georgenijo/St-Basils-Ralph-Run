@@ -6,14 +6,14 @@ import { paginationRange, parsePageParam, totalPageCount } from '@/lib/paginatio
 import { buildAdminQueryString } from '@/lib/admin-table-params'
 import { Button } from '@/components/ui'
 import { AdminPagination } from '@/components/features/AdminPagination'
+import { EventsTable } from '@/components/features/EventsTable'
 import {
-  EventsTable,
   EVENT_CATEGORIES,
   EVENT_SORT_KEYS,
   DEFAULT_EVENT_SORT,
   type EventCategory,
   type EventSortKey,
-} from '@/components/features/EventsTable'
+} from '@/lib/admin-table-config'
 
 export const metadata: Metadata = {
   title: 'Events',

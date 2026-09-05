@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { unstable_cache } from 'next/cache'
 
 import { PUBLIC_EVENTS_CACHE_TAG } from '@/lib/cache-tags'
+import type { EventCategory } from '@/lib/admin-table-config'
 import { toRRuleUtcTimestamp } from '@/lib/event-time'
 import { breadcrumbSchema } from '@/lib/structured-data'
 import { getPublicSupabaseClient } from '@/lib/supabase/public'
@@ -40,7 +41,7 @@ interface EventRow {
   start_at: string
   end_at: string | null
   is_recurring: boolean
-  category: 'liturgical' | 'community' | 'special'
+  category: EventCategory
   recurrence_rules: {
     rrule_string: string
     dtstart: string
