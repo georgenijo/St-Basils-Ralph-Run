@@ -25,7 +25,7 @@ interface QueryResult {
   error: null
 }
 
-function matches(value: unknown, op: 'eq' | 'gte' | 'lt' | 'is', target: unknown): boolean {
+function matches(value: unknown, op: 'eq' | 'gt' | 'gte' | 'lt' | 'is', target: unknown): boolean {
   if (op === 'is') return target === null && (value === null || value === undefined)
   if (value === null || value === undefined) return false
 
@@ -35,14 +35,16 @@ function matches(value: unknown, op: 'eq' | 'gte' | 'lt' | 'is', target: unknown
     return String(value) === String(target)
   }
 
-  // gte / lt: numeric when both sides are numeric, else string comparison
+  // gt / gte / lt: numeric when both sides are numeric, else string comparison
   // (correct for ISO 8601 timestamps).
   if (typeof value === 'number') {
     const numericTarget = Number(target)
+    if (op === 'gt') return value > numericTarget
     return op === 'gte' ? value >= numericTarget : value < numericTarget
   }
   const left = String(value)
   const right = String(target)
+  if (op === 'gt') return left > right
   return op === 'gte' ? left >= right : left < right
 }
 
@@ -72,7 +74,7 @@ function parseOrCondition(condition: string): (row: Row) => boolean {
   const rawValue = condition.slice(secondDot + 1)
 
   if (op === 'is') return (row) => matches(row[column], 'is', rawValue === 'null' ? null : rawValue)
-  if (op === 'eq' || op === 'gte' || op === 'lt') {
+  if (op === 'eq' || op === 'gt' || op === 'gte' || op === 'lt') {
     return (row) => matches(row[column], op, rawValue)
   }
   throw new Error(`postgrest-mock: unsupported .or() operator "${op}" in "${condition}"`)

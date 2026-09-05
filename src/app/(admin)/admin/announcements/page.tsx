@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { paginationRange, parsePageParam, totalPageCount } from '@/lib/pagination'
 import { buildAdminQueryString } from '@/lib/admin-table-params'
+import { applyAnnouncementStatusFilter } from '@/lib/announcement-status'
 import { Button } from '@/components/ui'
 import { AdminPagination } from '@/components/features/AdminPagination'
 import { AnnouncementsTable } from '@/components/features/AnnouncementsTable'
@@ -28,25 +29,6 @@ type SearchParams = Promise<{
 
 function first(value: string | string[] | undefined): string | undefined {
   return Array.isArray(value) ? value[0] : value
-}
-
-/** Status is derived: draft = unpublished, expired = published with a past
- *  expiry, published = the rest. The same expressions drive both the filtered
- *  page query and the per-status counts so badges always match the filters. */
-function applyStatusFilter<
-  Q extends {
-    is(column: string, value: null): Q
-    not(column: string, operator: string, value: null): Q
-    lt(column: string, value: string): Q
-    or(expression: string): Q
-  },
->(query: Q, status: AnnouncementStatus | 'all', nowIso: string): Q {
-  if (status === 'draft') return query.is('published_at', null)
-  if (status === 'expired') return query.not('published_at', 'is', null).lt('expires_at', nowIso)
-  if (status === 'published') {
-    return query.not('published_at', 'is', null).or(`expires_at.is.null,expires_at.gte.${nowIso}`)
-  }
-  return query
 }
 
 export default async function AnnouncementsPage({ searchParams }: { searchParams: SearchParams }) {
@@ -78,14 +60,18 @@ export default async function AnnouncementsPage({ searchParams }: { searchParams
         : 'asc'
 
   const countQuery = (countStatus: AnnouncementStatus | 'all') =>
-    applyStatusFilter(
+    applyAnnouncementStatusFilter(
       supabase.from('announcements').select('id', { count: 'exact', head: true }),
       countStatus,
       nowIso
     )
 
-  const [{ data: announcements, count }, ...countResults] = await Promise.all([
-    applyStatusFilter(
+  const countStatuses: AnnouncementStatus[] =
+    status === 'all'
+      ? ['draft', 'expired']
+      : ANNOUNCEMENT_STATUSES.filter((candidate) => candidate !== status)
+  const [{ data: announcements, count }, countResults] = await Promise.all([
+    applyAnnouncementStatusFilter(
       supabase
         .from('announcements')
         .select('id, title, slug, priority, is_pinned, published_at, expires_at, created_at', {
@@ -97,16 +83,22 @@ export default async function AnnouncementsPage({ searchParams }: { searchParams
       .order(sortKey, { ascending: sortDir === 'asc' })
       .order('id', { ascending: true })
       .range(from, to),
-    countQuery('all'),
-    countQuery('published'),
-    countQuery('draft'),
-    countQuery('expired'),
+    Promise.all(countStatuses.map(countQuery)),
   ])
-  const [allCount, publishedCount, draftCount, expiredCount] = countResults.map(
-    (result) => result.count ?? 0
-  )
 
   const totalCount = count ?? 0
+  const countsByStatus = new Map<AnnouncementStatus, number>()
+  if (status !== 'all') countsByStatus.set(status, totalCount)
+  countStatuses.forEach((countStatus, index) => {
+    countsByStatus.set(countStatus, countResults[index]?.count ?? 0)
+  })
+  const draftCount = countsByStatus.get('draft') ?? 0
+  const expiredCount = countsByStatus.get('expired') ?? 0
+  const publishedCount =
+    status === 'all'
+      ? totalCount - draftCount - expiredCount
+      : (countsByStatus.get('published') ?? 0)
+  const allCount = status === 'all' ? totalCount : publishedCount + draftCount + expiredCount
   const totalPages = totalPageCount(totalCount)
   if (page > totalPages) {
     redirect(
@@ -164,6 +156,7 @@ export default async function AnnouncementsPage({ searchParams }: { searchParams
         status={status}
         sortKey={sortKey}
         sortDir={sortDir}
+        nowIso={nowIso}
       />
       <AdminPagination
         pathname="/admin/announcements"
