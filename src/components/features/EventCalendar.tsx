@@ -36,7 +36,7 @@ interface EventCalendarProps {
   events: CalendarEvent[]
 }
 
-const CATEGORY_COLORS: Record<string, string> = {
+const CATEGORY_COLORS: Record<EventCategory, string> = {
   liturgical: '#9B1B3D',
   community: '#253341',
   special: '#4A3729',

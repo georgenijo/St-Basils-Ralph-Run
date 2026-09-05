@@ -12,8 +12,9 @@ import rrulePlugin from '@fullcalendar/rrule'
 import { CHURCH_TIME_ZONE } from '@/lib/event-time'
 import type { EventClickArg, EventMountArg, EventContentArg } from '@fullcalendar/core'
 import type { CalendarEvent } from '@/components/features/EventCalendar'
+import type { EventCategory } from '@/lib/event-categories'
 
-const CATEGORY_COLORS: Record<string, { bg: string; border: string }> = {
+const CATEGORY_COLORS: Record<EventCategory, { bg: string; border: string }> = {
   liturgical: { bg: '#9B1B3D', border: '#7A1530' },
   community: { bg: '#253341', border: '#1c2831' },
   special: { bg: '#4A3729', border: '#352618' },

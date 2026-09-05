@@ -1,6 +1,7 @@
 import 'server-only'
 
 import { redact, type LogLevel } from '@/lib/logger'
+import { isOneOf } from '@/lib/admin-table-config'
 
 // This is the project-level request-log endpoint used by Vercel CLI's
 // `vercel logs` implementation. It returns historical runtime requests and
@@ -105,13 +106,6 @@ const SAFE_DETAIL_KEYS = [
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
-}
-
-function isOneOf<const Values extends readonly string[]>(
-  value: string | undefined,
-  values: Values
-): value is Values[number] {
-  return typeof value === 'string' && values.includes(value)
 }
 
 function limitedString(value: unknown, maximum: number): string | undefined {

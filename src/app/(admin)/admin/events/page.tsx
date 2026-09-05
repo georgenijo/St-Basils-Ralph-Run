@@ -11,6 +11,7 @@ import {
   EVENT_CATEGORIES,
   EVENT_SORT_KEYS,
   DEFAULT_EVENT_SORT,
+  isOneOf,
   type EventCategory,
   type EventSortKey,
 } from '@/lib/admin-table-config'
@@ -37,15 +38,13 @@ export default async function EventsPage({ searchParams }: { searchParams: Searc
   const { from, to } = paginationRange(page)
 
   const categoryParam = first(params.category)
-  const category: EventCategory | 'all' = (EVENT_CATEGORIES as readonly string[]).includes(
-    categoryParam ?? ''
-  )
-    ? (categoryParam as EventCategory)
+  const category: EventCategory | 'all' = isOneOf(categoryParam, EVENT_CATEGORIES)
+    ? categoryParam
     : 'all'
 
   const sortParam = first(params.sort)
-  const sortKey: EventSortKey = (EVENT_SORT_KEYS as readonly string[]).includes(sortParam ?? '')
-    ? (sortParam as EventSortKey)
+  const sortKey: EventSortKey = isOneOf(sortParam, EVENT_SORT_KEYS)
+    ? sortParam
     : DEFAULT_EVENT_SORT.key
   const dirParam = first(params.dir)
   const sortDir: 'asc' | 'desc' =

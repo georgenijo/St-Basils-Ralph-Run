@@ -11,6 +11,7 @@ import {
   ANNOUNCEMENT_SORT_KEYS,
   ANNOUNCEMENT_STATUSES,
   DEFAULT_ANNOUNCEMENT_SORT,
+  isOneOf,
   type AnnouncementSortKey,
   type AnnouncementStatus,
 } from '@/lib/admin-table-config'
@@ -57,17 +58,13 @@ export default async function AnnouncementsPage({ searchParams }: { searchParams
   const nowIso = new Date().toISOString()
 
   const statusParam = first(params.status)
-  const status: AnnouncementStatus | 'all' = (ANNOUNCEMENT_STATUSES as readonly string[]).includes(
-    statusParam ?? ''
-  )
-    ? (statusParam as AnnouncementStatus)
+  const status: AnnouncementStatus | 'all' = isOneOf(statusParam, ANNOUNCEMENT_STATUSES)
+    ? statusParam
     : 'all'
 
   const sortParam = first(params.sort)
-  const sortKey: AnnouncementSortKey = (ANNOUNCEMENT_SORT_KEYS as readonly string[]).includes(
-    sortParam ?? ''
-  )
-    ? (sortParam as AnnouncementSortKey)
+  const sortKey: AnnouncementSortKey = isOneOf(sortParam, ANNOUNCEMENT_SORT_KEYS)
+    ? sortParam
     : DEFAULT_ANNOUNCEMENT_SORT.key
   const dirParam = first(params.dir)
   const sortDir: 'asc' | 'desc' =
