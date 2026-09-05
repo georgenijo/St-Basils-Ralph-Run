@@ -104,4 +104,68 @@ describe('/admin/announcements with more rows than one page', () => {
     expect(high).toBeLessThan(medium)
     expect(medium).toBeLessThan(low)
   })
+
+  it('uses one captured time for expiry filters, counts, and status badges', async () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-09-05T12:00:00.000Z'))
+    queryMock = createSupabaseQueryMock({
+      announcements: [
+        {
+          id: 'at-boundary',
+          title: 'Expires at captured time',
+          slug: 'at-boundary',
+          priority: 0,
+          is_pinned: false,
+          published_at: '2026-09-01T00:00:00.000Z',
+          expires_at: '2026-09-05T12:00:00.000Z',
+          created_at: '2026-09-01T00:00:00.000Z',
+        },
+        {
+          id: 'still-published',
+          title: 'Expires after captured time',
+          slug: 'still-published',
+          priority: 0,
+          is_pinned: false,
+          published_at: '2026-09-01T00:00:00.000Z',
+          expires_at: '2026-09-05T12:00:00.001Z',
+          created_at: '2026-09-01T00:00:00.000Z',
+        },
+        {
+          id: 'draft',
+          title: 'Draft',
+          slug: 'draft',
+          priority: 0,
+          is_pinned: false,
+          published_at: null,
+          expires_at: null,
+          created_at: '2026-09-01T00:00:00.000Z',
+        },
+      ],
+    })
+
+    try {
+      const html = await renderPage()
+      expect(html).toContain('All (3)')
+      expect(html).toContain('Published (1)')
+      expect(html).toContain('Draft (1)')
+      expect(html).toContain('Expired (1)')
+      expect(html).toMatch(/Expires at captured time[\s\S]*?>expired<\/span>/)
+      expect(queryMock.ops.announcements).toHaveLength(3)
+      expect(queryMock.ops.announcements[2]).toContainEqual({
+        method: 'lte',
+        args: ['expires_at', '2026-09-05T12:00:00.000Z'],
+      })
+
+      const publishedHtml = await renderPage({ status: 'published' })
+      expect(publishedHtml).toContain('Expires after captured time')
+      expect(publishedHtml).not.toContain('Expires at captured time')
+      expect(queryMock.ops.announcements).toHaveLength(6)
+      expect(queryMock.ops.announcements[3]).toContainEqual({
+        method: 'or',
+        args: ['expires_at.is.null,expires_at.gt.2026-09-05T12:00:00.000Z'],
+      })
+    } finally {
+      vi.useRealTimers()
+    }
+  })
 })

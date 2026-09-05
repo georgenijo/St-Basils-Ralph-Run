@@ -5,6 +5,7 @@ import { useState } from 'react'
 
 import { cn } from '@/lib/utils'
 import { buildAdminQueryString } from '@/lib/admin-table-params'
+import { getAnnouncementStatus } from '@/lib/announcement-status'
 import {
   DEFAULT_ANNOUNCEMENT_SORT,
   type AnnouncementStatus,
@@ -33,6 +34,8 @@ interface AnnouncementsTableProps {
   status: AnnouncementStatus | 'all'
   sortKey: AnnouncementSortKey
   sortDir: SortDir
+  /** Server-captured time used by filters and row status badges. */
+  nowIso: string
 }
 
 const PRIORITY_LABELS: Record<number, string> = {
@@ -49,12 +52,6 @@ function formatDate(iso: string | null): string {
     day: 'numeric',
     year: 'numeric',
   })
-}
-
-function getStatus(a: Announcement): AnnouncementStatus {
-  if (!a.published_at) return 'draft'
-  if (a.expires_at && new Date(a.expires_at) < new Date()) return 'expired'
-  return 'published'
 }
 
 function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
@@ -87,6 +84,7 @@ export function AnnouncementsTable({
   status,
   sortKey,
   sortDir,
+  nowIso,
 }: AnnouncementsTableProps) {
   const [deleteTarget, setDeleteTarget] = useState<Announcement | null>(null)
 
@@ -186,7 +184,7 @@ export function AnnouncementsTable({
               </tr>
             ) : (
               announcements.map((announcement) => {
-                const rowStatus = getStatus(announcement)
+                const rowStatus = getAnnouncementStatus(announcement, nowIso)
                 return (
                   <tr key={announcement.id}>
                     <td>
