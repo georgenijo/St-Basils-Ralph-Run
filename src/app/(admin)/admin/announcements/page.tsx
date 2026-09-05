@@ -6,14 +6,14 @@ import { paginationRange, parsePageParam, totalPageCount } from '@/lib/paginatio
 import { buildAdminQueryString } from '@/lib/admin-table-params'
 import { Button } from '@/components/ui'
 import { AdminPagination } from '@/components/features/AdminPagination'
+import { AnnouncementsTable } from '@/components/features/AnnouncementsTable'
 import {
-  AnnouncementsTable,
   ANNOUNCEMENT_SORT_KEYS,
   ANNOUNCEMENT_STATUSES,
   DEFAULT_ANNOUNCEMENT_SORT,
   type AnnouncementSortKey,
   type AnnouncementStatus,
-} from '@/components/features/AnnouncementsTable'
+} from '@/lib/admin-table-config'
 
 export const metadata: Metadata = {
   title: 'Announcements',

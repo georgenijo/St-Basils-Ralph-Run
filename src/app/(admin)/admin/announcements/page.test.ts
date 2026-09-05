@@ -23,6 +23,14 @@ vi.mock('next/link', async () => {
   }
 })
 
+// Server pages can render client components, but cannot read their value exports.
+vi.mock('@/components/features/AnnouncementsTable', async () => {
+  const { AnnouncementsTable } = await vi.importActual<
+    typeof import('@/components/features/AnnouncementsTable')
+  >('@/components/features/AnnouncementsTable')
+  return { AnnouncementsTable }
+})
+
 import AnnouncementsPage from './page'
 
 /**

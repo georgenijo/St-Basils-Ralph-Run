@@ -5,6 +5,11 @@ import { useState } from 'react'
 
 import { cn } from '@/lib/utils'
 import { buildAdminQueryString } from '@/lib/admin-table-params'
+import {
+  DEFAULT_ANNOUNCEMENT_SORT,
+  type AnnouncementStatus,
+  type AnnouncementSortKey,
+} from '@/lib/admin-table-config'
 import { DeleteAnnouncementDialog } from '@/components/features/DeleteAnnouncementDialog'
 
 interface Announcement {
@@ -17,14 +22,6 @@ interface Announcement {
   expires_at: string | null
   created_at: string
 }
-
-export const ANNOUNCEMENT_STATUSES = ['published', 'draft', 'expired'] as const
-export type AnnouncementStatus = (typeof ANNOUNCEMENT_STATUSES)[number]
-
-export const ANNOUNCEMENT_SORT_KEYS = ['title', 'priority', 'published_at', 'created_at'] as const
-export type AnnouncementSortKey = (typeof ANNOUNCEMENT_SORT_KEYS)[number]
-
-export const DEFAULT_ANNOUNCEMENT_SORT = { key: 'created_at', dir: 'desc' } as const
 
 type SortDir = 'asc' | 'desc'
 
