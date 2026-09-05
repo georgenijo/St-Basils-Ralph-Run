@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 
+import { EVENT_CATEGORIES } from '@/lib/admin-table-config'
 import {
   eventSchema,
   eventCategory,
@@ -8,6 +9,15 @@ import {
   parseRRuleString,
   slugify,
 } from '@/lib/validators/event'
+
+// ---------------------------------------------------------------------------
+// eventCategory
+// ---------------------------------------------------------------------------
+describe('eventCategory', () => {
+  it('stays in sync with EVENT_CATEGORIES so the two cannot drift', () => {
+    expect(eventCategory.options).toEqual(EVENT_CATEGORIES)
+  })
+})
 
 // ---------------------------------------------------------------------------
 // slugify

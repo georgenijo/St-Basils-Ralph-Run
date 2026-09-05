@@ -5,6 +5,11 @@ import dynamic from 'next/dynamic'
 
 import { cn } from '@/lib/utils'
 import { CalendarSkeleton } from '@/components/features/CalendarSkeleton'
+import {
+  EVENT_CATEGORIES,
+  EVENT_CATEGORY_LABELS,
+  type EventCategory,
+} from '@/lib/admin-table-config'
 
 const CalendarView = dynamic(
   () => import('@/components/features/CalendarView').then((mod) => mod.CalendarView),
@@ -20,7 +25,7 @@ export interface CalendarEvent {
   duration?: string
   extendedProps: {
     slug: string
-    category: 'liturgical' | 'community' | 'special'
+    category: EventCategory
     location: string | null
     instanceType?: 'modified' | 'cancelled'
     note?: string | null
@@ -39,9 +44,7 @@ const CATEGORY_COLORS: Record<string, string> = {
 
 const CATEGORIES = [
   { value: 'all', label: 'All Events' },
-  { value: 'liturgical', label: 'Liturgical' },
-  { value: 'community', label: 'Community' },
-  { value: 'special', label: 'Special' },
+  ...EVENT_CATEGORIES.map((value) => ({ value, label: EVENT_CATEGORY_LABELS[value] })),
 ] as const
 
 type CategoryFilter = (typeof CATEGORIES)[number]['value']

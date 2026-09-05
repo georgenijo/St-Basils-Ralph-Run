@@ -30,6 +30,8 @@ test.describe('CI admin events', () => {
     await page.getByRole('button', { name: 'Create Event' }).click()
 
     await page.waitForURL('**/admin/events')
+    await expect(page.getByRole('heading', { name: 'Events', level: 1 })).toBeVisible()
+    await expect(page.getByText(title)).toBeVisible()
 
     const event = await fetchEventBySlug(slug)
     expect(event.start_at).toContain('2027-01-15T14:15:00')

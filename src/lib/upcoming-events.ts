@@ -1,5 +1,7 @@
 import { rrulestr } from 'rrule'
 
+import type { EventCategory } from '@/lib/admin-table-config'
+
 export interface UpcomingEventSource {
   id: string
   title: string
@@ -8,7 +10,7 @@ export interface UpcomingEventSource {
   start_at: string
   end_at: string | null
   is_recurring: boolean
-  category: 'liturgical' | 'community' | 'special'
+  category: EventCategory
   recurrence_rules: {
     rrule_string: string
     dtstart: string
@@ -31,7 +33,7 @@ export interface UpcomingEventOccurrence {
   location: string | null
   startAt: string
   endAt: string | null
-  category: 'liturgical' | 'community' | 'special'
+  category: EventCategory
 }
 
 function endAtForOccurrence(source: UpcomingEventSource, start: Date): string | null {

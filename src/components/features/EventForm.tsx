@@ -6,6 +6,7 @@ import { createEvent, updateEvent } from '@/actions/events'
 import { Button } from '@/components/ui'
 import { RRuleBuilder } from '@/components/features/RRuleBuilder'
 import { TiptapEditor } from '@/components/features/TiptapEditor'
+import { EVENT_CATEGORIES, EVENT_CATEGORY_LABELS } from '@/lib/admin-table-config'
 import {
   CHURCH_TIME_ZONE,
   formatIsoForDatetimeLocal,
@@ -14,11 +15,10 @@ import {
 import { slugify } from '@/lib/validators/event'
 import { cn } from '@/lib/utils'
 
-const CATEGORIES = [
-  { value: 'liturgical', label: 'Liturgical' },
-  { value: 'community', label: 'Community' },
-  { value: 'special', label: 'Special' },
-] as const
+const CATEGORIES = EVENT_CATEGORIES.map((value) => ({
+  value,
+  label: EVENT_CATEGORY_LABELS[value],
+}))
 
 const inputBase =
   'w-full rounded-lg border bg-cream-50 px-4 py-3 font-body text-base text-wood-800 placeholder:text-wood-800/40 transition-colors focus:border-burgundy-700 focus:outline-none focus:ring-2 focus:ring-burgundy-700/20'

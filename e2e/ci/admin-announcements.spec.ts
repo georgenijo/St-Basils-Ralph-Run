@@ -51,6 +51,8 @@ test.describe('CI admin announcements', () => {
     await page.getByRole('button', { name: 'Create Announcement' }).click()
 
     await page.waitForURL('**/admin/announcements')
+    await expect(page.getByRole('heading', { name: 'Announcements', level: 1 })).toBeVisible()
+    await expect(page.getByText(title)).toBeVisible()
 
     const announcement = await fetchAnnouncementBySlug(slug)
     expect(announcement.published_at).toBeTruthy()

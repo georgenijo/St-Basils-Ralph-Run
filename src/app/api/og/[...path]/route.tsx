@@ -6,17 +6,12 @@ import { join } from 'node:path'
 
 import { logger } from '@/lib/logger'
 import { withRequestLogging } from '@/lib/logger.server'
+import { EVENT_CATEGORY_LABELS, type EventCategory } from '@/lib/admin-table-config'
 
 const BURGUNDY = '#9B1B3D'
 const CREAM = '#FFFDF8'
 const GOLD = '#D4A017'
 const log = logger.child({ scope: 'open-graph' })
-
-const CATEGORY_LABELS: Record<string, string> = {
-  liturgical: 'Liturgical',
-  community: 'Community',
-  special: 'Special',
-}
 
 async function loadGoogleFont(family: string, weight: number): Promise<ArrayBuffer> {
   const url = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(family)}:wght@${weight}&display=swap`
@@ -96,7 +91,7 @@ async function getImpl(_request: NextRequest, { params }: { params: Promise<{ pa
       if (event) {
         title = event.title
         subtitle = formatDate(event.start_at)
-        badge = CATEGORY_LABELS[event.category] || null
+        badge = EVENT_CATEGORY_LABELS[event.category as EventCategory] || null
       }
     } else {
       const { data: announcement, error } = await supabase

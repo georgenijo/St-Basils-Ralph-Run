@@ -1,10 +1,11 @@
 import { z } from 'zod'
 
+import { EVENT_CATEGORIES } from '@/lib/admin-table-config'
 import { buildRecurrenceUntilTimestamp, parseRRuleUntilToDateInput } from '@/lib/event-time'
 
-export const eventCategory = z.enum(['liturgical', 'community', 'special'])
+export const eventCategory = z.enum(EVENT_CATEGORIES)
 
-export type EventCategory = z.infer<typeof eventCategory>
+export type { EventCategory } from '@/lib/admin-table-config'
 
 export const rruleSchema = z.object({
   frequency: z.enum(['DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY']),
