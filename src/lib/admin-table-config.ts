@@ -1,10 +1,10 @@
-export const EVENT_CATEGORIES = ['liturgical', 'community', 'special'] as const
-export type EventCategory = (typeof EVENT_CATEGORIES)[number]
+export { EVENT_CATEGORIES, EVENT_CATEGORY_LABELS, type EventCategory } from '@/lib/event-categories'
 
-export const EVENT_CATEGORY_LABELS: Record<EventCategory, string> = {
-  liturgical: 'Liturgical',
-  community: 'Community',
-  special: 'Special',
+export function isOneOf<const Values extends readonly string[]>(
+  value: string | undefined,
+  values: Values
+): value is Values[number] {
+  return typeof value === 'string' && values.includes(value)
 }
 
 export const EVENT_SORT_KEYS = ['title', 'start_at', 'category', 'created_at'] as const

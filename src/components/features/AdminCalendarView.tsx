@@ -18,6 +18,7 @@ import {
 } from '@/components/features/OccurrenceModal'
 
 import type { EventClickArg, EventMountArg, EventContentArg } from '@fullcalendar/core'
+import type { EventCategory } from '@/lib/event-categories'
 
 export interface AdminCalendarEvent {
   id: string
@@ -30,7 +31,7 @@ export interface AdminCalendarEvent {
     instanceType: 'recurring' | 'modified' | 'cancelled' | 'single'
     eventId: string
     slug: string
-    category: string
+    category: EventCategory
     location: string | null
     instance?: {
       id: string
@@ -52,7 +53,7 @@ interface AdminCalendarViewProps {
   events: AdminCalendarEvent[]
 }
 
-const CATEGORY_COLORS: Record<string, { bg: string; border: string }> = {
+const CATEGORY_COLORS: Record<EventCategory, { bg: string; border: string }> = {
   liturgical: { bg: 'var(--fg-soft)', border: 'var(--border)' },
   community: { bg: 'var(--fg-soft)', border: 'var(--border)' },
   special: { bg: 'var(--fg-soft)', border: 'var(--border)' },

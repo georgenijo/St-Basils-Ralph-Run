@@ -6,7 +6,7 @@ import { join } from 'node:path'
 
 import { logger } from '@/lib/logger'
 import { withRequestLogging } from '@/lib/logger.server'
-import { EVENT_CATEGORY_LABELS, type EventCategory } from '@/lib/admin-table-config'
+import { EVENT_CATEGORY_LABELS, type EventCategory } from '@/lib/event-categories'
 
 const BURGUNDY = '#9B1B3D'
 const CREAM = '#FFFDF8'

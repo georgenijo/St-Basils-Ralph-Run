@@ -5,7 +5,7 @@ import { notFound } from 'next/navigation'
 
 import { PUBLIC_EVENTS_CACHE_TAG } from '@/lib/cache-tags'
 import { formatInChurchTimeZone, getChurchTimeZoneName } from '@/lib/event-time'
-import { EVENT_CATEGORY_LABELS, type EventCategory } from '@/lib/admin-table-config'
+import { EVENT_CATEGORY_LABELS, type EventCategory } from '@/lib/event-categories'
 import { getPublicSupabaseClient } from '@/lib/supabase/public'
 import { renderTiptapHTML } from '@/lib/tiptap'
 import { describeRecurrence } from '@/lib/recurrence'
@@ -31,7 +31,7 @@ interface EventRow {
   }[]
 }
 
-const CATEGORY_COLORS: Record<string, string> = {
+const CATEGORY_COLORS: Record<EventCategory, string> = {
   liturgical: 'bg-burgundy-700 text-cream-50',
   community: 'bg-charcoal text-cream-50',
   special: 'bg-wood-800 text-cream-50',

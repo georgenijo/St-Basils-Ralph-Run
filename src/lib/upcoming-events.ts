@@ -1,6 +1,6 @@
 import { rrulestr } from 'rrule'
 
-import type { EventCategory } from '@/lib/admin-table-config'
+import type { EventCategory } from '@/lib/event-categories'
 
 export interface UpcomingEventSource {
   id: string
